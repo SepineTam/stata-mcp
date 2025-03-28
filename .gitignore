@@ -17,3 +17,14 @@ wheels/
 
 # OS X
 *.DS_Store
+
+# Config
+config.py
+
+# test
+test/
+tests/
+
+# Logs
+logs/
+log/
