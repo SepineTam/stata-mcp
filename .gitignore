@@ -28,3 +28,6 @@ tests/
 # Logs
 logs/
 log/
+
+# private
+src/
