@@ -18,7 +18,7 @@
 ---
 
 # 💡 Quick Start
-For more detailed usage information, visit the [Usage guide](docs/usage.md).
+For more detailed usage information, visit the [Usage guide](docs/Usage).
 
 ## Prerequisites
 - [uv](https://github.com/astral-sh/uv) - Package installer and virtual environment manager
@@ -94,7 +94,7 @@ command: uv --directory /Users/yourname/path/to/repo/ run stata_mcp.py 17 se
 ```
 
 # 📝 Documentation
-For more detailed usage information, visit the [Usage guide](docs/usage.md).
+For more detailed usage information, visit the [Usage guide](docs/Usage).
 
 # 🚀 Roadmap
 - [x] macOS support
@@ -105,7 +105,7 @@ For more detailed usage information, visit the [Usage guide](docs/usage.md).
 # ⚠️ Disclaimer
 This project is for research purposes only. I am not responsible for any damage caused by this project. Please ensure you have proper licensing to use Stata.
 
-For more information, refer to the [Statement](Statement.md).
+For more information, refer to the [Statement](docs/Statement.md).
 
 # 🐛 Report Issues
 If you encounter any bugs or have feature requests, please [open an issue](https://github.com/sepinetam/stata-mcp/issues/new).
