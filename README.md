@@ -15,6 +15,7 @@
 ---
 
 # Usage
+For more detailed usage guide, visit the [Usage document](docs/usage.md).
 ## Necessary
 - [uv](https://github.com/astral-sh/uv)
 - Claude or Cline or ChatWise or other
@@ -43,16 +44,18 @@ For it, there is some example:
 ### [Claude](https://claude.ai/)
 Follow the following config:
 ```json
-"chat_number": {
-  "command":"uv",
-  "args":[
-    "--directory",
-    "/Users/yourname/path/to/repo/",
-    "run",
-    "stata_mcp.py",
-    "17",
-    "se"
-  ]
+{
+  "stata-mcp": {
+    "command":"uv",
+    "args":[
+      "--directory",
+      "/Users/yourname/path/to/repo/",
+      "run",
+      "stata_mcp.py",
+      "17",
+      "se"
+    ]
+  }
 }
 ```
 
@@ -71,7 +74,7 @@ command: uv --directory /Users/yourname/path/to/repo/ run stata_mcp.py 17 se
 ```json
 {
   "mcpServers": {
-    "chat_number": {
+    "stata-mcp": {
       "command":"uv",
       "args":[
         "--directory",
@@ -95,3 +98,8 @@ More info please refer to [Statement](Statement.md).
 
 # License
 [MIT License](License)
+
+# Contact
+Email: [sepinetam@gmail.com](mailto:sepinetam@gmail.com)
+
+or you can submit a PR
