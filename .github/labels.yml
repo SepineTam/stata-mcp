@@ -1,0 +1,23 @@
+# 新功能需求标签
+- name: "enhancement"
+  color: "84b6eb"    # 浅蓝色
+  description: "New feature request or enhancement suggestion"
+
+# Bug 标签
+- name: "bug"
+  color: "d73a4a"    # 红色
+  description: "Something isn't working"
+
+# Bug 标签
+- name: "question"
+  color: "d73a4a"    # 红色
+  description: "Ask a question"
+
+# 可选：优先级标签
+- name: "priority: high"
+  color: "ff0000"
+  description: "High priority issue that needs immediate attention"
+
+- name: "priority: low"
+  color: "fbca04"   # 黄色
+  description: "Low priority issue that can be addressed later"
