@@ -113,6 +113,30 @@ command: uv --directory /Users/yourname/path/to/repo/ run stata_mcp.py 17 se
 # 📄 许可证
 [MIT许可证](../../../License)
 
+# 📚 引用
+如果您在研究中使用 Stata-MCP，请使用以下格式之一引用此存储库：
+
+## BibTeX
+```bibtex
+@software{sepinetam2025stata,
+  author = {Sepine Tam},
+  title = {Stata-MCP: Let LLM help you achieve your regression analysis with Stata},
+  year = {2025},
+  url = {https://github.com/sepinetam/stata-mcp},
+  version = {1.0.3}
+}
+```
+
+## APA
+```
+Sepine Tam. (2025). Stata-MCP: Let LLM help you achieve your regression analysis with Stata (Version 1.0.3) [Computer software]. https://github.com/sepinetam/stata-mcp
+```
+
+## Chicago
+```
+Sepine Tam. 2025. "Stata-MCP: Let LLM help you achieve your regression analysis with Stata." Version 1.0.3. https://github.com/sepinetam/stata-mcp.
+```
+
 # 📬 联系方式
 电子邮件：[sepinetam@gmail.com](mailto:sepinetam@gmail.com)
 

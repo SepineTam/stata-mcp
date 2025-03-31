@@ -113,6 +113,30 @@ Si vous rencontrez des bugs ou avez des demandes de fonctionnalités, veuillez [
 # 📄 Licence
 [Licence MIT](../../../License)
 
+# 📚 Citation
+Si vous utilisez Stata-MCP dans vos recherches, veuillez citer ce référentiel en utilisant l'un des formats suivants:
+
+## BibTeX
+```bibtex
+@software{sepinetam2025stata,
+  author = {Sepine Tam},
+  title = {Stata-MCP: Let LLM help you achieve your regression analysis with Stata},
+  year = {2025},
+  url = {https://github.com/sepinetam/stata-mcp},
+  version = {1.0.3}
+}
+```
+
+## APA
+```
+Sepine Tam. (2025). Stata-MCP: Let LLM help you achieve your regression analysis with Stata (Version 1.0.3) [Computer software]. https://github.com/sepinetam/stata-mcp
+```
+
+## Chicago
+```
+Sepine Tam. 2025. "Stata-MCP: Let LLM help you achieve your regression analysis with Stata." Version 1.0.3. https://github.com/sepinetam/stata-mcp.
+```
+
 # 📬 Contact
 Email : [sepinetam@gmail.com](mailto:sepinetam@gmail.com)
 
