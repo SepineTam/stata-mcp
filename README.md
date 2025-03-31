@@ -3,7 +3,8 @@
 # Stata-MCP
 
 [![en](https://img.shields.io/badge/lang-English-red.svg)](README.md)
-[![cn](https://img.shields.io/badge/语言-中文-yellow.svg)](docs/README/zh/README.md)
+[![fr](https://img.shields.io/badge/langue-Français-blue.svg)](docs/README/fr/README)
+[![cn](https://img.shields.io/badge/语言-中文-yellow.svg)](docs/README/cn/README)
 ![Version](https://img.shields.io/badge/version-1.0.3-blue.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Issue](https://img.shields.io/badge/Issue-report-green.svg)](https://github.com/sepinetam/stata-mcp/issues/new)
