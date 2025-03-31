@@ -2,7 +2,7 @@ cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 authors:
   - family-names: "Tam"
-  - given-names: "Sepine"
+    given-names: "Sepine"
     email: "sepinetam@gmail.com"
 title: "Stata-MCP: Let LLM help you achieve your regression analysis with Stata"
 version: 1.0.3
