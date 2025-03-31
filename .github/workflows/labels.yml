@@ -1,0 +1,25 @@
+name: Sync labels
+
+on:
+  push:
+    paths:
+      - '.github/labels.yml'
+    branches:
+      - main  # 或者 master，取决于你的默认分支
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  labels:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Sync Labels
+        uses: EndBug/label-sync@v2
+        with:
+          # 配置文件路径
+          config-file: .github/labels.yml
+          # GitHub token
+          token: ${{ secrets.GITHUB_TOKEN }}
+          # 删除配置文件中未定义的标签
+          delete-other-labels: false
