@@ -3,46 +3,51 @@
 # Stata-MCP
 
 [![en](https://img.shields.io/badge/lang-English-red.svg)](README.md)
-![Version](https://img.shields.io/badge/version-1.0.3-blue.svg?cacheSeconds=2592000)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](#)
+[![cn](https://img.shields.io/badge/语言-中文-yellow.svg)](docs/README/zh/README.md)
+![Version](https://img.shields.io/badge/version-1.0.3-blue.svg)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Issue](https://img.shields.io/badge/Issue-report-green.svg)](https://github.com/sepinetam/stata-mcp/issues/new)
 
 </div>
 
-> Let LLM help you achieve your regression with Stata.
+> Let LLM help you achieve your regression analysis with Stata.
 > 
-> At present, only **macOS** supported 20250329
+> Currently supports **macOS** only (as of 20250329)
 
 ---
 
-# Usage
-For more detailed usage guide, visit the [Usage document](docs/usage.md).
-## Necessary
-- [uv](https://github.com/astral-sh/uv)
-- Claude or Cline or ChatWise or other
+# 💡 Quick Start
+For more detailed usage information, visit the [Usage guide](docs/usage.md).
+
+## Prerequisites
+- [uv](https://github.com/astral-sh/uv) - Package installer and virtual environment manager
+- Claude, Cline, ChatWise, or other LLM service
+- Stata License
+- Your API-KEY from LLM
 
 ## Installation
 ```bash
+# Clone the repository
 git clone https://github.com/sepinetam/stata-mcp.git
 cd stata-mcp
 
+# Copy example config
 cp example.config.py config.py
 
-# if you use uv you can follow the offical usage, however I am not good at uv, but I commend you to use uv for the easier usage.
-uv run stata_mcp.py 17 se  # for test whether it could run
-# else follow the following usage, but you should change that config about MCP by yourself.
-# you can also use other chat servers, but you need to change it in your own mind.
+# Using uv (recommended)
+uv run stata_mcp.py 17 se  # Test run with Stata 17 SE
+
+# Alternative setup with pip
 # python3.11 -m venv .venv
 # source .venv/bin/activate
 # pip install -r requirements.txt
 ```
-I haven't used Windows for a long time, and I haven't purchased a license for Stata on Windows, so I have only tested it on macOS. If you have a license for Stata on Windows, you can submit a PR to add Windows support.
 
-Then you need to config your MCP server.
+**Note:** Windows support is not currently available. If you have a Stata license for Windows and would like to contribute, please submit a PR.
 
-For it, there is some example:
-## Config for MCP Server
-### [Claude](https://claude.ai/)
-Follow the following config:
+# 🔧 MCP Server Configuration
+
+## [Claude](https://claude.ai/)
 ```json
 {
   "stata-mcp": {
@@ -59,18 +64,16 @@ Follow the following config:
 }
 ```
 
-### [ChatWise](https://chatwise.app/)
-Open your ChatWise app and open the tab named tools (you need to subscribe it).
-
-Then you can follow the following config:
+## [ChatWise](https://chatwise.app/)
+Open ChatWise app and navigate to the tools tab (subscription required):
 
 ```
 type: stdio
-ID: stata-mcp (or whatever you want)
+ID: stata-mcp
 command: uv --directory /Users/yourname/path/to/repo/ run stata_mcp.py 17 se
 ```
 
-### [Cline](https://github.com/cline/cline)
+## [Cline](https://github.com/cline/cline)
 ```json
 {
   "mcpServers": {
@@ -89,17 +92,27 @@ command: uv --directory /Users/yourname/path/to/repo/ run stata_mcp.py 17 se
 }
 ```
 
-# Statement
-This project is only for research purpose, and I am not responsible for any damage caused by this project. 
+# 📝 Documentation
+For more detailed usage information, visit the [Usage guide](docs/usage.md).
 
-And also please make sure you have the right to use Stata. 
+# 🚀 Roadmap
+- [x] macOS support
+- [ ] Windows support
+- [ ] Additional LLM integrations
+- [ ] Performance optimizations
 
-More info please refer to [Statement](Statement.md).
+# ⚠️ Disclaimer
+This project is for research purposes only. I am not responsible for any damage caused by this project. Please ensure you have proper licensing to use Stata.
 
-# License
+For more information, refer to the [Statement](Statement.md).
+
+# 🐛 Report Issues
+If you encounter any bugs or have feature requests, please [open an issue](https://github.com/sepinetam/stata-mcp/issues/new).
+
+# 📄 License
 [MIT License](License)
 
-# Contact
+# 📬 Contact
 Email: [sepinetam@gmail.com](mailto:sepinetam@gmail.com)
 
-or you can submit a PR
+Or contribute directly by submitting a [Pull Request](https://github.com/sepinetam/stata-mcp/pulls)! We welcome contributions of all kinds, from bug fixes to new features.
