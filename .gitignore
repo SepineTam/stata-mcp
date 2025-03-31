@@ -30,4 +30,4 @@ logs/
 log/
 
 # private
-src/
+src_private/
