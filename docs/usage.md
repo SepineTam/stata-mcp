@@ -91,7 +91,7 @@ command: uv --directory /Users/yourname/path/to/repo/ run stata_mcp.py 17 se
 即将更新(目前存在一些问题，正在解决中)
 
 ### 视频演示
-![](../src/video/usage_03.mp4)
+![](../src/video/usage_03.gif)
 
 [示例数据](../src/data/did_show.dta)
 
@@ -204,7 +204,7 @@ command: uv --directory /Users/yourname/path/to/repo/ run stata_mcp.py 17 se
 Coming soon (there are some issues currently which are being addressed)
 
 ### Video Demonstration
-![](../src/video/usage_03.mp4)
+![](../src/video/usage_03.gif)
 
 [Demo Data](../src/data/did_show.dta)
 
