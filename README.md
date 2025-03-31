@@ -3,7 +3,7 @@
 # Stata-MCP
 
 [![en](https://img.shields.io/badge/lang-English-red.svg)](README.md)
-![Version](https://img.shields.io/badge/version-1.0.2-blue.svg?cacheSeconds=2592000)
+![Version](https://img.shields.io/badge/version-1.0.3-blue.svg?cacheSeconds=2592000)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](#)
 
 </div>

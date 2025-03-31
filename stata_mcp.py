@@ -24,6 +24,7 @@ stata_cli_path = None
 log_file_path = None
 operating_system = None
 dofile_base_path = None
+result_doc_path = None
 
 for arg in args[2:]:
     if arg.startswith("stata_cli_path="):
@@ -34,6 +35,8 @@ for arg in args[2:]:
         operating_system = arg.split("=", 1)[1].lower()
     elif arg.startswith("dofile_base_path="):
         dofile_base_path = arg.split("=", 1)[1]
+    elif arg.startswith("result_doc_path="):
+        result_doc_path = arg.split("=", 1)[1]
     else:
         print(f"警告：未知参数 `{arg}`，已忽略")
 
@@ -55,13 +58,15 @@ if operating_system != "macos":
 if stata_cli_path is None:
     if operating_system == "macos":
         stata_cli_path = f"/Applications/Stata/StataSE.app/Contents/MacOS/stata-{version_type}"
+        # stata_cli_path = f"/usr/local/bin/stata-{version_type}"
     elif operating_system == "windows":
         pass  # 目前手头没有Windows电脑去看stata-cli的配置
 
 if log_file_path is None:
     if operating_system == "macos":
-        _name = os.environ['USER']
-        log_file_path = f"/Users/{_name}/Documents/stata-mcp-log/"
+        # _name = os.environ['USER']
+        _home = os.getenv('HOME')
+        log_file_path = f"{_home}/Documents/stata-mcp-log/"
         # 创建目录（如果不存在）
         os.makedirs(log_file_path, exist_ok=True)
     elif operating_system == "windows":
@@ -69,10 +74,21 @@ if log_file_path is None:
 
 if dofile_base_path is None:
     if operating_system == "macos":
-        _name = os.environ['USER']
-        dofile_base_path = f"/Users/{_name}/Documents/stata-mcp-dofile/"
+        # _name = os.environ['USER']
+        _home = os.getenv('HOME')
+        dofile_base_path = f"{_home}/Documents/stata-mcp-dofile/"
         # 创建目录（如果不存在）
         os.makedirs(dofile_base_path, exist_ok=True)
+
+if result_doc_path is None:
+    if operating_system == "macos":
+        # _name = os.environ['USER']
+        _home = os.getenv('HOME')
+        result_doc_path = f"{_home}/Documents/stata-mcp-result_doc/"
+        # 创建目录（如果不存在）
+        os.makedirs(result_doc_path, exist_ok=True)
+    elif operating_system == "windows":
+        pass
 
 # README文件路径
 readme_path = os.path.join(log_file_path, "README.md")
@@ -93,7 +109,7 @@ class StataCommandGenerator:
     # def __init__(self): pass
 
     @staticmethod
-    @mcp.tool(name="use", description="生成 Stata 的 'use' 命令（加载数据集）")
+    @mcp.tool(name="use", description="生成并返回 Stata 的 'use' 命令（加载数据集的命令）")
     def use(data_path: str, is_clear: bool = True) -> str:
         """
         Use data in Stata
@@ -109,7 +125,7 @@ class StataCommandGenerator:
         return f"use {data_path}{options}"
 
     @staticmethod
-    @mcp.tool(name="save", description="生成 Stata 的 'save' 命令（保存数据集）")
+    @mcp.tool(name="save", description="生成并返回 Stata 的 'save' 命令（保存数据集的命令）")
     def save(data_path: str, is_replace: bool = False) -> str:
         """
         Save data from stata
@@ -126,7 +142,7 @@ class StataCommandGenerator:
         return f"save {data_path}{options}"
 
     @staticmethod
-    @mcp.tool(name="summarize", description="生成 Stata 的 'summarize' 命令（数据的描述性统计）")
+    @mcp.tool(name="summarize", description="生成并返回 Stata 的 'summarize' 命令（数据的描述性统计命令）")
     def summarize(varlist: Optional[List[str]] = None, if_condition: Optional[str] = None,
                   in_range: Optional[str] = None,
                   weight: Optional[str] = None,
@@ -254,6 +270,34 @@ def read_log(log_path: str) -> str:
     return log
 
 
+@mcp.tool(name="results_doc_path", description="Stata中`outreg2`等命令的返回文件存储路径")
+def results_doc_path() -> str:
+    """
+    生成并返回一个基于当前时间戳的结果文档存储路径。
+
+    该函数执行以下操作：
+    1. 获取当前系统时间并格式化为'%Y%m%d%H%M%S'格式的时间戳字符串
+    2. 将该时间戳字符串与预设的result_doc_path基础路径拼接，形成完整路径
+    3. 创建该路径对应的目录（如果目录已存在不会报错）
+    4. 返回新创建的完整路径字符串
+
+    Returns:
+        str: 新创建的结果文档目录的完整路径，路径格式为：
+            `<result_doc_path>/<YYYYMMDDHHMMSS>`，其中时间戳部分由函数执行时的系统时间生成
+
+    Notes:
+        （以下内容对于LLM来说不需要懂）
+        - 使用`exist_ok=True`参数，当目标目录已存在时不会引发异常
+        - 函数使用了Python 3.8+的海象运算符(:=)在表达式内进行变量赋值
+        - 返回的路径适合用作Stata的`outreg2`等命令的输出目录
+    """
+    os.makedirs(
+        (path := os.path.join(result_doc_path, datetime.strftime(datetime.now(), "%Y%m%d%H%M%S"))),
+        exist_ok=True
+    )
+    return path
+
+
 @mcp.tool(name="write_dofile", description="write the stata-code to dofile")
 def write_dofile(content: str) -> str:
     """
@@ -263,6 +307,9 @@ def write_dofile(content: str) -> str:
 
     Returns:
         the do-file path
+
+    Notes:
+        Please avoid writing any code that draws graphics or requires human intervention for uncertainty bug.
     """
     file_path = os.path.join(dofile_base_path,  datetime.strftime(datetime.now(), "%Y%m%d%H%M%S")+".do")
     with open(file_path, "w", encoding="utf-8") as f:
@@ -270,7 +317,7 @@ def write_dofile(content: str) -> str:
     return file_path
 
 
-@mcp.tool()
+@mcp.tool(name="stata_do", description="Run a stata-code via Stata")
 def stata_do(dofile_path: str) -> str:
     """
     Execute a Stata do-file and return the path to its log file.
@@ -288,114 +335,27 @@ def stata_do(dofile_path: str) -> str:
     nowtime: str = datetime.strftime(datetime.now(), "%Y%m%d%H%M%S")
     log_file = os.path.join(log_file_path, f"{nowtime}.log")
 
-    stata_command = [
-        str(stata_cli_path),
-        "do",
-        dofile_path,
-        "log",
-        f'using "{log_file}"',
-        "replace"
-    ]
+    # 启动 Stata 进程（交互模式）
+    proc = subprocess.Popen(
+        [stata_cli_path],  # 启动 Stata 命令行
+        stdin=subprocess.PIPE,  # 准备输入命令
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        shell=True  # 如果路径有空格需要 shell=True
+    )
 
-    subprocess.run(" ".join(stata_command), shell=True)
+    # 在 Stata 中依次执行命令
+    commands = f"""
+    log using "{log_file}", replace
+    do "{dofile_path}"
+    log close
+    exit, STATA
+    """
+    proc.communicate(input=commands)  # 发送命令并等待结束
 
     return log_file
 
 
 if __name__ == "__main__":
     mcp.run(transport="stdio")
-
-# if __name__ == "__main__":
-#     # 1. 基本测试 - 最简单的变量列表
-#     print("Test 1 - Basic variable list:")
-#     print(StataCommandGenerator.summarize(["mpg", "weight"]))
-#     print("\nExpected: summarize mpg weight\n")
-#
-#     # 2. 无变量列表 - 默认所有变量
-#     print("Test 2 - No variable list:")
-#     print(StataCommandGenerator.summarize())
-#     print("\nExpected: summarize\n")
-#
-#     # 3. if条件测试
-#     print("Test 3 - With if condition:")
-#     print(StataCommandGenerator.summarize(["price"], if_condition="foreign == 1"))
-#     print("\nExpected: summarize price if foreign == 1\n")
-#
-#     # 4. in范围测试
-#     print("Test 4 - With in range:")
-#     print(StataCommandGenerator.summarize(["price"], in_range="1/100"))
-#     print("\nExpected: summarize price in 1/100\n")
-#
-#     # 5. 权重测试
-#     print("Test 5 - With weights:")
-#     print(StataCommandGenerator.summarize(["price"], weight="aweights=pop"))
-#     print("\nExpected: summarize price [aweights=pop]\n")
-#
-#     # 6. 详细选项测试
-#     print("Test 6 - With detail option:")
-#     print(StataCommandGenerator.summarize(["price", "mpg"], detail=True))
-#     print("\nExpected: summarize price mpg, detail\n")
-#
-#     # 7. 仅均值选项测试
-#     print("Test 7 - With meanonly option:")
-#     print(StataCommandGenerator.summarize(["price"], meanonly=True))
-#     print("\nExpected: summarize price, meanonly\n")
-#
-#     # 8. 格式选项测试
-#     print("Test 8 - With format option:")
-#     print(StataCommandGenerator.summarize(["price"], fmt=True))
-#     print("\nExpected: summarize price, format\n")
-#
-#     # 9. 分隔线选项测试
-#     print("Test 9 - With separator option:")
-#     print(StataCommandGenerator.summarize(["price", "mpg"], separator=5))
-#     print("\nExpected: summarize price mpg, separator(5)\n")
-#
-#     # 10. 显示选项测试
-#     print("Test 10 - With display options:")
-#     print(StataCommandGenerator.summarize(["price"], vsquish=True, noemptycells=True))
-#     print("\nExpected: summarize price, vsquish noemptycells\n")
-#
-#     # 11. 复杂组合测试
-#     print("Test 11 - Complex combination:")
-#     print(StataCommandGenerator.summarize(
-#         ["price", "mpg"],
-#         if_condition="foreign == 1",
-#         detail=True,
-#         separator=10,
-#         vsquish=True,
-#         fvwrap=3
-#     ))
-#     print("\nExpected: summarize price mpg if foreign == 1, detail separator(10) vsquish fvwrap(3)\n")
-#
-#     # 12. 错误测试 - detail和meanonly冲突
-#     print("Test 12 - Error: detail and meanonly conflict")
-#     try:
-#         print(StataCommandGenerator.summarize(["price"], detail=True, meanonly=True))
-#     except ValueError as e:
-#         print(f"Caught error as expected: {e}")
-#     print("\nExpected: ValueError about conflict between detail and meanonly\n")
-#
-#     # 13. 错误测试 - 无效权重类型
-#     print("Test 13 - Error: invalid weight type")
-#     try:
-#         print(StataCommandGenerator.summarize(["price"], weight="invalid=pop"))
-#     except ValueError as e:
-#         print(f"Caught error as expected: {e}")
-#     print("\nExpected: ValueError about invalid weight type\n")
-#
-#     # 14. 错误测试 - iweights与detail冲突
-#     print("Test 14 - Error: iweights with detail")
-#     try:
-#         print(StataCommandGenerator.summarize(["price"], weight="iweights=pop", detail=True))
-#     except ValueError as e:
-#         print(f"Caught error as expected: {e}")
-#     print("\nExpected: ValueError about iweights not allowed with detail\n")
-#
-#     # 15. 错误测试 - 无效显示选项
-#     print("Test 15 - Error: invalid display option")
-#     try:
-#         print(StataCommandGenerator.summarize(["price"], invalid_option=True))
-#     except ValueError as e:
-#         print(f"Caught error as expected: {e}")
-#     print("\nExpected: ValueError about invalid display option\n")
