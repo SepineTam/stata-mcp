@@ -1,0 +1,105 @@
+[R] summarize -- Summary statistics
+                 (View complete PDF manual entry)
+
+
+Syntax
+
+        summarize [varlist] [if] [in] [weight] [, options]
+
+    options           Description
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------
+    Main
+      detail          display additional statistics
+      meanonly        suppress the display; calculate only the mean; programmer's option
+      format          use variable's display format
+      separator(#)    draw separator line after every # variables; default is separator(5)
+      display_options control spacing, line width, and base and empty cells
+
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------
+    varlist may contain factor variables; see fvvarlist.
+    varlist may contain time-series operators; see tsvarlist.
+    by, collect, rolling, and statsby are allowed; see prefix.
+
+    aweights, fweights, and iweights are allowed.  However, iweights may not be used with the detail option; see weight.
+
+
+Menu
+
+    Statistics > Summaries, tables, and tests > Summary and descriptive statistics > Summary statistics
+
+
+Description
+
+    summarize calculates and displays a variety of univariate summary statistics.  If no varlist is specified, summary statistics are calculated for all the
+    variables in the dataset.
+
+
+Links to PDF documentation
+
+        Quick start
+
+        Remarks and examples
+
+        Methods and formulas
+
+    The above sections are not included in this help file.
+
+
+Options
+
+        +------+
+    ----+ Main +---------------------------------------------------------------------------------------------------------------------------------------------
+
+    detail produces additional statistics, including skewness, kurtosis, the four smallest and four largest values, and various percentiles.
+
+    meanonly, which is allowed only when detail is not specified, suppresses the display of results and calculation of the variance.  Ado-file writers will
+        find this useful for fast calls.
+
+    format requests that the summary statistics be displayed using the display formats associated with the variables rather than the default g display
+        format; see [D] format.
+
+    separator(#) specifies how often to insert separation lines into the output.  The default is separator(5), meaning that a line is drawn after every five
+        variables.  separator(10) would draw a line after every 10 variables.  separator(0) suppresses the separation line.
+
+    display_options:  vsquish, noemptycells, baselevels, allbaselevels, nofvlabel, fvwrap(#), and fvwrapon(style); see [R] Estimation options.
+
+
+Examples
+
+    . sysuse auto
+    . summarize
+    . summarize mpg weight
+    . summarize mpg weight if foreign
+    . summarize mpg weight if foreign, detail
+    . summarize i.rep78
+
+
+Video example
+
+    Descriptive statistics in Stata
+
+
+Stored results
+
+    summarize stores the following in r():
+
+    Scalars
+      r(N)           number of observations
+      r(mean)        mean
+      r(skewness)    skewness (detail only)
+      r(min)         minimum
+      r(max)         maximum
+      r(sum_w)       sum of the weights
+      r(p1)          1st percentile (detail only)
+      r(p5)          5th percentile (detail only)
+      r(p10)         10th percentile (detail only)
+      r(p25)         25th percentile (detail only)
+      r(p50)         50th percentile (detail only)
+      r(p75)         75th percentile (detail only)
+      r(p90)         90th percentile (detail only)
+      r(p95)         95th percentile (detail only)
+      r(p99)         99th percentile (detail only)
+      r(Var)         variance
+      r(kurtosis)    kurtosis (detail only)
+      r(sum)         sum of variable
+      r(sd)          standard deviation

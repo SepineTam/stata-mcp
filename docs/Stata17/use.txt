@@ -1,0 +1,61 @@
+[D] use -- Load Stata dataset
+           (View complete PDF manual entry)
+
+
+Syntax
+
+    Load Stata-format dataset
+
+        use filename [, clear nolabel]
+
+
+    Load subset of Stata-format dataset
+
+        use [varlist] [if] [in] using filename [, clear nolabel]
+
+
+Menu
+
+    File > Open...
+
+
+Description
+
+    use loads into memory a Stata-format dataset previously saved by save.  If filename is specified without an extension, .dta is assumed.  If your filename
+    contains embedded spaces, remember to enclose it in double quotes.
+
+    In the second syntax for use, a subset of the data may be read.
+
+
+Links to PDF documentation
+
+        Quick start
+
+        Remarks and examples
+
+    The above sections are not included in this help file.
+
+
+Options
+
+    clear specifies that it is okay to replace the data in memory, even though the current data have not been saved to disk.
+
+    nolabel prevents value labels in the saved data from being loaded.  It is unlikely that you will ever want to specify this option.
+
+
+Examples
+
+    . use https://www.stata-press.com/data/r17/auto
+    . replace rep78 = 3 in 12
+
+    . use https://www.stata-press.com/data/r17/auto, clear
+    . keep make price mpg rep78 weight foreign
+    . save myauto
+
+    . use make rep78 foreign using myauto
+    . describe
+
+    . use if foreign == 0 using myauto
+    . tab foreign, nolabel
+    . use using myauto if foreign==1
+    . tab foreign, nolabel

@@ -1,0 +1,153 @@
+[D] generate -- Create or change contents of variable
+                (View complete PDF manual entry)
+
+
+Syntax
+
+    Create new variable
+
+        generate [type] newvar[:lblname] =exp [if] [in] [, before(varname) | after(varname)]
+
+
+    Replace contents of existing variable
+
+        replace oldvar =exp [if] [in] [, nopromote]
+
+
+    Specify default storage type assigned to new variables
+
+        set type {float|double} [, permanently]
+
+
+    where type is one of
+        byte|int|long|float|double|str|str1|str2|...|str2045
+
+    See Description below for an explanation of str.  For the other types, see [D] Data types.
+
+    by is allowed with generate and replace; see [D] by.
+
+
+Menu
+
+    generate
+
+        Data > Create or change data > Create new variable
+
+    replace
+
+        Data > Create or change data > Change contents of variable
+
+
+Description
+
+    generate creates a new variable.  The values of the variable are specified by =exp.
+
+    If no type is specified, the new variable type is determined by the type of result returned by =exp.  A float variable (or a double, according to set
+    type) is created if the result is numeric, and a string variable is created if the result is a string.  In the latter case, if the string variable
+    contains values greater than 2,045 characters or contains values with a binary 0 (\0), a strL variable is created.  Otherwise, a str# variable is
+    created, where # is the smallest string that will hold the result.
+
+    If a type is specified, the result returned by =exp must be string or numeric according to whether type is string or numeric.  If str is specified, a
+    strL or a str# variable is created using the same rules as above.
+
+    See [D] egen for extensions to generate.
+
+    replace changes the contents of an existing variable.  Because replace alters data, the command cannot be abbreviated.
+
+    set type specifies the default storage type assigned to new variables (such as those created by generate) when the storage type is not explicitly
+    specified.
+
+
+Links to PDF documentation
+
+        Quick start
+
+        Remarks and examples
+
+    The above sections are not included in this help file.
+
+
+Options
+
+    before(varname) or after(varname) may be used with generate to place the newly generated variable in a specific position within the dataset.  These
+        options are primarily used by the Data Editor and are of limited use in other contexts.  A more popular alternative for most users is order.
+
+    nopromote prevents replace from promoting the variable type to accommodate the change.  For instance, consider a variable stored as an integer type
+        (byte, int, or long), and assume that you replace some values with nonintegers.  By default, replace changes the variable type to a floating point
+        (float or double) and thus correctly stores the changed values.  Similarly, replace promotes byte and int variables to longer integers (int and long)
+        if the replacement value is an integer but is too large in absolute value for the current storage type.  replace promotes strings to longer strings.
+        nopromote prevents replace from doing this; instead, the replacement values are truncated to fit the current storage type.
+
+    permanently specifies that, in addition to making the change right now, the new limit be remembered and become the default setting when you invoke Stata.
+
+
+Examples
+
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------
+    Setup
+        . webuse genxmpl3
+
+    Create new variable age2 containing the values of age squared
+        . generate age2 = age^2
+
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------
+    Setup
+        . webuse genxmpl3, clear
+
+    Create variable age2 with a storage type of int and containing the values of age squared
+        . generate int age2 = age^2
+
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------
+    Setup
+        . webuse genxmpl1, clear
+
+    Replace the values in age2 with those of age^2
+        . replace age2 = age^2
+
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------
+    Setup
+        . webuse genxmpl2, clear
+
+    List the name variable
+        . list name
+
+    Create variable lastname containing the second word of name
+        . generate lastname = word(name,2)
+
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------
+    Setup
+        . webuse genxmpl3, clear
+
+    Create variable age2 with a storage type of int and containing the values of age squared for all observations for which age is more than 30
+        . generate int age2 = age^2 if age > 30
+
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------
+    Setup
+        . webuse genxmpl4, clear
+
+    Replace the value of odd in the third observation
+        . replace odd = 5 in 3
+
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------
+    Setup
+        . webuse stan2, clear
+
+    Create duplicate of every observation for which transplant is true (!=0)
+        . expand 2 if transplant
+
+    Sort observations into ascending order of id
+        . sort id
+
+    Create variable posttran, with storage type of byte, equal to 1 for the second observation of each id and equal to 0 otherwise
+        . by id: generate byte posttran = (_n==2)
+
+    Create variable t1 equal to stime for the last observation of id
+        . by id: generate t1 = stime if _n==_N
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+Video examples
+
+        How to create a new variable that is calculated from other variables
+
+        How to identify and replace unusual data values
