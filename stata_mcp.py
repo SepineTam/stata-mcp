@@ -125,6 +125,10 @@ class StataCommandGenerator:
         This function constructs a Stata use command string based on provided parameters,
         matching the official Stata documentation specifications for loading datasets.
 
+        Emphasize:
+            This function generates the `use` command, rather than obtaining and using data.
+            If you want to obtain data information, please use the `get_data_info` function.
+
         Args:
             filename: Path to the Stata dataset file (.dta) to be loaded.
             varlist: Optional list of variables to load (subset of the dataset).
@@ -2415,6 +2419,269 @@ def read_log(log_path: str) -> str:
     with open(log_path, 'r') as file:
         log = file.read()
     return log
+
+
+@mcp.tool(name="get_data_info", description="获取数据文件的描述性统计信息")
+def get_data_info(data_path: str, vars_list: Optional[List[str]] = None) -> str:
+    """
+    分析数据文件并返回描述性统计信息。支持多种文件格式，包括Stata数据文件(.dta)、
+    CSV文件(.csv)和Excel文件(.xlsx, .xls)。
+    如果AI要查看数据的情况，不能使用 `use` ，而应该使用 `get_data_info` 。
+
+    Args:
+        data_path: 数据文件的路径，支持.dta、.csv、.xlsx和.xls格式。
+        vars_list: 可选的变量列表。如果提供，则仅返回这些变量的统计信息。
+                  如果为None，则返回所有变量的统计信息。
+
+    Returns:
+        str: 包含数据描述性统计信息的字符串，包括：
+             - 文件基本信息（格式、大小、变量数量、观测数量等）
+             - 变量类型统计
+             - 数值变量的统计摘要（均值、标准差、最小值、最大值等）
+             - 分类变量的频率分布
+             - 缺失值分析
+             - 如果是面板数据，还包括面板结构信息
+
+    Raises:
+        ValueError: 如果文件格式不支持或文件不存在
+        ImportError: 如果缺少处理特定文件格式所需的包
+
+    Examples:
+        >>> get_data_info("example.dta")
+        '文件信息：
+         格式：Stata数据文件(.dta)
+         文件大小：1.2 MB
+         观测数：1000
+         变量数：15
+         ...'
+
+        >>> get_data_info("sales.csv", vars_list=["price", "quantity", "date"])
+        '文件信息：
+         格式：CSV文件(.csv)
+         文件大小：0.5 MB
+         观测数：500
+         变量数：3 (从原始变量中选择)
+         ...'
+    """
+    # 导入必要的库
+    import os
+    import pandas as pd
+    import numpy as np
+    from pathlib import Path
+    import tempfile
+
+    # 检查文件是否存在
+    if not os.path.exists(data_path):
+        raise ValueError(f"文件不存在：{data_path}")
+
+    # 获取文件信息
+    file_size = os.path.getsize(data_path) / (1024 * 1024)  # 转换为MB
+    file_extension = os.path.splitext(data_path)[1].lower()
+
+    # 根据文件扩展名读取数据
+    if file_extension == '.dta':
+        try:
+            # 尝试读取Stata文件
+            df = pd.read_stata(data_path)
+            file_type = "Stata数据文件(.dta)"
+        except ImportError:
+            raise ImportError("缺少读取Stata文件所需的包。请安装pandas: pip install pandas")
+    elif file_extension == '.csv':
+        try:
+            # 尝试读取CSV文件，处理可能的编码问题
+            try:
+                df = pd.read_csv(data_path)
+            except UnicodeDecodeError:
+                # 尝试不同的编码
+                df = pd.read_csv(data_path, encoding='latin1')
+            file_type = "CSV文件(.csv)"
+        except ImportError:
+            raise ImportError("缺少读取CSV文件所需的包。请安装pandas: pip install pandas")
+    elif file_extension in ['.xlsx', '.xls']:
+        try:
+            # 尝试读取Excel文件
+            df = pd.read_excel(data_path)
+            file_type = f"Excel文件({file_extension})"
+        except ImportError:
+            raise ImportError("缺少读取Excel文件所需的包。请安装openpyxl: pip install openpyxl")
+    else:
+        raise ValueError(f"不支持的文件格式：{file_extension}。支持的格式包括.dta、.csv、.xlsx和.xls")
+
+    # 如果提供了变量列表，则仅保留这些变量
+    if vars_list is not None:
+        # 检查所有请求的变量是否存在
+        missing_vars = [var for var in vars_list if var not in df.columns]
+        if missing_vars:
+            raise ValueError(f"以下变量在数据集中不存在：{', '.join(missing_vars)}")
+
+        # 选择指定的变量
+        df = df[vars_list]
+
+    # 创建输出字符串
+    output = []
+
+    # 1. 文件基本信息
+    output.append("文件信息：")
+    output.append(f"格式：{file_type}")
+    output.append(f"文件大小：{file_size:.2f} MB")
+    output.append(f"观测数：{df.shape[0]}")
+
+    if vars_list is not None:
+        output.append(f"变量数：{len(vars_list)} (从原始变量中选择)")
+    else:
+        output.append(f"变量数：{df.shape[1]}")
+
+    # 2. 变量类型统计
+    num_numeric = sum(pd.api.types.is_numeric_dtype(df[col]) for col in df.columns)
+    num_categorical = sum(pd.api.types.is_categorical_dtype(df[col]) or df[col].dtype == 'object' for col in df.columns)
+    num_datetime = sum(pd.api.types.is_datetime64_dtype(df[col]) for col in df.columns)
+    num_boolean = sum(pd.api.types.is_bool_dtype(df[col]) for col in df.columns)
+
+    output.append("\n变量类型统计：")
+    output.append(f"数值型变量：{num_numeric}")
+    output.append(f"分类型变量：{num_categorical}")
+    output.append(f"日期时间型变量：{num_datetime}")
+    output.append(f"布尔型变量：{num_boolean}")
+
+    # 3. 缺失值分析
+    total_missing = df.isna().sum().sum()
+    missing_percent = (total_missing / (df.shape[0] * df.shape[1])) * 100
+
+    output.append("\n缺失值分析：")
+    output.append(f"总缺失值数量：{total_missing}")
+    output.append(f"缺失值占比：{missing_percent:.2f}%")
+
+    # 获取每个变量的缺失值数量和百分比
+    if df.shape[1] <= 30:  # 如果变量数量不多，则显示每个变量的缺失值情况
+        output.append("\n各变量缺失值情况：")
+        for col in df.columns:
+            missing_count = df[col].isna().sum()
+            missing_percent = (missing_count / df.shape[0]) * 100
+            if missing_count > 0:
+                output.append(f"  {col}: {missing_count} ({missing_percent:.2f}%)")
+    else:
+        # 如果变量太多，只显示有缺失值的前10个变量
+        missing_cols = df.isna().sum().sort_values(ascending=False)
+        missing_cols = missing_cols[missing_cols > 0]
+        if len(missing_cols) > 0:
+            output.append("\n缺失值最多的10个变量：")
+            for col, count in missing_cols.head(10).items():
+                missing_percent = (count / df.shape[0]) * 100
+                output.append(f"  {col}: {count} ({missing_percent:.2f}%)")
+
+    # 4. 数值变量的统计摘要
+    numeric_cols = df.select_dtypes(include=['number']).columns
+
+    if len(numeric_cols) > 0:
+        output.append("\n数值变量统计摘要：")
+
+        # 计算统计量
+        desc_stats = df[numeric_cols].describe().T
+
+        # 添加额外的统计量
+        if df.shape[0] > 0:  # 确保有数据
+            desc_stats['缺失值'] = df[numeric_cols].isna().sum()
+            desc_stats['缺失值比例'] = df[numeric_cols].isna().sum() / df.shape[0]
+
+            # 可选：添加更多统计量
+            desc_stats['偏度'] = df[numeric_cols].skew()
+            desc_stats['峰度'] = df[numeric_cols].kurtosis()
+
+        # 格式化并添加到输出
+        for col in desc_stats.index:
+            output.append(f"\n  {col}:")
+            output.append(f"    计数: {desc_stats.loc[col, 'count']:.0f}")
+            output.append(f"    均值: {desc_stats.loc[col, 'mean']:.4f}")
+            output.append(f"    标准差: {desc_stats.loc[col, 'std']:.4f}")
+            output.append(f"    最小值: {desc_stats.loc[col, 'min']:.4f}")
+            output.append(f"    25%分位数: {desc_stats.loc[col, '25%']:.4f}")
+            output.append(f"    中位数: {desc_stats.loc[col, '50%']:.4f}")
+            output.append(f"    75%分位数: {desc_stats.loc[col, '75%']:.4f}")
+            output.append(f"    最大值: {desc_stats.loc[col, 'max']:.4f}")
+            output.append(f"    缺失值: {desc_stats.loc[col, '缺失值']:.0f} ({desc_stats.loc[col, '缺失值比例']:.2%})")
+            output.append(f"    偏度: {desc_stats.loc[col, '偏度']:.4f}")
+            output.append(f"    峰度: {desc_stats.loc[col, '峰度']:.4f}")
+
+    # 5. 分类变量的频率分布
+    categorical_cols = df.select_dtypes(include=['object', 'category']).columns
+
+    if len(categorical_cols) > 0:
+        output.append("\n分类变量频率分布：")
+
+        for col in categorical_cols:
+            # 获取唯一值的数量
+            unique_count = df[col].nunique()
+
+            output.append(f"\n  {col}:")
+            output.append(f"    唯一值数量: {unique_count}")
+
+            # 如果唯一值数量合理（不超过10个），则显示频率分布
+            if unique_count <= 10 and unique_count > 0:
+                value_counts = df[col].value_counts().head(10)
+                value_percent = df[col].value_counts(normalize=True).head(10) * 100
+
+                for i, (value, count) in enumerate(value_counts.items()):
+                    percent = value_percent[i]
+                    output.append(f"    {value}: {count} ({percent:.2f}%)")
+            elif unique_count > 10:
+                # 如果唯一值太多，只显示前5个
+                output.append("    前5个最常见值:")
+                value_counts = df[col].value_counts().head(5)
+                value_percent = df[col].value_counts(normalize=True).head(5) * 100
+
+                for i, (value, count) in enumerate(value_counts.items()):
+                    percent = value_percent[i]
+                    output.append(f"    {value}: {count} ({percent:.2f}%)")
+
+    # 6. 检测是否为面板数据并分析面板结构
+    # 通常面板数据具有ID和时间两个维度
+    potential_id_cols = [col for col in df.columns if 'id' in str(col).lower() or
+                         'code' in str(col).lower() or 'key' in str(col).lower()]
+    potential_time_cols = [col for col in df.columns if 'time' in str(col).lower() or
+                           'date' in str(col).lower() or 'year' in str(col).lower() or
+                           'month' in str(col).lower() or 'day' in str(col).lower()]
+
+    # 如果存在可能的ID列和时间列，则尝试分析面板结构
+    if potential_id_cols and potential_time_cols:
+        for id_col in potential_id_cols[:1]:  # 只尝试第一个ID列
+            for time_col in potential_time_cols[:1]:  # 只尝试第一个时间列
+                # 计算面板结构
+                try:
+                    n_ids = df[id_col].nunique()
+                    n_times = df[time_col].nunique()
+                    n_obs = df.shape[0]
+
+                    output.append("\n潜在面板数据结构检测：")
+                    output.append(f"  ID变量: {id_col} (唯一值数量: {n_ids})")
+                    output.append(f"  时间变量: {time_col} (唯一值数量: {n_times})")
+                    output.append(f"  总观测数: {n_obs}")
+
+                    # 检查面板是否平衡
+                    cross_table = pd.crosstab(df[id_col], df[time_col])
+                    is_balanced = (cross_table == 1).all().all()
+
+                    if is_balanced and n_ids * n_times == n_obs:
+                        output.append("  面板状态: 强平衡面板 (每个ID在每个时间点都有一个观测值)")
+                    elif df.groupby(id_col)[time_col].count().var() == 0:
+                        output.append("  面板状态: 弱平衡面板 (每个ID有相同数量的观测值，但可能不在相同的时间点)")
+                    else:
+                        output.append("  面板状态: 非平衡面板 (不同ID有不同数量的观测值)")
+
+                    # 计算每个ID的平均观测数
+                    avg_obs_per_id = df.groupby(id_col).size().mean()
+                    output.append(f"  每个ID的平均观测数: {avg_obs_per_id:.2f}")
+
+                    # 计算时间跨度
+                    if pd.api.types.is_datetime64_dtype(df[time_col]):
+                        min_time = df[time_col].min()
+                        max_time = df[time_col].max()
+                        output.append(f"  时间跨度: {min_time} 至 {max_time}")
+                except:
+                    # 如果计算出错，跳过面板分析
+                    pass
+
+    # 返回格式化的输出
+    return "\n".join(output)
 
 
 @mcp.tool(name="results_doc_path", description="Stata中`outreg2`等命令的返回文件存储路径")
