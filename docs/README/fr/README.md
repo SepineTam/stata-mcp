@@ -119,7 +119,7 @@ Si vous utilisez Stata-MCP dans vos recherches, veuillez citer ce référentiel 
 ## BibTeX
 ```bibtex
 @software{sepinetam2025stata,
-  author = {Sepine Tam},
+  author = {Song Tan},
   title = {Stata-MCP: Let LLM help you achieve your regression analysis with Stata},
   year = {2025},
   url = {https://github.com/sepinetam/stata-mcp},
@@ -129,12 +129,12 @@ Si vous utilisez Stata-MCP dans vos recherches, veuillez citer ce référentiel 
 
 ## APA
 ```
-Sepine Tam. (2025). Stata-MCP: Let LLM help you achieve your regression analysis with Stata (Version 1.0.3) [Computer software]. https://github.com/sepinetam/stata-mcp
+Song Tan. (2025). Stata-MCP: Let LLM help you achieve your regression analysis with Stata (Version 1.0.3) [Computer software]. https://github.com/sepinetam/stata-mcp
 ```
 
 ## Chicago
 ```
-Sepine Tam. 2025. "Stata-MCP: Let LLM help you achieve your regression analysis with Stata." Version 1.0.3. https://github.com/sepinetam/stata-mcp.
+Song Tan. 2025. "Stata-MCP: Let LLM help you achieve your regression analysis with Stata." Version 1.0.3. https://github.com/sepinetam/stata-mcp.
 ```
 
 # 📬 Contact
