@@ -87,8 +87,18 @@ command: uv --directory /Users/yourname/path/to/repo/ run stata_mcp.py 17 se
 }
 ```
 
-#### Cherry Studio
-即将更新(目前存在一些问题，正在解决中)
+#### Cherry Studio示例
+```text
+名称: Stata-MCP
+命令: uv
+参数:
+    --directory
+    /Users/yourname/path/to/repo/
+    run
+    stata_mcp.py
+    17
+    se
+```
 
 ### 视频演示
 ![](../src/video/usage_03.gif)
@@ -200,8 +210,18 @@ command: uv --directory /Users/yourname/path/to/repo/ run stata_mcp.py 17 se
 }
 ```
 
-#### Cherry Studio
-Coming soon (there are some issues currently which are being addressed)
+#### Cherry Studio Example
+```text
+Name: Stata-MCP
+Command: uv
+Args:
+    --directory
+    /Users/yourname/path/to/repo/
+    run
+    stata_mcp.py
+    17
+    se
+```
 
 ### Video Demonstration
 ![](../src/video/usage_03.gif)
