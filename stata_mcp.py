@@ -64,9 +64,10 @@ if stata_cli_path is None:
 
 if log_file_path is None:
     if operating_system == "macos":
-        # _name = os.environ['USER']
-        _home = os.getenv('HOME')
-        log_file_path = f"{_home}/Documents/stata-mcp-log/"
+        _name = os.getenv('USER')
+        # _home = os.getenv('HOME')
+        # log_file_path = f"{_home}/Documents/stata-mcp-log/"
+        log_file_path = f"/Users/{_name}/Documents/stata-mcp-log/"
         # 创建目录（如果不存在）
         os.makedirs(log_file_path, exist_ok=True)
     elif operating_system == "windows":
@@ -74,17 +75,19 @@ if log_file_path is None:
 
 if dofile_base_path is None:
     if operating_system == "macos":
-        # _name = os.environ['USER']
-        _home = os.getenv('HOME')
-        dofile_base_path = f"{_home}/Documents/stata-mcp-dofile/"
+        _name = os.getenv('USER')
+        # _home = os.getenv('HOME')
+        # dofile_base_path = f"{_home}/Documents/stata-mcp-dofile/"
+        dofile_base_path = f"/Users/{_name}/Documents/stata-mcp-dofile/"
         # 创建目录（如果不存在）
         os.makedirs(dofile_base_path, exist_ok=True)
 
 if result_doc_path is None:
     if operating_system == "macos":
-        # _name = os.environ['USER']
-        _home = os.getenv('HOME')
-        result_doc_path = f"{_home}/Documents/stata-mcp-result_doc/"
+        _name = os.getenv('USER')
+        # _home = os.getenv('HOME')
+        # result_doc_path = f"{_home}/Documents/stata-mcp-result_doc/"
+        result_doc_path = f"/Users/{_name}/Documents/stata-mcp-result_doc/"
         # 创建目录（如果不存在）
         os.makedirs(result_doc_path, exist_ok=True)
     elif operating_system == "windows":
