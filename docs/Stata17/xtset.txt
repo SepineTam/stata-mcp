@@ -1,0 +1,298 @@
+[XT] xtset -- Declare data to be panel data
+              (View complete PDF manual entry)
+
+
+Syntax
+
+    Declare data to be panel
+
+        xtset panelvar
+
+        xtset panelvar timevar [, tsoptions]
+
+
+    Display how data are currently xtset
+
+        xtset
+
+
+    Clear xt settings
+
+        xtset, clear
+
+
+    In the declare syntax, panelvar identifies the panels and the optional timevar identifies the times within panels.  tsoptions concern timevar.
+
+    tsoptions             Description
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------
+    unitoptions           specify units of timevar
+    deltaoption           specify length of period of timevar
+
+    noquery               suppress summary calculations and output
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------
+    collect is allowed; see prefix.
+    noquery is not shown in the dialog box.
+
+    unitoptions           Description
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------
+    (default)             timevar's units from timevar's display format
+
+    clocktime             timevar is %tc:  0 = 1jan1960 00:00:00.000, 1 = 1jan1960 00:00:00.001, ...
+    daily                 timevar is %td:  0 = 1jan1960, 1 = 2jan1960, ...
+    weekly                timevar is %tw:  0 = 1960w1, 1 = 1960w2, ...
+    monthly               timevar is %tm:  0 = 1960m1, 1 = 1960m2, ...
+    quarterly             timevar is %tq:  0 = 1960q1, 1 = 1960q2, ...
+    halfyearly            timevar is %th:  0 = 1960h1, 1 = 1960h2, ...
+    yearly                timevar is %ty:  1960 = 1960, 1961 = 1961, ...
+    generic               timevar is %tg:  0 = ?, 1 = ?, ...
+
+    format(%fmt)          specify timevar's format and then apply default rule
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------
+    In all cases, negative timevar values are allowed.
+
+    deltaoption specifies the period between observations in timevar units and may be specified as
+
+    deltaoption           Example
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------
+    delta(#)               delta(1) or delta(2)
+    delta((exp))           delta((7*24))
+    delta(# units)         delta(7 days) or delta(15 minutes) or delta(7 days 15 minutes)
+    delta((exp) units)     delta((2+3) weeks)
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    Allowed units for %tc and %tC timevars are
+
+                -----------------------------------
+                seconds     second      secs    sec
+                minutes     minute      mins    min
+                hours       hour
+                days        day
+                weeks       week
+                -----------------------------------
+
+    and for all other %t timevars are
+
+                ------------------------------
+                days          day
+                weeks         week
+                ------------------------------
+
+
+Menu
+
+    Statistics > Longitudinal/panel data > Setup and utilities > Declare dataset to be panel data
+
+
+Description
+
+    xtset manages the panel settings of a dataset.  You must xtset your data before you can use the other xt commands.  xtset panelvar declares the data in
+    memory to be a panel in which the order of observations is irrelevant.  xtset panelvar timevar declares the data to be a panel in which the order of
+    observations is relevant.  When you specify timevar, you can then use Stata's time-series operators and analyze your data with the ts commands without
+    having to tsset your data.
+
+    xtset without arguments displays how the data are currently xtset.  If the data are set with a panelvar and a timevar, xtset also sorts the data by
+    panelvar timevar if a timevar was specified.  If the data are set with a panelvar only, the sort order is not changed.
+
+    xtset, clear is a rarely used programmer's command to declare that the data are no longer to be considered a panel.
+
+
+Links to PDF documentation
+
+        Quick start
+
+        Remarks and examples
+
+    The above sections are not included in this help file.
+
+
+Options
+
+    unitoptions clocktime, daily, weekly, monthly, quarterly, halfyearly, yearly, generic, and format(%fmt) specify the units in which timevar is recorded.
+
+        timevar will usually be a variable that counts 1, 2, ..., and is to be interpreted as first year of survey, second year, ..., or first month of
+        treatment, second month, ....  In these cases, you do not need to specify a unitoption.
+
+        In other cases, timevar will be a year variable or the like such as 2001, 2002, ..., and is to be interpreted as year of survey or the like.  In
+        those cases, you do not need to specify a unitoption.
+
+        In other, more complicated cases, timevar will be a full-blown %t variable; see [D] Datetime.  If timevar already has a %t display format assigned to
+        it, you do not need to specify a unitoption; xtset will obtain the units from the format.  If you have not yet bothered to assign the appropriate %t
+        format to the %t variable, however, you can use the unitoptions to tell xtset the units.  Then xtset will set timevar's display format for you.
+        Thus, the unitoptions are convenience options; they allow you to skip formatting the time variable.  The following all have the same net result:
+
+            Alternative 1        Alternative 2        Alternative 3
+            --------------------------------------------------------------
+            format t %td         (t not formatted)    (t not formatted)
+            xtset pid t          xtset pid t, daily   xtset pid t, format(%td)
+
+        timevar is not required to be a %t variable; it can be any variable of your own concocting so long as it takes on only integer values.  When you
+        xtset a time variable that is not %t, the display format does not change unless you specify the unitoption generic or use the format() option.
+
+    delta() specifies the period between observations in timevar and is commonly used when timevar is %tc.  delta() is only sometimes used with the other %t
+        formats or with generic time variables.
+
+        If delta() is not specified, delta(1) is assumed.  This means that at timevar = 5, the previous time is timevar = 5-1=4 and the next time would be
+        timevar = 5+1=6.  Lag and lead operators, for instance, would work this way.  This would be assumed regardless of the units of timevar.
+
+        If you specified delta(2), then at timevar = 5, the previous time would be timevar = 5-2 = 3 and the next time would be timevar = 5+2 = 7.  Lag and
+        lead operators would work this way.  In an observations with timevar = 5, L.income would be the value of income in the observation for which timevar
+        = 3 and F.income would be the value of income in the observation for which timevar = 7.  If you then add an observation with timevar = 4, the
+        operators will still work appropriately; that is, at timevar = 5, L.income will still have the value of income at timevar = 3.
+
+        There are two aspects of timevar: its units and its length of period.  The unitoptions set the units.  delta() sets the length of period.  You are
+        not required to specify one to specify the other.  You might have a generic timevar but it counts in 12: 0, 12, 24, ....  You would skip specifying
+        unitoptions but would specify delta(12).
+
+        We mentioned that delta() is commonly used with %tc timevars because Stata's %tc variables have units of milliseconds.  If delta() is not specified
+        and in some model you refer to L.bp, you will be referring to the value of bp 1 ms ago.  Few people have data with periodicity of a millisecond.
+        Perhaps your data are hourly. You could specify delta(3600000).  Or you could specify delta((60*60*1000)), because delta() will allow expressions if
+        you include an extra pair of parentheses.  Or you could specify delta(1 hour).  They all mean the same thing:  timevar has periodicity of 3,600,000
+        ms.  In an observation for which timevar = 1,489,572,000,000 (corresponding to 15mar2007 10:00:00), L.bp would be the observation for which timevar =
+        1,489,572,000,000 - 3,600,000 = 1,489,568,400,000 (corresponding to 15mar2007 9:00:00).
+
+        When you xtset the data and specify delta(), xtset verifies that all the observations follow the specified periodicity.  For instance, if you
+        specified delta(2), then timevar could contain any subset of {..., -4, -2, 0, 2, 4, ...} or it could contain any subset of {..., -3, -1, 1, 3, ...}.
+        If timevar contained a mix of values, xtset would issue an error message.  The check is made on each panel independently, so one panel might contain
+        timevar values from one set and the next, another, and that would be fine.
+
+    clear -- used in xtset, clear -- makes Stata forget that the data ever were xtset.  This is a rarely used programmer's option.
+
+    The following option is available with xtset but is not shown in the dialog box:
+
+    noquery prevents xtset from performing most of its summary calculations and suppresses output.  With this option, only the following results are posted:
+
+            r(tdelta)
+            r(panelvar)
+            r(timevar)
+            r(tsfmt)
+            r(unit)
+            r(unit1)
+
+
+Examples
+
+    Example with no time variable
+
+    For a panel dataset with no time variable such as a dataset with variable country and observations on cities within country, type
+
+            . xtset country
+
+    Variable country must be numeric.  If the variable is string, type
+
+            . egen cntry = group(country)
+            . xtset cntry
+    or
+            . encode country, gen(cntry)
+            . xtset cntry
+
+    The first will generate numeric variable cntry containing 1, 2, ..., for the various countries.  The second will do the same but will also create a value
+    label and label the new variable, so that when you list the variable, it will look like the original.
+
+
+    Example with annual panel data
+
+    For an annual panel dataset such as a dataset with variables country and year, type
+
+            . xtset country year
+   or
+            . xtset country year, yearly
+
+    It makes little difference which you use, only the output will be formatted differently.  In the second case, variable year must contain values such as
+    1990 and 2006.  In the first case, year may contain any year encoding, including 1990 and 2006.
+
+
+    Example with quarterly panel data
+
+    For a quarterly panel on company and quarter, type
+
+            . xtset company quarter
+
+    If quarter is encoded 1=1960q1, 2=1960q2, etc., you may type
+
+            . xtset company quarter, quarterly
+
+    and output will look better.
+
+
+    Example with daily panel data
+
+    For a daily time panel, pid is the numeric person identification number and date is a %td variable and already has been assigned a %td format, type
+
+            . xtset pid date
+
+    If date has not yet been given a format:
+
+            . format date %td
+            . xtset pid date
+    or
+            . xtset pid date, daily
+
+
+    Example with hourly panel data
+
+    For an hourly panel, pid is the patient ID and tod a %tc variable:
+
+            . xtset pid tod, clocktime delta(1 hour)
+
+    If tod already had a %tc display format, the above could be reduced to
+
+            . xtset pid tod, delta(1 hour)
+
+
+    Examples you can try
+
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------
+    Setup
+        . webuse pig
+
+    Declare panel and time variables
+        . xtset id week
+
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------
+    Setup
+        . webuse airacc
+
+    Declare panel and time variables and specify 1 as the period between observations in units of time
+        . xtset airline time, delta(1)
+
+    Same as above
+        . xtset airline time
+
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------
+    Setup
+        . webuse xtsetxmpl
+
+    Declare panel and time variables; specify clocktime units and delta of 1 hour
+        . xtset pid tod, clocktime delta(1 hour)
+
+    Or, equivalent to the above
+        . webuse xtsetxmpl
+        . format tod %tc
+        . xtset pid tod, delta(1 hour)
+
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+Stored results
+
+    xtset stores the following in r():
+
+    Scalars
+      r(imin)        minimum panel ID
+      r(imax)        maximum panel ID
+      r(tmin)        minimum time
+      r(tmax)        maximum time
+      r(tdelta)      delta
+      r(gaps)        1 if there are gaps, 0 otherwise
+
+    Macros
+      r(panelvar)    name of panel variable
+      r(timevar)     name of time variable
+      r(tdeltas)     formatted delta
+      r(tmins)       formatted minimum time
+      r(tmaxs)       formatted maximum time
+      r(tsfmt)       %fmt of time variable
+      r(unit)        units of time variable:  Clock, clock, daily, weekly, monthly, quarterly, halfyearly, yearly, or generic
+      r(unit1)       units of time variable:  C, c, d, w, m, q, h, y, or ""
+      r(balanced)    unbalanced, weakly balanced, or strongly balanced; panels are strongly balanced if they all have the same time values, weakly balanced
+                       if same number of observations but different time values, otherwise unbalanced

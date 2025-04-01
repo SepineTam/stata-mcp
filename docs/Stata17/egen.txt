@@ -1,4 +1,3 @@
-
 [D] egen -- Extensions to generate
             (View complete PDF manual entry)
 

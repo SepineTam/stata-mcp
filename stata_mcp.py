@@ -954,6 +954,466 @@ class StataCommandGenerator:
             # Join all parts with single spaces
             return " ".join(cmd_parts)
 
+    @staticmethod
+    @mcp.tool(name="xtset", description="生成并返回 Stata 的 'xtset' 命令（面板数据声明命令）")
+    def xtset(panelvar: Optional[str] = None,
+              timevar: Optional[str] = None,
+              clear: bool = False,
+              unit: Optional[str] = None,
+              delta: Optional[str] = None,
+              format: Optional[str] = None,
+              noquery: bool = False) -> str:
+        """
+        Generate Stata's xtset command with various options.
+
+        This function constructs a Stata xtset command string based on provided parameters,
+        matching the official Stata documentation specifications for declaring panel data.
+
+        Args:
+            panelvar: Variable that identifies the panels (e.g. country, company, person).
+            timevar: Optional variable that identifies the time within panels (e.g. year, quarter, date).
+            clear: Whether to clear the current xt settings.
+            unit: Time unit specification. One of: clocktime, daily, weekly, monthly, quarterly,
+                  halfyearly, yearly, generic.
+            delta: Period between observations in timevar units. Can be specified as a number (e.g. "1"),
+                   an expression (e.g. "(7*24)"), or with units (e.g. "7 days", "1 hour").
+            format: Format for the time variable (e.g. "%td", "%tc").
+            noquery: Suppress summary calculations and output.
+
+        Returns:
+            A complete Stata xtset command string.
+
+        Raises:
+            ValueError: If invalid parameter combinations are provided.
+
+        Examples:
+            >>> xtset("country")
+            'xtset country'
+
+            >>> xtset("country", "year")
+            'xtset country year'
+
+            >>> xtset("country", "year", unit="yearly")
+            'xtset country year, yearly'
+
+            >>> xtset("pid", "date", unit="daily")
+            'xtset pid date, daily'
+
+            >>> xtset("pid", "tod", unit="clocktime", delta="1 hour")
+            'xtset pid tod, clocktime delta(1 hour)'
+
+            >>> xtset(clear=True)
+            'xtset, clear'
+        """
+        # Validate input parameters
+        valid_units = {
+            "clocktime", "daily", "weekly", "monthly", "quarterly",
+            "halfyearly", "yearly", "generic"
+        }
+
+        if unit and unit not in valid_units:
+            raise ValueError(f"unit must be one of: {', '.join(valid_units)}")
+
+        if clear and (panelvar or timevar or unit or delta or format):
+            raise ValueError("When clear is specified, no other options should be provided")
+
+        if not panelvar and not clear:
+            # Display only - no arguments
+            return "xtset"
+
+        # Start building the command
+        cmd_parts = ["xtset"]
+
+        # Handle the three different syntax forms:
+        # 1. xtset (display only)
+        # 2. xtset, clear (clear settings)
+        # 3. xtset panelvar [timevar] [, tsoptions]
+
+        if clear:
+            cmd_parts.append(", clear")
+            return " ".join(cmd_parts)
+
+        # Add panel variable
+        cmd_parts.append(panelvar)
+
+        # Add time variable if specified
+        if timevar:
+            cmd_parts.append(timevar)
+
+        # Process options
+        options = []
+
+        # Add unit option
+        if unit:
+            options.append(unit)
+
+        # Add format option
+        if format:
+            options.append(f"format({format})")
+
+        # Add delta option
+        if delta:
+            options.append(f"delta({delta})")
+
+        # Add noquery option
+        if noquery:
+            options.append("noquery")
+
+        # Combine options if any exist
+        if options:
+            cmd_parts.append(",")
+            cmd_parts.extend(options)
+
+        # Join all parts with single spaces
+        return " ".join(cmd_parts)
+
+    @staticmethod
+    @mcp.tool(name="xtreg", description="生成并返回 Stata 的 'xtreg' 命令（面板数据回归命令）")
+    def xtreg(depvar: str,
+              indepvars: Optional[List[str]] = None,
+              if_condition: Optional[str] = None,
+              in_range: Optional[str] = None,
+              weight: Optional[str] = None,
+              model_type: str = "re",
+              vce: Optional[str] = None,
+              noconstant: bool = False,
+              theta: bool = False,
+              level: Optional[int] = None,
+              sa: bool = False,
+              wls: bool = False,
+              offset: Optional[str] = None,
+              correlation: Optional[str] = None,
+              force: bool = False,
+              nmp: bool = False,
+              rgf: bool = False,
+              scale: Optional[str] = None,
+              maximize_options: Optional[Dict[str, Any]] = None,
+              optimize_options: Optional[Dict[str, Any]] = None,
+              display_options: Optional[Dict[str, Any]] = None,
+              coeflegend: bool = False) -> str:
+        """
+        Generate Stata's xtreg command with various options for panel data regression models.
+
+        This function constructs a Stata xtreg command string based on provided parameters,
+        matching the official Stata documentation specifications for panel data regression.
+
+        Args:
+            depvar: The dependent variable name.
+            indepvars: List of independent variables. If None, only the dependent variable is included.
+            if_condition: Stata if condition as string (e.g., "foreign == 1").
+            in_range: Stata in range specification (e.g., "1/100").
+            weight: Weight specification (e.g., "aweight=pop").
+            model_type: Type of panel data model. One of: "re" (random-effects), "be" (between-effects),
+                       "fe" (fixed-effects), "mle" (ML random-effects), or "pa" (population-averaged).
+            vce: Variance-covariance estimation type. Depends on model type:
+                - For RE: conventional (default), robust, cluster clustvar, bootstrap, jackknife
+                - For BE: conventional (default), bootstrap, jackknife
+                - For FE: conventional (default), robust, cluster clustvar, bootstrap, jackknife
+                - For MLE: oim, robust, cluster clustvar, bootstrap, jackknife
+                - For PA: conventional (default), robust, bootstrap, jackknife
+            noconstant: Suppress constant term in the model. Only valid for MLE and PA models.
+            theta: Report theta. Only valid for RE model.
+            level: Set confidence level; default is level(95).
+            sa: Use Swamy-Arora estimator. Only valid for RE model.
+            wls: Use weighted least squares. Only valid for BE model.
+            offset: Include specified variable in model with coefficient constrained to 1. Only valid for PA model.
+            correlation: Within-panel correlation structure. Only valid for PA model. One of:
+                        "exchangeable", "independent", "unstructured", "fixed matname", "ar #",
+                        "stationary #", "nonstationary #".
+            force: Estimate even if observations unequally spaced in time. Only valid for PA model.
+            nmp: Use divisor N-P instead of the default N. Only valid for PA model.
+            rgf: Multiply the robust variance estimate by (N-1)/(N-P). Only valid for PA model.
+            scale: Override the default scale parameter. Only valid for PA model.
+            maximize_options: Dictionary of options for controlling the maximization process for MLE model.
+            optimize_options: Dictionary of options for controlling the optimization process for PA model.
+            display_options: Dictionary of display options like noci, nopvalues, etc.
+            coeflegend: Display legend instead of statistics.
+
+        Returns:
+            A complete Stata xtreg command string.
+
+        Raises:
+            ValueError: If invalid parameter combinations are provided.
+
+        Examples:
+            >>> xtreg("ln_w", ["grade", "age", "ttl_exp"])
+            'xtreg ln_w grade age ttl_exp, re'
+
+            >>> xtreg("ln_w", ["grade", "age", "ttl_exp"], model_type="fe")
+            'xtreg ln_w grade age ttl_exp, fe'
+
+            >>> xtreg("ln_w", ["grade", "age", "ttl_exp"], model_type="re", vce="robust", theta=True)
+            'xtreg ln_w grade age ttl_exp, re vce(robust) theta'
+
+            >>> xtreg("ln_w", ["grade", "age", "ttl_exp"], model_type="pa", correlation="ar 1")
+            'xtreg ln_w grade age ttl_exp, pa corr(ar 1)'
+        """
+        # Input validation
+        if not isinstance(depvar, str) or not depvar:
+            raise ValueError("depvar must be a non-empty string")
+
+        if indepvars is not None and not all(isinstance(v, str) for v in indepvars):
+            raise ValueError("indepvars must contain only strings")
+
+        valid_model_types = {"re", "be", "fe", "mle", "pa"}
+        if model_type not in valid_model_types:
+            raise ValueError(f"model_type must be one of: {', '.join(valid_model_types)}")
+
+        # Validate model-specific options
+        if sa and model_type != "re":
+            raise ValueError("sa option is only valid with re model type")
+
+        if wls and model_type != "be":
+            raise ValueError("wls option is only valid with be model type")
+
+        if theta and model_type != "re":
+            raise ValueError("theta option is only valid with re model type")
+
+        if (offset or correlation or force or nmp or rgf or scale or optimize_options) and model_type != "pa":
+            raise ValueError(
+                "offset, correlation, force, nmp, rgf, scale, and optimize_options are only valid with pa model type")
+
+        if maximize_options and model_type != "mle":
+            raise ValueError("maximize_options are only valid with mle model type")
+
+        if noconstant and model_type not in {"mle", "pa"}:
+            raise ValueError("noconstant option is only valid with mle or pa model types")
+
+        # Validate weights based on model type
+        if weight:
+            if model_type == "re" or model_type == "be":
+                raise ValueError(f"weights are not allowed with {model_type} model type")
+            elif model_type == "fe" and not any(w in weight for w in ["aweight", "fweight", "pweight"]):
+                raise ValueError("fe model allows only aweights, fweights, and pweights")
+            elif model_type == "mle" and not any(w in weight for w in ["iweight", "fweight", "pweight"]):
+                raise ValueError("mle model allows only iweights, fweights, and pweights")
+            elif model_type == "pa" and not any(w in weight for w in ["iweight", "fweight", "pweight"]):
+                raise ValueError("pa model allows only iweights, fweights, and pweights")
+
+        # Start building the command
+        cmd_parts = ["xtreg", depvar]
+
+        # Add independent variables if specified
+        if indepvars:
+            cmd_parts.extend(indepvars)
+
+        # Add if condition
+        if if_condition:
+            cmd_parts.append(f"if {if_condition}")
+
+        # Add in range
+        if in_range:
+            cmd_parts.append(f"in {in_range}")
+
+        # Add weights
+        if weight:
+            cmd_parts.append(f"[{weight}]")
+
+        # Process model types and options
+        options = []
+
+        # Add model type option
+        options.append(model_type)
+
+        # Add model-specific options
+        if model_type == "re":
+            if sa:
+                options.append("sa")
+
+        elif model_type == "be":
+            if wls:
+                options.append("wls")
+
+        elif model_type == "mle" or model_type == "pa":
+            if noconstant:
+                options.append("noconstant")
+
+        # Add vce option
+        if vce:
+            options.append(f"vce({vce})")
+
+        # Add other options by model type
+        if model_type == "re":
+            if theta:
+                options.append("theta")
+
+        elif model_type == "pa":
+            if offset:
+                options.append(f"offset({offset})")
+
+            if correlation:
+                options.append(f"corr({correlation})")
+
+            if force:
+                options.append("force")
+
+            if nmp:
+                options.append("nmp")
+
+            if rgf:
+                options.append("rgf")
+
+            if scale:
+                options.append(f"scale({scale})")
+
+        # Add confidence level
+        if level:
+            if not isinstance(level, int) or level <= 0 or level >= 100:
+                raise ValueError("level must be an integer between 1 and 99")
+            options.append(f"level({level})")
+
+        # Add maximize options for MLE
+        if maximize_options and model_type == "mle":
+            for opt, value in maximize_options.items():
+                if opt == "iterate" and isinstance(value, int):
+                    options.append(f"iterate({value})")
+                elif opt == "tolerance" and (isinstance(value, (int, float)) or isinstance(value, str)):
+                    options.append(f"tolerance({value})")
+                elif opt == "ltolerance" and (isinstance(value, (int, float)) or isinstance(value, str)):
+                    options.append(f"ltolerance({value})")
+                elif opt == "log" and isinstance(value, bool):
+                    options.append("log" if value else "nolog")
+                elif opt == "trace" and value:
+                    options.append("trace")
+                elif opt == "from" and isinstance(value, str):
+                    options.append(f"from({value})")
+
+        # Add optimize options for PA
+        if optimize_options and model_type == "pa":
+            for opt, value in optimize_options.items():
+                if opt == "iterate" and isinstance(value, int):
+                    options.append(f"iterate({value})")
+                elif opt == "tolerance" and (isinstance(value, (int, float)) or isinstance(value, str)):
+                    options.append(f"tolerance({value})")
+                elif opt == "log" and isinstance(value, bool):
+                    options.append("log" if value else "nolog")
+                elif opt == "trace" and value:
+                    options.append("trace")
+
+        # Add display options
+        valid_display_opts = {
+            'noci', 'nopvalues', 'noomitted', 'vsquish', 'noemptycells',
+            'baselevels', 'allbaselevels', 'nofvlabel', 'fvwrap', 'fvwrapon',
+            'cformat', 'pformat', 'sformat', 'nolstretch'
+        }
+
+        if display_options:
+            for opt, value in display_options.items():
+                if opt not in valid_display_opts:
+                    raise ValueError(f"Invalid display option: {opt}")
+
+                if isinstance(value, bool) and value:
+                    options.append(opt)
+                elif isinstance(value, int):
+                    options.append(f"{opt}({value})")
+                elif isinstance(value, str):
+                    options.append(f"{opt}({value})")
+
+        # Add coeflegend
+        if coeflegend:
+            options.append("coeflegend")
+
+        # Combine options if any exist
+        if options:
+            cmd_parts.append(",")
+            cmd_parts.extend(options)
+
+        # Join all parts with single spaces
+        return " ".join(cmd_parts)
+
+    @staticmethod
+    @mcp.tool(name="by", description="生成并返回 Stata 的 'by' 命令（在数据子集上重复执行命令）")
+    def by(varlist1: Union[str, List[str]],
+           stata_cmd: str,
+           varlist2: Optional[Union[str, List[str]]] = None,
+           sort: bool = False,
+           rc0: bool = False) -> str:
+        """
+        Generate Stata's by command to repeat a command on subsets of the data.
+
+        This function constructs a Stata by command string based on provided parameters,
+        matching the official Stata documentation specifications.
+
+        Args:
+            varlist1: Variable(s) that define the groups on which to repeat the command.
+                Can be a single variable name as string or a list of variable names.
+            stata_cmd: The Stata command to be repeated for each group.
+            varlist2: Optional additional variable(s) to verify the sort order but not used
+                for grouping. Can be a single variable name as string or a list of variable names.
+            sort: Whether to sort the data by varlist if not already sorted.
+                If True, 'by' becomes 'bysort'.
+            rc0: Whether to continue executing the command for remaining groups
+                even if an error occurs in one of the by-groups.
+
+        Returns:
+            A complete Stata by command string.
+
+        Raises:
+            ValueError: If invalid parameter values are provided.
+
+        Examples:
+            >>> by("foreign", "summarize rep78")
+            'by foreign: summarize rep78'
+
+            >>> by("foreign", "summarize rep78", sort=True)
+            'bysort foreign: summarize rep78'
+
+            >>> by(["foreign", "rep78"], "summarize price", sort=True)
+            'bysort foreign rep78: summarize price'
+
+            >>> by("pid", "generate growth = (bp - bp[_n-1])/bp", varlist2="time")
+            'by pid (time): generate growth = (bp - bp[_n-1])/bp'
+
+            >>> by("rep78", "tabulate foreign", sort=True, rc0=True)
+            'bysort rep78, rc0: tabulate foreign'
+        """
+        # Input validation
+        if not varlist1:
+            raise ValueError("varlist1 must be provided")
+
+        if not stata_cmd or not isinstance(stata_cmd, str):
+            raise ValueError("stata_cmd must be a non-empty string")
+
+        # Process varlist1
+        if isinstance(varlist1, list):
+            varlist1_str = " ".join(varlist1)
+        else:
+            varlist1_str = varlist1
+
+        # Determine command prefix (by or bysort)
+        cmd_prefix = "bysort" if sort else "by"
+
+        # Start building the command
+        cmd_parts = [cmd_prefix, varlist1_str]
+
+        # Process varlist2 if provided
+        if varlist2:
+            if isinstance(varlist2, list):
+                varlist2_str = " ".join(varlist2)
+            else:
+                varlist2_str = varlist2
+
+            cmd_parts[1] = f"{varlist1_str} ({varlist2_str})"
+
+        # Process options
+        options = []
+
+        # Add rc0 option if specified
+        if rc0:
+            options.append("rc0")
+
+        # Add options if any exist
+        if options:
+            cmd_parts.append(",")
+            cmd_parts.append(" ".join(options))
+
+        # Add colon and Stata command
+        cmd_parts.append(":")
+        cmd_parts.append(stata_cmd)
+
+        # Join all parts with single spaces
+        return " ".join(cmd_parts)
+
 
 @mcp.tool()
 def read_log(log_path: str) -> str:

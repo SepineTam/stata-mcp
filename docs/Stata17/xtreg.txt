@@ -1,0 +1,744 @@
+[XT] xtreg -- Fixed-, between-, and random-effects and population-averaged linear models
+              (View complete PDF manual entry)
+
+
+Syntax
+
+    GLS random-effects (RE) model
+
+        xtreg depvar [indepvars] [if] [in] [, re RE_options]
+
+
+    Between-effects (BE) model
+
+        xtreg depvar [indepvars] [if] [in] , be [BE_options]
+
+
+    Fixed-effects (FE) model
+
+        xtreg depvar [indepvars] [if] [in] [weight] , fe [FE_options]
+
+
+    ML random-effects (MLE) model
+
+        xtreg depvar [indepvars] [if] [in] [weight] , mle [MLE_options]
+
+
+    Population-averaged (PA) model
+
+        xtreg depvar [indepvars] [if] [in] [weight] , pa [PA_options]
+
+
+    RE_options            Description
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------
+    Model
+      re                  use random-effects estimator; the default
+      sa                  use Swamy-Arora estimator of the variance components
+
+    SE/Robust
+      vce(vcetype)        vcetype may be conventional, robust, cluster clustvar, bootstrap, or jackknife
+
+    Reporting
+      level(#)            set confidence level; default is level(95)
+      theta               report theta
+      display_options     control columns and column formats, row spacing, line width, display of omitted variables and base and empty cells, and
+                            factor-variable labeling
+
+      coeflegend          display legend instead of statistics
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    BE_options            Description
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------
+    Model
+      be                  use between-effects estimator
+      wls                 use weighted least squares
+
+    SE
+      vce(vcetype)        vcetype may be conventional, bootstrap, or jackknife
+
+    Reporting
+      level(#)            set confidence level; default is level(95)
+      display_options     control columns and column formats, row spacing, line width, display of omitted variables and base and empty cells, and
+                            factor-variable labeling
+
+      coeflegend          display legend instead of statistics
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    FE_options            Description
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------
+    Model
+      fe                  use fixed-effects estimator
+
+    SE/Robust
+      vce(vcetype)        vcetype may be conventional, robust, cluster clustvar, bootstrap, or jackknife
+
+    Reporting
+      level(#)            set confidence level; default is level(95)
+      display_options     control columns and column formats, row spacing, line width, display of omitted variables and base and empty cells, and
+                            factor-variable labeling
+
+      coeflegend          display legend instead of statistics
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    MLE_options           Description
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------
+    Model
+      noconstant          suppress constant term
+      mle                 use ML random-effects estimator
+
+    SE/Robust
+      vce(vcetype)        vcetype may be oim, robust, cluster clustvar, bootstrap, or jackknife
+
+    Reporting
+      level(#)            set confidence level; default is level(95)
+      display_options     control columns and column formats, row spacing, line width, display of omitted variables and base and empty cells, and
+                            factor-variable labeling
+
+    Maximization
+      maximize_options    control the maximization process; seldom used
+
+      coeflegend          display legend instead of statistics
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    PA_options            Description
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------
+    Model
+      noconstant          suppress constant term
+      pa                  use population-averaged estimator
+      offset(varname)     include varname in model with coefficient constrained to 1
+
+    Correlation
+      corr(correlation)   within-panel correlation structure
+      force               estimate even if observations unequally spaced in time
+
+    SE/Robust
+      vce(vcetype)        vcetype may be conventional, robust, bootstrap, or jackknife
+      nmp                 use divisor N-P instead of the default N
+      rgf                 multiply the robust variance estimate by (N-1)/(N-P)
+      scale(parm)         override the default scale parameter; parm may be x2, dev, phi, or #
+
+    Reporting
+      level(#)            set confidence level; default is level(95)
+      display_options     control columns and column formats, row spacing, line width, display of omitted variables and base and empty cells, and
+                            factor-variable labeling
+
+    Optimization
+      optimize_options    control the optimization process; seldom used
+
+      coeflegend          display legend instead of statistics
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    correlation           Description
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------
+    exchangeable          exchangeable
+    independent           independent
+    unstructured          unstructured
+    fixed matname         user-specified
+    ar #                  autoregressive of order #
+    stationary #          stationary of order #
+    nonstationary #       nonstationary of order #
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    A panel variable must be specified. For xtreg, pa, correlation structures other than exchangeable and independent require that a time variable also be
+      specified.  Use xtset.
+    indepvars may contain factor variables; see fvvarlist.
+    depvar and indepvars may contain time-series operators; see tsvarlist.
+    bayes, by, collect, mi estimate, and statsby are allowed; see prefix.  For more details, see [BAYES] bayes: xtreg.  fp is allowed for the
+      between-effects, fixed-effects, and maximum-likelihood random-effects models.
+    vce(bootstrap) and vce(jackknife) are not allowed with the mi estimate prefix.
+    aweights, fweights, and pweights are allowed for the fixed-effects model.  iweights, fweights, and pweights are allowed for the population-averaged
+      model. iweights are allowed for the maximum-likelihood random-effects (MLE) model.  Weights must be constant within panel.
+    coeflegend does not appear in the dialog box.
+    See [XT] xtreg postestimation for features available after estimation.
+
+
+Menu
+
+    Statistics > Longitudinal/panel data > Linear models > Linear regression (FE, RE, PA, BE)
+
+
+Description
+
+    xtreg fits regression models to panel data.  In particular, xtreg with the be option fits random-effects models by using the between regression
+    estimator; with the fe option, it fits fixed-effects models (by using the within regression estimator); and with the re option, it fits random-effects
+    models by using the GLS estimator (producing a matrix-weighted average of the between and within results).  See [XT] xtdata for a faster way to fit
+    fixed- and random-effects models.
+
+
+Links to PDF documentation
+
+        Quick start
+
+        Remarks and examples
+
+        Methods and formulas
+
+    The above sections are not included in this help file.
+
+
+Options for RE model
+
+        +-------+
+    ----+ Model +--------------------------------------------------------------------------------------------------------------------------------------------
+
+    re, the default, requests the GLS random-effects estimator.
+
+    sa specifies that the small-sample Swamy-Arora estimator individual-level variance component be used instead of the default consistent estimator.  See
+        xtreg, re in Methods and formulas of [XT] xtreg for details.
+
+        +-----------+
+    ----+ SE/Robust +----------------------------------------------------------------------------------------------------------------------------------------
+
+    vce(vcetype) specifies the type of standard error reported, which includes types that are derived from asymptotic theory (conventional), that are robust
+        to some kinds of misspecification (robust), that allow for intragroup correlation (cluster clustvar), and that use bootstrap or jackknife methods
+        (bootstrap, jackknife); see [XT] vce_options.
+
+        vce(conventional), the default, uses the conventionally derived variance estimator for generalized least-squares regression.
+
+        Specifying vce(robust) is equivalent to specifying vce(cluster panelvar); see xtreg, re in Methods and formulas of [XT] xtreg.
+
+        +-----------+
+    ----+ Reporting +----------------------------------------------------------------------------------------------------------------------------------------
+
+    level(#); see [R] Estimation options.
+
+    theta specifies that the output should include the estimated value of theta used in combining the between and fixed estimators.  For balanced data, this
+        is a constant, and for unbalanced data, a summary of the values is presented in the header of the output.
+
+    display_options:  noci, nopvalues, noomitted, vsquish, noemptycells, baselevels, allbaselevels, nofvlabel, fvwrap(#), fvwrapon(style), cformat(%fmt),
+        pformat(%fmt), sformat(%fmt), and nolstretch; see [R] Estimation options.
+
+    The following option is available with xtreg but is not shown in the dialog box:
+
+    coeflegend; see [R] Estimation options.
+
+
+Options for BE model
+
+        +-------+
+    ----+ Model +--------------------------------------------------------------------------------------------------------------------------------------------
+
+    be requests the between regression estimator.
+
+    wls specifies that, for unbalanced data, weighted least squares be used rather than the default OLS.  Both methods produce consistent estimates.  The
+        true variance of the between-effects residual is sigma^2_{nu}+T_i sigma^2_{epsilon} (see xtreg, be in Methods and formulas of [XT] xtreg).  WLS
+        produces a "stabilized" variance of sigma^2_{nu}/T_i + sigma^2_{epsilon}, which is also not constant.  Thus the choice between OLS and WLS amounts to
+        which is more stable.
+
+        Comment: xtreg, be is rarely used anyway, but between estimates are an ingredient in the random-effects estimate.  Our implementation of xtreg, re
+        uses the OLS estimates for this ingredient, based on our judgment that sigma^2_{nu} is large relative to sigma^2_{epsilon} in most models.  Formally,
+        only a consistent estimate of the between estimates is required.
+
+        +----+
+    ----+ SE +-----------------------------------------------------------------------------------------------------------------------------------------------
+
+    vce(vcetype) specifies the type of standard error reported, which includes types that are derived from asymptotic theory (conventional) and that use
+        bootstrap or jackknife methods (bootstrap, jackknife); see [XT] vce_options.
+
+        vce(conventional), the default, uses the conventionally derived variance estimator for generalized least-squares regression.
+
+        +-----------+
+    ----+ Reporting +----------------------------------------------------------------------------------------------------------------------------------------
+
+    level(#); see [R] Estimation options.
+
+    display_options:  noci, nopvalues, noomitted, vsquish, noemptycells, baselevels, allbaselevels, nofvlabel, fvwrap(#), fvwrapon(style), cformat(%fmt),
+        pformat(%fmt), sformat(%fmt), and nolstretch; see [R] Estimation options.
+
+    The following option is available with xtreg but is not shown in the dialog box:
+
+    coeflegend; see [R] Estimation options.
+
+
+Options for FE model
+
+        +-------+
+    ----+ Model +--------------------------------------------------------------------------------------------------------------------------------------------
+
+    fe requests the fixed-effects (within) regression estimator.
+
+        +-----------+
+    ----+ SE/Robust +----------------------------------------------------------------------------------------------------------------------------------------
+
+    vce(vcetype) specifies the type of standard error reported, which includes types that are derived from asymptotic theory (conventional), that are robust
+        to some kinds of misspecification (robust), that allow for intragroup correlation (cluster clustvar), and that use bootstrap or jackknife methods
+        (bootstrap, jackknife); see [XT] vce_options.
+
+        vce(conventional), the default, uses the conventionally derived variance estimator for generalized least-squares regression.
+
+        Specifying vce(robust) is equivalent to specifying vce(cluster panelvar); see xtreg, fe in Methods and formulas of [XT] xtreg.
+
+        +-----------+
+    ----+ Reporting +----------------------------------------------------------------------------------------------------------------------------------------
+
+    level(#); see [R] Estimation options.
+
+    display_options:  noci, nopvalues, noomitted, vsquish, noemptycells, baselevels, allbaselevels, nofvlabel, fvwrap(#), fvwrapon(style), cformat(%fmt),
+        pformat(%fmt), sformat(%fmt), and nolstretch; see [R] Estimation options.
+
+    The following option is available with xtreg but is not shown in the dialog box:
+
+    coeflegend; see [R] Estimation options.
+
+
+Options for MLE model
+
+        +-------+
+    ----+ Model +--------------------------------------------------------------------------------------------------------------------------------------------
+
+    noconstant; see [R] Estimation options.
+
+    mle requests the maximum-likelihood random-effects estimator.
+
+        +-----------+
+    ----+ SE/Robust +----------------------------------------------------------------------------------------------------------------------------------------
+
+    vce(vcetype) specifies the type of standard error reported, which includes types that are derived from asymptotic theory (oim), that are robust to some
+        kinds of misspecification (robust), that allow for intragroup correlation (cluster clustvar), and that use bootstrap or jackknife methods (bootstrap,
+        jackknife); see [XT] vce_options.
+
+        +-----------+
+    ----+ Reporting +----------------------------------------------------------------------------------------------------------------------------------------
+
+    level(#); see [R] Estimation options.
+
+    display_options:  noci, nopvalues, noomitted, vsquish, noemptycells, baselevels, allbaselevels, nofvlabel, fvwrap(#), fvwrapon(style), cformat(%fmt),
+        pformat(%fmt), sformat(%fmt), and nolstretch; see [R] Estimation options.
+
+        +--------------+
+    ----+ Maximization +-------------------------------------------------------------------------------------------------------------------------------------
+
+    maximize_options:  iterate(#), [no]log, trace, tolerance(#), ltolerance(#), and from(init_specs); see [R] Maximize.  These options are seldom used.
+
+    The following option is available with xtreg but is not shown in the dialog box:
+
+    coeflegend; see [R] Estimation options.
+
+
+Options for PA model
+
+        +-------+
+    ----+ Model +--------------------------------------------------------------------------------------------------------------------------------------------
+
+    noconstant; see [R] Estimation options.
+
+    pa requests the population-averaged estimator.  For linear regression, this is the same as a random-effects estimator (both interpretations hold).
+
+        xtreg, pa is equivalent to xtgee, family(gaussian) link(id) corr(exchangeable), which are the defaults for the xtgee command.  xtreg, pa allows all
+        the relevant xtgee options such as vce(robust).  Whether you use xtreg, pa or xtgee makes no difference.  See [XT] xtgee.
+
+    offset(varname); see [R] Estimation options.
+
+        +-------------+
+    ----+ Correlation +--------------------------------------------------------------------------------------------------------------------------------------
+
+    corr(correlation) specifies the within-panel correlation structure; the default corresponds to the equal-correlation model, corr(exchangeable).
+
+        When you specify a correlation structure that requires a lag, you indicate the lag after the structure's name with or without a blank; for example,
+        corr(ar 1) or corr(ar1).
+
+        If you specify the fixed correlation structure, you specify the name of the matrix containing the assumed correlations following the word fixed, for
+        example, corr(fixed myr).
+
+    force specifies that estimation be forced even though the time variable is not equally spaced.  This is relevant only for correlation structures that
+        require knowledge of the time variable.  These correlation structures require that observations be equally spaced so that calculations based on lags
+        correspond to a constant time change.  If you specify a time variable indicating that observations are not equally spaced, the (time dependent) model
+        will not be fit.  If you also specify force, the model will be fit, and it will be assumed that the lags based on the data ordered by the time
+        variable are appropriate.
+
+        +-----------+
+    ----+ SE/Robust +----------------------------------------------------------------------------------------------------------------------------------------
+
+    vce(vcetype) specifies the type of standard error reported, which includes types that are derived from asymptotic theory (conventional), that are robust
+        to some kinds of misspecification (robust), and that use bootstrap or jackknife methods (bootstrap, jackknife); see [XT] vce_options.
+
+        vce(conventional), the default, uses the conventionally derived variance estimator for generalized least-squares regression.
+
+    nmp; see [XT] vce_options.
+
+    rgf specifies that the robust variance estimate is multiplied by (N-1)/(N-P), where N is the total number of observations and P is the number of
+        coefficients estimated.  This option can be used with family(gaussian) only when vce(robust) is either specified or implied by the use of pweights.
+        Using this option implies that the robust variance estimate is not invariant to the scale of any weights used.
+
+    scale(x2|dev|phi|#); see [XT] vce_options.
+
+        +-----------+
+    ----+ Reporting +----------------------------------------------------------------------------------------------------------------------------------------
+
+    level(#); see [R] Estimation options.
+
+    display_options:  noci, nopvalues, noomitted, vsquish, noemptycells, baselevels, allbaselevels, nofvlabel, fvwrap(#), fvwrapon(style), cformat(%fmt),
+        pformat(%fmt), sformat(%fmt), and nolstretch; see [R] Estimation options.
+
+        +--------------+
+    ----+ Optimization +-------------------------------------------------------------------------------------------------------------------------------------
+
+    optimize_options control the iterative optimization process.  These options are seldom used.
+
+        iterate(#) specifies the maximum number of iterations.  When the number of iterations equals #, the optimization stops and presents the current
+        results, even if the convergence tolerance has not been reached.  The default is iterate(100).
+
+        tolerance(#) specifies the tolerance for the coefficient vector.  When the relative change in the coefficient vector from one iteration to the next
+        is less than or equal to #, the optimization process is stopped.  tolerance(1e-6) is the default.
+
+        log and nolog specify whether to display the iteration log.  The iteration log is displayed by default unless you used set iterlog off to suppress
+        it; see set iterlog in [R] set iter.
+
+        trace specifies that the current estimates be printed at each iteration.
+
+    The following option is available with xtreg but is not shown in the dialog box:
+
+    coeflegend; see [R] Estimation options.
+
+
+Examples
+
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------
+    Setup
+        . webuse nlswork
+        . xtset idcode
+
+    Between-effects model
+        . xtreg ln_w grade age c.age#c.age ttl_exp c.ttl_exp#c.ttl_exp tenure c.tenure#c.tenure 2.race not_smsa south, be
+
+    Additional setup if not using factor variables
+        . generate age2 = age^2
+        . generate ttl_exp2 = ttl_exp^2
+        . generate tenure2 = tenure^2
+        . generate byte black = (race==2)
+
+    Between-effects model same as above, but not using factor variables
+        . xtreg ln_w grade age* ttl_exp* tenure* black not_smsa south, be
+
+    Fixed-effects model
+        . xtreg ln_w grade age c.age#c.age ttl_exp c.ttl_exp#c.ttl_exp tenure c.tenure#c.tenure 2.race not_smsa south, fe
+
+    Fixed-effects model with robust variance
+        . xtreg ln_w grade age c.age#c.age ttl_exp c.ttl_exp#c.ttl_exp tenure c.tenure#c.tenure 2.race not_smsa south, fe vce(robust)
+
+    Random-effects model
+        . xtreg ln_w grade age c.age#c.age ttl_exp c.ttl_exp#c.ttl_exp tenure c.tenure#c.tenure 2.race not_smsa south, re theta
+
+    Random-effects model using maximum likelihood estimator
+        . xtreg ln_w grade age c.age#c.age ttl_exp c.ttl_exp#c.ttl_exp tenure c.tenure#c.tenure 2.race not_smsa south, mle
+
+    Population-averaged model
+        . xtreg ln_w grade age c.age#c.age ttl_exp c.ttl_exp#c.ttl_exp tenure c.tenure#c.tenure 2.race not_smsa south, pa
+
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+Stored results
+
+    xtreg, re stores the following in e():
+
+    Scalars
+      e(N)                   number of observations
+      e(N_g)                 number of groups
+      e(df_m)                model degrees of freedom
+      e(g_min)               smallest group size
+      e(g_avg)               average group size
+      e(g_max)               largest group size
+      e(Tcon)                1 if T is constant
+      e(sigma)               ancillary parameter (gamma, lnormal)
+      e(sigma_u)             panel-level standard deviation
+      e(sigma_e)             standard deviation of epsilon_it
+      e(r2_w)                R-squared within model
+      e(r2_o)                R-squared overall model
+      e(r2_b)                R-squared between model
+      e(N_clust)             number of clusters
+      e(chi2)                chi-squared
+      e(p)                   p-value for model test
+      e(rho)                 rho
+      e(thta_min)            minimum theta
+      e(thta_5)              theta, 5th percentile
+      e(thta_50)             theta, 50th percentile
+      e(thta_95)             theta, 95th percentile
+      e(thta_max)            maximum theta
+      e(rmse)                root mean squared error of GLS regression
+      e(Tbar)                harmonic mean of group sizes
+      e(rank)                rank of e(V)
+
+    Macros
+      e(cmd)                 xtreg
+      e(cmdline)             command as typed
+      e(depvar)              name of dependent variable
+      e(ivar)                variable denoting groups
+      e(model)               re
+      e(clustvar)            name of cluster variable
+      e(chi2type)            Wald; type of model chi-squared test
+      e(vce)                 vcetype specified in vce()
+      e(vcetype)             title used to label Std. err.
+      e(sa)                  sa, if specified
+      e(properties)          b V
+      e(predict)             program used to implement predict
+      e(marginsnotok)        predictions disallowed by margins
+      e(asbalanced)          factor variables fvset as asbalanced
+      e(asobserved)          factor variables fvset as asobserved
+
+    Matrices
+      e(b)                   coefficient vector
+      e(bf)                  coefficient vector for fixed-effects model
+      e(theta)               theta
+      e(V)                   variance-covariance matrix of the estimators
+      e(VCEf)                VCE for fixed-effects model
+
+    Functions
+      e(sample)              marks estimation sample
+
+    In addition to the above, the following is stored in r():
+
+    Matrices
+      r(table)               matrix containing the coefficients with their standard errors, test statistics, p-values, and confidence intervals
+
+    Note that results stored in r() are updated when the command is replayed and will be replaced when any r-class command is run after the estimation
+    command.
+
+    xtreg, be stores the following in e():
+
+    Scalars
+      e(N)                   number of observations
+      e(N_g)                 number of groups
+      e(mss)                 model sum of squares
+      e(df_m)                model degrees of freedom
+      e(rss)                 residual sum of squares
+      e(df_r)                residual degrees of freedom
+      e(ll)                  log likelihood
+      e(ll_0)                log likelihood, constant-only model
+      e(g_min)               smallest group size
+      e(g_avg)               average group size
+      e(g_max)               largest group size
+      e(Tcon)                1 if T is constant
+      e(r2)                  R-squared
+      e(r2_a)                adjusted R-squared
+      e(r2_w)                R-squared within model
+      e(r2_o)                R-squared overall model
+      e(r2_b)                R-squared between model
+      e(F)                   F statistic
+      e(p)                   p-value for model test
+      e(rmse)                root mean squared error
+      e(Tbar)                harmonic mean of group sizes
+      e(rank)                rank of e(V)
+
+    Macros
+      e(cmd)                 xtreg
+      e(cmdline)             command as typed
+      e(depvar)              name of dependent variable
+      e(ivar)                variable denoting groups
+      e(model)               be
+      e(typ)                 WLS, if wls specified
+      e(title)               title in estimation output
+      e(vce)                 vcetype specified in vce()
+      e(properties)          b V
+      e(predict)             program used to implement predict
+      e(marginsok)           predictions allowed by margins
+      e(marginsnotok)        predictions disallowed by margins
+      e(asbalanced)          factor variables fvset as asbalanced
+      e(asobserved)          factor variables fvset as asobserved
+
+    Matrices
+      e(b)                   coefficient vector
+      e(V)                   variance-covariance matrix of the estimators
+
+    Functions
+      e(sample)              marks estimation sample
+
+    In addition to the above, the following is stored in r():
+
+    Matrices
+      r(table)               matrix containing the coefficients with their standard errors, test statistics, p-values, and confidence intervals
+
+    Note that results stored in r() are updated when the command is replayed and will be replaced when any r-class command is run after the estimation
+    command.
+
+    xtreg, fe stores the following in e():
+
+    Scalars
+      e(N)                   number of observations
+      e(N_g)                 number of groups
+      e(mss)                 model sum of squares
+      e(df_m)                model degrees of freedom
+      e(rss)                 residual sum of squares
+      e(df_r)                residual degrees of freedom
+      e(tss)                 total sum of squares
+      e(g_min)               smallest group size
+      e(g_avg)               average group size
+      e(g_max)               largest group size
+      e(Tcon)                1 if T is constant
+      e(sigma)               ancillary parameter (gamma, lnormal)
+      e(corr)                corr(u_i, Xb)
+      e(sigma_u)             panel-level standard deviation
+      e(sigma_e)             standard deviation of epsilon_it
+      e(r2)                  R-squared
+      e(r2_a)                adjusted R-squared
+      e(r2_w)                R-squared within model
+      e(r2_o)                R-squared overall model
+      e(r2_b)                R-squared between model
+      e(ll)                  log likelihood
+      e(ll_0)                log likelihood, constant-only model
+      e(N_clust)             number of clusters
+      e(rho)                 rho
+      e(F)                   F statistic
+      e(F_f)                 F statistic for test of u_i=0
+      e(p)                   p-value for model test
+      e(p_f)                 p-value for test of u_i=0
+      e(df_a)                degrees of freedom for absorbed effect
+      e(df_b)                numerator degrees of freedom for F statistic
+      e(rmse)                root mean squared error
+      e(Tbar)                harmonic mean of group sizes
+      e(rank)                rank of e(V)
+
+    Macros
+      e(cmd)                 xtreg
+      e(cmdline)             command as typed
+      e(depvar)              name of dependent variable
+      e(ivar)                variable denoting groups
+      e(model)               fe
+      e(wtype)               weight type
+      e(wexp)                weight expression
+      e(clustvar)            name of cluster variable
+      e(vce)                 vcetype specified in vce()
+      e(vcetype)             title used to label Std. err.
+      e(properties)          b V
+      e(predict)             program used to implement predict
+      e(marginsnotok)        predictions disallowed by margins
+      e(asbalanced)          factor variables fvset as asbalanced
+      e(asobserved)          factor variables fvset as asobserved
+
+    Matrices
+      e(b)                   coefficient vector
+      e(V)                   variance-covariance matrix of the estimators
+      e(V_modelbased)        model-based variance
+
+    Functions
+      e(sample)              marks estimation sample
+
+    In addition to the above, the following is stored in r():
+
+    Matrices
+      r(table)               matrix containing the coefficients with their standard errors, test statistics, p-values, and confidence intervals
+
+    Note that results stored in r() are updated when the command is replayed and will be replaced when any r-class command is run after the estimation
+    command.
+
+    xtreg, mle stores the following in e():
+
+    Scalars
+      e(N)                   number of observations
+      e(N_g)                 number of groups
+      e(df_m)                model degrees of freedom
+      e(g_min)               smallest group size
+      e(g_avg)               average group size
+      e(g_max)               largest group size
+      e(sigma_u)             panel-level standard deviation
+      e(sigma_e)             standard deviation of epsilon_it
+      e(ll)                  log likelihood
+      e(ll_0)                log likelihood, constant-only model
+      e(ll_c)                log likelihood, comparison model
+      e(N_clust)             number of clusters
+      e(chi2)                chi-squared
+      e(chi2_c)              chi-squared for comparison test
+      e(p)                   p-value for model test
+      e(rho)                 rho
+      e(rank)                rank of e(V)
+
+    Macros
+      e(cmd)                 xtreg
+      e(cmdline)             command as typed
+      e(depvar)              name of dependent variable
+      e(ivar)                variable denoting groups
+      e(model)               ml
+      e(wtype)               weight type
+      e(wexp)                weight expression
+      e(title)               title in estimation output
+      e(clustvar)            name of cluster variable
+      e(vce)                 vcetype specified in vce()
+      e(vcetype)             title used to label Std. err.
+      e(chi2type)            Wald or LR; type of model chi-squared test
+      e(chi2_ct)             Wald or LR; type of model chi-squared test corresponding to e(chi2_c)
+      e(distrib)             Gaussian; the distribution of the RE
+      e(properties)          b V
+      e(predict)             program used to implement predict
+      e(marginsnotok)        predictions disallowed by margins
+      e(asbalanced)          factor variables fvset as asbalanced
+      e(asobserved)          factor variables fvset as asobserved
+
+    Matrices
+      e(b)                   coefficient vector
+      e(V)                   variance-covariance matrix of the estimators
+
+    Functions
+      e(sample)              marks estimation sample
+
+    In addition to the above, the following is stored in r():
+
+    Matrices
+      r(table)               matrix containing the coefficients with their standard errors, test statistics, p-values, and confidence intervals
+
+    Note that results stored in r() are updated when the command is replayed and will be replaced when any r-class command is run after the estimation
+    command.
+
+    xtreg, pa stores the following in e():
+
+    Scalars
+      e(N)                   number of observations
+      e(N_g)                 number of groups
+      e(df_m)                model degrees of freedom
+      e(chi2)                chi-squared
+      e(p)                   p-value for model test
+      e(df_pear)             degrees of freedom for Pearson chi-squared
+      e(chi2_dev)            chi-squared test of deviance
+      e(chi2_dis)            chi-squared test of deviance dispersion
+      e(deviance)            deviance
+      e(dispers)             deviance dispersion
+      e(phi)                 scale parameter
+      e(g_min)               smallest group size
+      e(g_avg)               average group size
+      e(g_max)               largest group size
+      e(rank)                rank of e(V)
+      e(tol)                 target tolerance
+      e(dif)                 achieved tolerance
+      e(rc)                  return code
+
+    Macros
+      e(cmd)                 xtgee
+      e(cmd2)                xtreg
+      e(cmdline)             command as typed
+      e(depvar)              name of dependent variable
+      e(ivar)                variable denoting groups
+      e(tvar)                variable denoting time within groups
+      e(model)               pa
+      e(family)              Gaussian
+      e(link)                identity; link function
+      e(corr)                correlation structure
+      e(scale)               x2, dev, phi, or #; scale parameter
+      e(wtype)               weight type
+      e(wexp)                weight expression
+      e(offset)              linear offset variable
+      e(chi2type)            Wald; type of model chi-squared test
+      e(vce)                 vcetype specified in vce()
+      e(vcetype)             title used to label Std. err.
+      e(rgf)                 rgf, if rgf specified
+      e(nmp)                 nmp, if specified
+      e(properties)          b V
+      e(predict)             program used to implement predict
+      e(marginsnotok)        predictions disallowed by margins
+      e(asbalanced)          factor variables fvset as asbalanced
+      e(asobserved)          factor variables fvset as asobserved
+
+    Matrices
+      e(b)                   coefficient vector
+      e(R)                   estimated working correlation matrix
+      e(V)                   variance-covariance matrix of the estimators
+      e(V_modelbased)        model-based variance
+
+    Functions
+      e(sample)              marks estimation sample
+
+    In addition to the above, the following is stored in r():
+
+    Matrices
+      r(table)               matrix containing the coefficients with their standard errors, test statistics, p-values, and confidence intervals
+
+    Note that results stored in r() are updated when the command is replayed and will be replaced when any r-class command is run after the estimation
+    command.
