@@ -1,0 +1,278 @@
+[D] label -- Manipulate labels
+             (View complete PDF manual entry)
+
+
+Syntax
+
+    Label dataset
+
+        label data ["label"]
+
+
+    Label variable
+
+        label variable varname ["label"]
+
+
+    Define value label
+
+        label define lblname # "label" [# "label" ...] [, add modify replace nofix]
+
+
+    Assign value label to variables
+
+        label values varlist lblname [, nofix]
+
+
+    Remove value labels
+
+        label values varlist [.]
+
+
+    List names of value labels
+
+        label dir
+
+
+    List names and contents of value labels
+
+        label list [lblname [lblname ...]]
+
+
+    Copy value label
+
+        label copy lblname lblname [, replace]
+
+
+    Drop value labels
+
+        label drop {lblname [lblname ...] | _all}
+
+
+    Save value labels in do-file
+
+        label save [lblname [lblname...]] using filename [, replace]
+
+
+    Labels for variables and values in multiple languages
+
+        label language ...                                                                                                           (see [D] label language)
+
+
+    where # is an integer or an extended missing value (.a, .b, ..., .z).
+
+
+    collect is allowed with label dir, label language, and label list; see prefix.
+
+
+Menu
+
+    label data
+
+        Data > Data utilities > Label utilities > Label dataset
+
+    label variable
+
+        Data > Variables Manager
+
+    label define
+
+        Data > Variables Manager
+
+    label values
+
+        Data > Variables Manager
+
+    label list
+
+        Data > Data utilities > Label utilities > List value labels
+
+    label copy
+
+        Data > Data utilities > Label utilities > Copy value labels
+
+    label drop
+
+        Data > Variables Manager
+
+    label save
+
+        Data > Data utilities > Label utilities > Save value labels as do-file
+
+
+Description
+
+    label data attaches a label (up to 80 characters) to the dataset in memory.  Dataset labels are displayed when you use the dataset and when you describe
+    it.  If no label is specified, any existing label is removed.
+
+    label variable attaches a label (up to 80 characters) to a variable.  If no label is specified, any existing variable label is removed.
+
+    label define creates a value label named lblname, which is a set of individual numeric values and their corresponding labels. lblname can contain up to
+    65,536 individual labels; each individual label can be up to 32,000 characters long.
+
+    label values attaches a value label to varlist.  If . is specified instead of lblname, any existing value label is detached from that varlist.  The value
+    label, however, is not deleted.  The syntax label values varname (that is, nothing following the varname) acts the same as specifying the ..
+
+    label dir lists the names of value labels stored in memory.
+
+    label list lists the names and contents of value labels stored in memory.
+
+    label copy makes a copy of an existing value label.
+
+    label drop eliminates value labels.
+
+    label save saves value label definitions in a do-file.  This is particularly useful for value labels that are not attached to a variable because these
+    labels are not saved with the data.  By default, .do is the filename extension used.
+
+    See [D] label language for information on the label language command.
+
+
+Links to PDF documentation
+
+        Quick start
+
+        Remarks and examples
+
+    The above sections are not included in this help file.
+
+
+Options
+
+    add allows you to add # to label correspondences to lblname.  If add is not specified, you may create only new lblnames.  If add is specified, you may
+        create new lblnames or add new entries to existing lblnames.
+
+    modify allows you to modify or delete existing # to label correspondences and add new correspondences.  Specifying modify implies add, even if you do not
+        type the add option.
+
+    replace, with label define, allows an existing value label to be redefined.  replace, with label copy, allows an existing value label to be copied over.
+        replace, with label save, allows filename to be replaced.
+
+    nofix prevents display formats from being widened according to the maximum length of the value label.  Consider label values myvar mylab, and say that
+        myvar has a %9.0g display format right now.  Say that the maximum length of the strings in mylab is 12 characters.  label values would change the
+        format of myvar from %9.0g to %12.0g.  nofix prevents this.
+
+        nofix is also allowed with label define, but it is relevant only when you are modifying an existing value label.  Without the nofix option, label
+        define finds all the variables that use this value label and considers widening their display formats.  nofix prevents this.
+
+
+Technical note
+
+    Although we tend to show examples defining value labels using one command, such as
+
+        . label define answ 1 yes 2 no
+
+    remember that value labels may include many associations and typing them all on one line can be ungainly or impossible.  For instance, if perhaps we have
+    an encoding of 1,000 places, we could imagine typing
+
+        . label define fips 10060 "Anniston, AL" 10110 "Auburn, AL" 10175 "Bessemer, AL" ... 560050 "Cheyenne, WY"
+
+    Even in an editor, we would be unlikely to type the line correctly.
+
+    The easy way to enter long value labels is to enter the codings one at a time:
+
+        . label define fips 10060 "Anniston, AL"
+        . label define fips 10175 "Bessemer, AL", add
+        ...
+        . label define fips 560050 "Cheyenne, WY", add
+
+    And, of course, we could abbreviate:
+
+        . lab def fips 10060 "Anniston, AL"
+        . lab def fips 10175 "Bessemer, AL", add
+
+    Up to 65,536 associations are allowed.
+
+
+Examples
+
+    Setup
+        . webuse hbp4
+
+    Describe the dataset
+        . describe
+
+    Label the dataset
+        . label data "Fictional blood-pressure data"
+
+    Describe the dataset
+        . describe
+
+    Label the hbp variable
+        . label variable hbp "high blood pressure"
+
+    Define the value label yesno
+        . label define yesno 0 "no" 1 "yes"
+
+    List the names and contents of all value labels
+        . label list
+
+    List the name and contents of only the value label yesno
+        . label list yesno
+
+    List names of value labels
+        . label dir
+
+    Make a copy of the value label yesno
+        . label copy yesno yesnomaybe
+
+    Add another value and label to the value label yesnomaybe
+        . label define yesnomaybe 2 "maybe", add
+
+    List the name and contents of value label yesnomaybe
+        . label list yesnomaybe
+
+    Modify the label for the value 2 in value label yesnomaybe
+        . label define yesnomaybe 2 "don't know", modify
+
+    List the name and contents of value label yesnomaybe
+        . label list yesnomaybe
+
+    List the first 4 observations in the dataset
+        . list in 1/4
+
+    Attach the value label yesnomaybe to the variable hbp
+        . label values hbp yesnomaybe
+
+    List the first 4 observations in the dataset
+        . list in 1/4
+
+    Save the value label sexlbl to mylabel.do
+        . label save sexlbl using mylabel
+
+    List the contents of the file mlabel.do
+        . type mylabel.do
+
+    Drop the value label sexlbl from the dataset
+        . label drop sexlbl
+
+    List the names of value labels
+        . label dir
+
+    Run mylabel.do to retrieve the value label sexlbl
+        . do mylabel
+
+    List the names of value labels
+        . label dir
+
+
+Video examples
+
+        How to label variables
+
+        How to label the values of categorical variables
+
+
+Stored results
+
+    label list stores the following in r():
+
+    Scalars
+      r(k)                number of mapped values, including missing
+      r(min)              minimum nonmissing value label
+      r(max)              maximum nonmissing value label
+      r(hasemiss)         1 if extended missing values labeled, 0 otherwise
+
+    label dir stores the following in r():
+
+    Macros
+      r(names)            names of value labels

@@ -1,0 +1,121 @@
+[D] drop -- Drop variables or observations
+            (View complete PDF manual entry)
+
+
+Syntax
+
+    Drop variables
+
+        drop varlist
+
+
+    Drop observations
+
+        drop if exp
+
+
+    Drop a range of observations
+
+        drop in range [if exp]
+
+
+    Keep variables
+
+        keep varlist
+
+
+    Keep observations that satisfy specified condition
+
+        keep if exp
+
+
+    Keep a range of observations
+
+        keep in range [if exp]
+
+
+    by and collect are allowed with the second syntax of drop and the second syntax of keep; see prefix.
+
+
+Menu
+
+    Drop or keep variables
+
+        Data > Variables Manager
+
+    Drop or keep observations
+
+        Data > Create or change data > Drop or keep observations
+
+
+Description
+
+    drop eliminates variables or observations from the data in memory.
+
+    keep works the same way as drop, except that you specify the variables or observations to be kept rather than the variables or observations to be
+    deleted.
+
+    Warning: drop and keep are not reversible.  Once you have eliminated observations, you cannot read them back in again.  You would need to go back to the
+    original dataset and read it in again.  Instead of applying drop or keep for a subset analysis, consider using if or in to select subsets temporarily.
+    This is usually the best strategy.  Alternatively, applying preserve followed in due course by restore may be a good approach.  You can also use frame
+    put to place a subset of variables or observations from the current dataset into another frame; see [D] frame put.
+
+
+Links to PDF documentation
+
+        Quick start
+
+        Remarks and examples
+
+    The above sections are not included in this help file.
+
+
+Examples
+
+    Setup
+        . sysuse census
+
+    Describe the data
+        . describe
+
+    Drop all variables with names that begin with pop
+        . drop pop*
+
+    Describe the resulting data
+        . describe
+
+    Drop marriage and divorce
+        . drop marriage divorce
+
+    Describe the resulting data
+        . describe
+
+    Drop any observation for which medage is greater than 32
+        . drop if medage > 32
+
+    Drop the first observation for each region
+        . by region, sort: drop if _n == 1
+
+    Drop all but the last observation in each region
+        . by region: drop if _n != _N
+
+    Keep the first 2 observations in the dataset
+        . keep in 1/2
+
+    Describe the resulting data
+        . describe
+
+    Drop all observations and variables
+        . drop _all
+
+    Describe the resulting data
+        . describe
+
+
+Stored results
+
+    drop and keep store the following in r():
+
+    Scalars
+      r(N_drop)      number of observations dropped
+      r(k_drop)      number of variables dropped

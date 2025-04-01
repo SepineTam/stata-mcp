@@ -1510,6 +1510,893 @@ class StataCommandGenerator:
         # Join all parts with single spaces
         return " ".join(cmd_parts)
 
+    @staticmethod
+    @mcp.tool(name="drop", description="生成并返回 Stata 的 'drop' 命令（删除变量或观测值命令）")
+    def drop(varlist: Optional[Union[str, List[str]]] = None,
+             if_exp: Optional[str] = None,
+             in_range: Optional[str] = None,
+             all: bool = False) -> str:
+        """
+        Generate Stata's drop command to eliminate variables or observations.
+
+        This function constructs a Stata drop command string based on provided parameters,
+        matching the official Stata documentation specifications.
+
+        Args:
+            varlist: Variable(s) to be dropped. Can be a single variable name as string,
+                    a list of variable names, or wildcard expressions like "pop*".
+            if_exp: Expression specifying which observations to drop.
+            in_range: Range of observations to drop (e.g., "1/5" for first 5 observations).
+            all: Whether to drop all observations and variables (_all).
+
+        Returns:
+            A complete Stata drop command string.
+
+        Raises:
+            ValueError: If invalid parameter combinations are provided.
+
+        Examples:
+            >>> drop("pop*")
+            'drop pop*'
+
+            >>> drop(["marriage", "divorce"])
+            'drop marriage divorce'
+
+            >>> drop(if_exp="medage > 32")
+            'drop if medage > 32'
+
+            >>> drop(in_range="1/10", if_exp="income < 1000")
+            'drop in 1/10 if income < 1000'
+
+            >>> drop(all=True)
+            'drop _all'
+        """
+        # Input validation
+        if all and (varlist or if_exp or in_range):
+            raise ValueError("When all=True, no other parameters should be provided")
+
+        if not any([varlist, if_exp, in_range, all]):
+            raise ValueError("At least one parameter must be provided")
+
+        if varlist and if_exp and not in_range:
+            raise ValueError("Cannot combine varlist and if_exp without in_range")
+
+        # Start building the command
+        cmd_parts = ["drop"]
+
+        # Handle _all case
+        if all:
+            cmd_parts.append("_all")
+            return " ".join(cmd_parts)
+
+        # Handle varlist case
+        if varlist:
+            if isinstance(varlist, list):
+                cmd_parts.append(" ".join(varlist))
+            else:
+                cmd_parts.append(varlist)
+
+        # Handle in range case
+        if in_range:
+            cmd_parts.append(f"in {in_range}")
+
+        # Handle if expression case
+        if if_exp:
+            cmd_parts.append(f"if {if_exp}")
+
+        # Join all parts with single spaces
+        return " ".join(cmd_parts)
+
+    @staticmethod
+    @mcp.tool(name="keep", description="生成并返回 Stata 的 'keep' 命令（保留变量或观测值命令）")
+    def keep(varlist: Optional[Union[str, List[str]]] = None,
+             if_exp: Optional[str] = None,
+             in_range: Optional[str] = None) -> str:
+        """
+        Generate Stata's keep command to retain specified variables or observations.
+
+        This function constructs a Stata keep command string based on provided parameters,
+        matching the official Stata documentation specifications.
+
+        Args:
+            varlist: Variable(s) to be kept. Can be a single variable name as string,
+                    a list of variable names, or wildcard expressions like "pop*".
+            if_exp: Expression specifying which observations to keep.
+            in_range: Range of observations to keep (e.g., "1/5" for first 5 observations).
+
+        Returns:
+            A complete Stata keep command string.
+
+        Raises:
+            ValueError: If invalid parameter combinations are provided.
+
+        Examples:
+            >>> keep("pop*")
+            'keep pop*'
+
+            >>> keep(["make", "price", "mpg", "rep78", "foreign"])
+            'keep make price mpg rep78 foreign'
+
+            >>> keep(if_exp="medage <= 32")
+            'keep if medage <= 32'
+
+            >>> keep(in_range="1/2")
+            'keep in 1/2'
+
+            >>> keep(in_range="1/10", if_exp="income >= 1000")
+            'keep in 1/10 if income >= 1000'
+        """
+        # Input validation
+        if not any([varlist, if_exp, in_range]):
+            raise ValueError("At least one parameter must be provided")
+
+        if varlist and if_exp and not in_range:
+            raise ValueError("Cannot combine varlist and if_exp without in_range")
+
+        # Start building the command
+        cmd_parts = ["keep"]
+
+        # Handle varlist case
+        if varlist:
+            if isinstance(varlist, list):
+                cmd_parts.append(" ".join(varlist))
+            else:
+                cmd_parts.append(varlist)
+
+        # Handle in range case
+        if in_range:
+            cmd_parts.append(f"in {in_range}")
+
+        # Handle if expression case
+        if if_exp:
+            cmd_parts.append(f"if {if_exp}")
+
+        # Join all parts with single spaces
+        return " ".join(cmd_parts)
+
+    @staticmethod
+    @mcp.tool(name="merge", description="生成并返回 Stata 的 'merge' 命令（合并数据集命令）")
+    def merge(merge_type: str,
+              key_vars: Union[str, List[str]],
+              using_file: str,
+              keepusing: Optional[List[str]] = None,
+              generate: Optional[str] = None,
+              nogenerate: bool = False,
+              nolabel: bool = False,
+              nonotes: bool = False,
+              update: bool = False,
+              replace: bool = False,
+              noreport: bool = False,
+              force: bool = False,
+              assert_results: Optional[List[str]] = None,
+              keep_results: Optional[List[str]] = None,
+              sorted: bool = False) -> str:
+        """
+        Generate Stata's merge command to join datasets.
+
+        This function constructs a Stata merge command string based on provided parameters,
+        matching the official Stata documentation specifications.
+
+        Args:
+            merge_type: Type of merge to perform. One of: "1:1", "m:1", "1:m", "m:m".
+            key_vars: Key variable(s) to match on. Can be a single variable name as string,
+                     a list of variable names, or "_n" for a sequential merge.
+            using_file: Path to the Stata dataset file (.dta) to be merged.
+            keepusing: Optional list of variables to keep from the using dataset.
+            generate: Optional name for the variable marking merge results (default is _merge).
+            nogenerate: Whether to suppress creation of the _merge variable.
+            nolabel: Whether to prevent copying value-label definitions from using dataset.
+            nonotes: Whether to prevent copying notes from using dataset.
+            update: Whether to update missing values in master with values from using.
+            replace: Whether to replace all values in master with nonmissing values from using.
+                     Requires update=True.
+            noreport: Whether to suppress display of match result summary table.
+            force: Whether to allow string/numeric variable type mismatches.
+            assert_results: Required match results. List can include: "master", "using", "match",
+                           "match_update", "match_conflict" (or their numeric equivalents).
+            keep_results: Match results to keep. List can include: "master", "using", "match",
+                         "match_update", "match_conflict" (or their numeric equivalents).
+            sorted: Whether datasets are already sorted by key variables.
+
+        Returns:
+            A complete Stata merge command string.
+
+        Raises:
+            ValueError: If invalid parameter values or combinations are provided.
+
+        Examples:
+            >>> merge("1:1", "make", "autoexpense.dta")
+            'merge 1:1 make using autoexpense.dta'
+
+            >>> merge("m:1", "region", "dollars.dta", keep_results=["match"])
+            'merge m:1 region using dollars.dta, keep(match)'
+
+            >>> merge("1:1", "_n", "dollars.dta", nogenerate=True)
+            'merge 1:1 _n using dollars.dta, nogenerate'
+
+            >>> merge("1:m", ["id", "date"], "sales.dta", update=True, replace=True)
+            'merge 1:m id date using sales.dta, update replace'
+
+            >>> merge("m:1", "id", "overlap2.dta", update=True, assert_results=["match", "master"])
+            'merge m:1 id using overlap2.dta, update assert(match master)'
+        """
+        # Input validation
+        valid_merge_types = {"1:1", "m:1", "1:m", "m:m"}
+        if merge_type not in valid_merge_types:
+            raise ValueError(f"merge_type must be one of: {', '.join(valid_merge_types)}")
+
+        if not using_file:
+            raise ValueError("using_file must be provided")
+
+        if replace and not update:
+            raise ValueError("replace requires update to be True")
+
+        if nogenerate and generate:
+            raise ValueError("Cannot specify both nogenerate and generate")
+
+        # Valid result codes for assert and keep options
+        valid_results = {
+            "master": "1", "masters": "1", "1": "1",
+            "using": "2", "usings": "2", "2": "2",
+            "match": "3", "matches": "3", "matched": "3", "3": "3",
+            "match_update": "4", "match_updates": "4", "4": "4",
+            "match_conflict": "5", "match_conflicts": "5", "5": "5"
+        }
+
+        # Process key variables
+        if isinstance(key_vars, list):
+            key_vars_str = " ".join(key_vars)
+        else:
+            key_vars_str = key_vars
+
+        # Start building the command
+        cmd_parts = ["merge", merge_type, key_vars_str, "using", using_file]
+
+        # Process options
+        options = []
+
+        # Process keepusing option
+        if keepusing:
+            if not all(isinstance(v, str) for v in keepusing):
+                raise ValueError("All variable names in keepusing must be strings")
+            options.append(f"keepusing({' '.join(keepusing)})")
+
+        # Process other options
+        if generate:
+            options.append(f"generate({generate})")
+
+        if nogenerate:
+            options.append("nogenerate")
+
+        if nolabel:
+            options.append("nolabel")
+
+        if nonotes:
+            options.append("nonotes")
+
+        if update:
+            options.append("update")
+
+        if replace:
+            options.append("replace")
+
+        if noreport:
+            options.append("noreport")
+
+        if force:
+            options.append("force")
+
+        # Process assert_results
+        if assert_results:
+            # Normalize results to their canonical form
+            normalized_results = []
+            for result in assert_results:
+                if result not in valid_results:
+                    raise ValueError(f"Invalid assert result: {result}")
+                normalized_results.append(valid_results[result])
+
+            # Remove duplicates and sort for consistent output
+            normalized_results = sorted(set(normalized_results))
+
+            # Convert back to result words for readability
+            result_words = []
+            for code in normalized_results:
+                if code == "1":
+                    result_words.append("master")
+                elif code == "2":
+                    result_words.append("using")
+                elif code == "3":
+                    result_words.append("match")
+                elif code == "4":
+                    result_words.append("match_update")
+                elif code == "5":
+                    result_words.append("match_conflict")
+
+            options.append(f"assert({' '.join(result_words)})")
+
+        # Process keep_results
+        if keep_results:
+            # Normalize results to their canonical form
+            normalized_results = []
+            for result in keep_results:
+                if result not in valid_results:
+                    raise ValueError(f"Invalid keep result: {result}")
+                normalized_results.append(valid_results[result])
+
+            # Remove duplicates and sort for consistent output
+            normalized_results = sorted(set(normalized_results))
+
+            # Convert back to result words for readability
+            result_words = []
+            for code in normalized_results:
+                if code == "1":
+                    result_words.append("master")
+                elif code == "2":
+                    result_words.append("using")
+                elif code == "3":
+                    result_words.append("match")
+                elif code == "4":
+                    result_words.append("match_update")
+                elif code == "5":
+                    result_words.append("match_conflict")
+
+            options.append(f"keep({' '.join(result_words)})")
+
+        # Add sorted option
+        if sorted:
+            options.append("sorted")
+
+        # Combine options if any exist
+        if options:
+            cmd_parts.append(",")
+            cmd_parts.append(" ".join(options))
+
+        # Join all parts with single spaces
+        return " ".join(cmd_parts)
+
+    @staticmethod
+    @mcp.tool(name="encode", description="生成并返回 Stata 的 'encode' 命令（将字符串变量转换为数值变量）")
+    def encode(varname: str,
+               generate: str,
+               if_condition: Optional[str] = None,
+               in_range: Optional[str] = None,
+               label: Optional[str] = None,
+               noextend: bool = False) -> str:
+        """
+        Generate Stata's encode command to convert string variable to numeric.
+
+        This function constructs a Stata encode command string based on provided parameters,
+        matching the official Stata documentation specifications.
+
+        Args:
+            varname: Name of the string variable to be encoded.
+            generate: Name of the new numeric variable to be created.
+            if_condition: Optional condition specifying which observations to include.
+            in_range: Optional range specifying which observations to include.
+            label: Optional name for the value label to be created or used.
+                   If not specified, the label will have the same name as the new variable.
+            noextend: Whether to prevent encoding if there are values in varname
+                     that are not present in the specified label.
+
+        Returns:
+            A complete Stata encode command string.
+
+        Raises:
+            ValueError: If invalid parameter values are provided.
+
+        Examples:
+            >>> encode("sex", "gender")
+            'encode sex, generate(gender)'
+
+            >>> encode("sex", "gender", label="sexlbl")
+            'encode sex, generate(gender) label(sexlbl)'
+
+            >>> encode("sex", "gender", if_condition="age > 18", noextend=True)
+            'encode sex if age > 18, generate(gender) noextend'
+
+            >>> encode("country", "ccode", in_range="1/100")
+            'encode country in 1/100, generate(ccode)'
+        """
+        # Input validation
+        if not varname:
+            raise ValueError("varname must be provided")
+
+        if not generate:
+            raise ValueError("generate must be provided")
+
+        # Start building the command
+        cmd_parts = ["encode", varname]
+
+        # Add if condition
+        if if_condition:
+            cmd_parts.append(f"if {if_condition}")
+
+        # Add in range
+        if in_range:
+            cmd_parts.append(f"in {in_range}")
+
+        # Add options
+        options = [f"generate({generate})"]
+
+        if label:
+            options.append(f"label({label})")
+
+        if noextend:
+            options.append("noextend")
+
+        # Join all parts with single spaces and commas where needed
+        cmd = " ".join(cmd_parts)
+        cmd += ", " + " ".join(options)
+
+        return cmd
+
+    @staticmethod
+    @mcp.tool(name="decode", description="生成并返回 Stata 的 'decode' 命令（将数值变量转换为字符串变量）")
+    def decode(varname: str,
+               generate: str,
+               if_condition: Optional[str] = None,
+               in_range: Optional[str] = None,
+               maxlength: Optional[int] = None) -> str:
+        """
+        Generate Stata's decode command to convert numeric variable to string.
+
+        This function constructs a Stata decode command string based on provided parameters,
+        matching the official Stata documentation specifications.
+
+        Args:
+            varname: Name of the numeric variable with value labels to be decoded.
+            generate: Name of the new string variable to be created.
+            if_condition: Optional condition specifying which observations to include.
+            in_range: Optional range specifying which observations to include.
+            maxlength: Optional specification of how many bytes of the value label to retain.
+                      Must be between 1 and 32,000. Default in Stata is 32,000.
+
+        Returns:
+            A complete Stata decode command string.
+
+        Raises:
+            ValueError: If invalid parameter values are provided.
+
+        Examples:
+            >>> decode("gender", "sex")
+            'decode gender, generate(sex)'
+
+            >>> decode("female", "sex", if_condition="age > 18")
+            'decode female if age > 18, generate(sex)'
+
+            >>> decode("country_code", "country", maxlength=20)
+            'decode country_code, generate(country) maxlength(20)'
+
+            >>> decode("region", "region_name", in_range="1/50")
+            'decode region in 1/50, generate(region_name)'
+        """
+        # Input validation
+        if not varname:
+            raise ValueError("varname must be provided")
+
+        if not generate:
+            raise ValueError("generate must be provided")
+
+        if maxlength is not None and (maxlength < 1 or maxlength > 32000):
+            raise ValueError("maxlength must be between 1 and 32,000")
+
+        # Start building the command
+        cmd_parts = ["decode", varname]
+
+        # Add if condition
+        if if_condition:
+            cmd_parts.append(f"if {if_condition}")
+
+        # Add in range
+        if in_range:
+            cmd_parts.append(f"in {in_range}")
+
+        # Add options
+        options = [f"generate({generate})"]
+
+        if maxlength is not None:
+            options.append(f"maxlength({maxlength})")
+
+        # Join all parts with single spaces and commas where needed
+        cmd = " ".join(cmd_parts)
+        cmd += ", " + " ".join(options)
+
+        return cmd
+
+    @staticmethod
+    @mcp.tool(name="label_data", description="生成并返回 Stata 的 'label data' 命令（为数据集添加标签）")
+    def label_data(label: Optional[str] = None) -> str:
+        """
+        Generate Stata's label data command to attach a label to the dataset.
+
+        This function constructs a Stata label data command string based on provided parameters,
+        matching the official Stata documentation specifications.
+
+        Args:
+            label: Optional label text to attach to the dataset (up to 80 characters).
+                   If None, any existing label is removed.
+
+        Returns:
+            A complete Stata label data command string.
+
+        Examples:
+            >>> label_data("Fictional blood-pressure data")
+            'label data "Fictional blood-pressure data"'
+
+            >>> label_data()
+            'label data'
+        """
+        cmd = "label data"
+
+        if label:
+            cmd += f' "{label}"'
+
+        return cmd
+
+    @staticmethod
+    @mcp.tool(name="label_variable", description="生成并返回 Stata 的 'label variable' 命令（为变量添加标签）")
+    def label_variable(varname: str, label: Optional[str] = None) -> str:
+        """
+        Generate Stata's label variable command to attach a label to a variable.
+
+        This function constructs a Stata label variable command string based on provided parameters,
+        matching the official Stata documentation specifications.
+
+        Args:
+            varname: Name of the variable to be labeled.
+            label: Optional label text to attach to the variable (up to 80 characters).
+                   If None, any existing variable label is removed.
+
+        Returns:
+            A complete Stata label variable command string.
+
+        Raises:
+            ValueError: If varname is not provided.
+
+        Examples:
+            >>> label_variable("hbp", "high blood pressure")
+            'label variable hbp "high blood pressure"'
+
+            >>> label_variable("age")
+            'label variable age'
+        """
+        if not varname:
+            raise ValueError("varname must be provided")
+
+        cmd = f"label variable {varname}"
+
+        if label:
+            cmd += f' "{label}"'
+
+        return cmd
+
+    @staticmethod
+    @mcp.tool(name="label_define", description="生成并返回 Stata 的 'label define' 命令（定义值标签）")
+    def label_define(lblname: str,
+                     values_labels: Dict[Union[int, str], str],
+                     add: bool = False,
+                     modify: bool = False,
+                     replace: bool = False,
+                     nofix: bool = False) -> str:
+        """
+        Generate Stata's label define command to create or modify value labels.
+
+        This function constructs a Stata label define command string based on provided parameters,
+        matching the official Stata documentation specifications.
+
+        Args:
+            lblname: Name of the value label to be created or modified.
+            values_labels: Dictionary of values and their corresponding labels.
+                          Keys can be integers or extended missing values (".a", ".b", etc.).
+            add: Whether to add values to an existing value label.
+            modify: Whether to modify existing value labels (implies add).
+            replace: Whether to replace an existing value label.
+            nofix: Whether to prevent display formats from being widened.
+
+        Returns:
+            A complete Stata label define command string.
+
+        Raises:
+            ValueError: If lblname is not provided or values_labels is empty.
+
+        Examples:
+            >>> label_define("yesno", {0: "no", 1: "yes"})
+            'label define yesno 0 "no" 1 "yes"'
+
+            >>> label_define("yesnomaybe", {2: "maybe"}, add=True)
+            'label define yesnomaybe 2 "maybe", add'
+
+            >>> label_define("yesnomaybe", {2: "don't know"}, modify=True)
+            'label define yesnomaybe 2 "don\'t know", modify'
+        """
+        if not lblname:
+            raise ValueError("lblname must be provided")
+
+        if not values_labels:
+            raise ValueError("values_labels must contain at least one value-label pair")
+
+        # Start building the command
+        cmd_parts = [f"label define {lblname}"]
+
+        # Add value-label pairs
+        value_label_parts = []
+        for value, label in values_labels.items():
+            # Handle extended missing values
+            if isinstance(value, str) and value.startswith('.'):
+                value_str = value  # Keep as is for extended missing values like .a, .b, etc.
+            else:
+                value_str = str(value)
+
+            # Escape double quotes in label
+            label_escaped = label.replace('"', '\\"')
+            value_label_parts.append(f'{value_str} "{label_escaped}"')
+
+        cmd_parts.append(" ".join(value_label_parts))
+
+        # Add options
+        options = []
+        if add:
+            options.append("add")
+        if modify:
+            options.append("modify")
+        if replace:
+            options.append("replace")
+        if nofix:
+            options.append("nofix")
+
+        if options:
+            cmd_parts.append(f", {' '.join(options)}")
+
+        return " ".join(cmd_parts)
+
+    @staticmethod
+    @mcp.tool(name="label_values", description="生成并返回 Stata 的 'label values' 命令（将值标签分配给变量）")
+    def label_values(varlist: Union[str, List[str]],
+                     lblname: Optional[str] = None,
+                     nofix: bool = False) -> str:
+        """
+        Generate Stata's label values command to attach value labels to variables.
+
+        This function constructs a Stata label values command string based on provided parameters,
+        matching the official Stata documentation specifications.
+
+        Args:
+            varlist: Variable(s) to which the value label should be attached.
+                    Can be a single variable name as string or a list of variable names.
+            lblname: Name of the value label to be attached to the variables.
+                    If None or ".", any existing value label is detached.
+            nofix: Whether to prevent display formats from being widened.
+
+        Returns:
+            A complete Stata label values command string.
+
+        Raises:
+            ValueError: If varlist is not provided.
+
+        Examples:
+            >>> label_values("hbp", "yesnomaybe")
+            'label values hbp yesnomaybe'
+
+            >>> label_values(["sex", "gender"], "sexlbl")
+            'label values sex gender sexlbl'
+
+            >>> label_values("hbp", ".")
+            'label values hbp .'
+
+            >>> label_values("hbp")
+            'label values hbp'
+        """
+        if not varlist:
+            raise ValueError("varlist must be provided")
+
+        # Process varlist
+        if isinstance(varlist, list):
+            varlist_str = " ".join(varlist)
+        else:
+            varlist_str = varlist
+
+        # Start building the command
+        cmd_parts = [f"label values {varlist_str}"]
+
+        # Add lblname if specified
+        if lblname:
+            cmd_parts.append(lblname)
+        elif lblname == ".":
+            cmd_parts.append(".")
+
+        # Add nofix option if specified
+        if nofix:
+            cmd_parts.append(", nofix")
+
+        return " ".join(cmd_parts)
+
+    @staticmethod
+    @mcp.tool(name="label_dir", description="生成并返回 Stata 的 'label dir' 命令（列出值标签的名称）")
+    def label_dir() -> str:
+        """
+        Generate Stata's label dir command to list names of value labels stored in memory.
+
+        Returns:
+            The Stata label dir command string.
+
+        Examples:
+            >>> label_dir()
+            'label dir'
+        """
+        return "label dir"
+
+    @staticmethod
+    @mcp.tool(name="label_list", description="生成并返回 Stata 的 'label list' 命令（列出值标签的名称和内容）")
+    def label_list(lblnames: Optional[Union[str, List[str]]] = None) -> str:
+        """
+        Generate Stata's label list command to display names and contents of value labels.
+
+        This function constructs a Stata label list command string based on provided parameters,
+        matching the official Stata documentation specifications.
+
+        Args:
+            lblnames: Optional name(s) of value label(s) to list.
+                     If None, all value labels are listed.
+
+        Returns:
+            A complete Stata label list command string.
+
+        Examples:
+            >>> label_list()
+            'label list'
+
+            >>> label_list("yesno")
+            'label list yesno'
+
+            >>> label_list(["yesno", "sexlbl"])
+            'label list yesno sexlbl'
+        """
+        cmd = "label list"
+
+        if lblnames:
+            if isinstance(lblnames, list):
+                cmd += f" {' '.join(lblnames)}"
+            else:
+                cmd += f" {lblnames}"
+
+        return cmd
+
+    @staticmethod
+    @mcp.tool(name="label_copy", description="生成并返回 Stata 的 'label copy' 命令（复制值标签）")
+    def label_copy(lblname_from: str, lblname_to: str, replace: bool = False) -> str:
+        """
+        Generate Stata's label copy command to copy value labels.
+
+        This function constructs a Stata label copy command string based on provided parameters,
+        matching the official Stata documentation specifications.
+
+        Args:
+            lblname_from: Name of the existing value label to copy from.
+            lblname_to: Name of the new value label to create.
+            replace: Whether to replace lblname_to if it already exists.
+
+        Returns:
+            A complete Stata label copy command string.
+
+        Raises:
+            ValueError: If either lblname_from or lblname_to is not provided.
+
+        Examples:
+            >>> label_copy("yesno", "yesnomaybe")
+            'label copy yesno yesnomaybe'
+
+            >>> label_copy("sexlbl", "gender", replace=True)
+            'label copy sexlbl gender, replace'
+        """
+        if not lblname_from or not lblname_to:
+            raise ValueError("Both lblname_from and lblname_to must be provided")
+
+        cmd = f"label copy {lblname_from} {lblname_to}"
+
+        if replace:
+            cmd += ", replace"
+
+        return cmd
+
+    @staticmethod
+    @mcp.tool(name="label_drop", description="生成并返回 Stata 的 'label drop' 命令（删除值标签）")
+    def label_drop(lblnames: Union[str, List[str], bool] = False) -> str:
+        """
+        Generate Stata's label drop command to eliminate value labels.
+
+        This function constructs a Stata label drop command string based on provided parameters,
+        matching the official Stata documentation specifications.
+
+        Args:
+            lblnames: Name(s) of value label(s) to drop, or True for _all (to drop all value labels).
+                     Can be a single value label name as string or a list of value label names.
+
+        Returns:
+            A complete Stata label drop command string.
+
+        Raises:
+            ValueError: If lblnames is not provided or is an empty list.
+
+        Examples:
+            >>> label_drop("yesno")
+            'label drop yesno'
+
+            >>> label_drop(["yesno", "sexlbl"])
+            'label drop yesno sexlbl'
+
+            >>> label_drop(True)
+            'label drop _all'
+        """
+        if not lblnames:
+            raise ValueError("lblnames must be provided")
+
+        cmd = "label drop"
+
+        if lblnames is True:
+            cmd += " _all"
+        elif isinstance(lblnames, list):
+            if not lblnames:
+                raise ValueError("lblnames list cannot be empty")
+            cmd += f" {' '.join(lblnames)}"
+        else:
+            cmd += f" {lblnames}"
+
+        return cmd
+
+    @staticmethod
+    @mcp.tool(name="label_save", description="生成并返回 Stata 的 'label save' 命令（将值标签保存为do文件）")
+    def label_save(lblnames: Optional[Union[str, List[str]]],
+                   filename: str,
+                   replace: bool = False) -> str:
+        """
+        Generate Stata's label save command to save value labels to a do-file.
+
+        This function constructs a Stata label save command string based on provided parameters,
+        matching the official Stata documentation specifications.
+
+        Args:
+            lblnames: Optional name(s) of value label(s) to save.
+                     If None, all value labels are saved.
+                     Can be a single value label name as string or a list of value label names.
+            filename: Path where the do-file will be saved.
+            replace: Whether to replace the file if it already exists.
+
+        Returns:
+            A complete Stata label save command string.
+
+        Raises:
+            ValueError: If filename is not provided.
+
+        Examples:
+            >>> label_save("sexlbl", "mylabel")
+            'label save sexlbl using mylabel'
+
+            >>> label_save(["yesno", "sexlbl"], "mylabels", replace=True)
+            'label save yesno sexlbl using mylabels, replace'
+
+            >>> label_save(None, "alllabels")
+            'label save using alllabels'
+        """
+        if not filename:
+            raise ValueError("filename must be provided")
+
+        cmd_parts = ["label save"]
+
+        # Add lblnames if specified
+        if lblnames:
+            if isinstance(lblnames, list):
+                cmd_parts.append(" ".join(lblnames))
+            else:
+                cmd_parts.append(lblnames)
+
+        # Add filename
+        cmd_parts.append(f"using {filename}")
+
+        # Add replace option if specified
+        if replace:
+            cmd_parts.append(", replace")
+
+        return " ".join(cmd_parts)
 
 @mcp.tool()
 def read_log(log_path: str) -> str:

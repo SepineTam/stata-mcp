@@ -1,0 +1,133 @@
+[D] encode -- Encode string into numeric and vice versa
+              (View complete PDF manual entry)
+
+
+Syntax
+
+    String variable to numeric variable
+
+        encode varname [if] [in] , generate(newvar) [label(name) noextend]
+
+
+    Numeric variable to string variable
+
+        decode varname [if] [in] , generate(newvar) [maxlength(#)]
+
+
+Menu
+
+    encode
+
+        Data > Create or change data > Other variable-transformation commands > Encode value labels from string variable
+
+    decode
+
+        Data > Create or change data > Other variable-transformation commands > Decode strings from labeled numeric variable
+
+
+Description
+
+    encode creates a new variable named newvar based on the string variable varname, creating, adding to, or just using (as necessary) the value label newvar
+    or, if specified, name.  Do not use encode if varname contains numbers that merely happen to be stored as strings; instead, use generate newvar =
+    real(varname) or destring; see real() or [D] destring.
+
+    decode creates a new string variable named newvar based on the "encoded" numeric variable varname and its value label.
+
+
+Links to PDF documentation
+
+        Quick start
+
+        Remarks and examples
+
+    The above sections are not included in this help file.
+
+
+Options for encode
+
+    generate(newvar) is required and specifies the name of the variable to be created.
+
+    label(name) specifies the name of the value label to be created or used and added to if the named value label already exists.  If label() is not
+        specified, encode uses the same name for the label as it does for the new variable.
+
+    noextend specifies that varname not be encoded if there are values contained in varname that are not present in label(name).  By default, any values not
+        present in label(name) will be added to that label.
+
+
+Options for decode
+
+    generate(newvar) is required and specifies the name of the variable to be created.
+
+    maxlength(#) specifies how many bytes of the value label to retain; # must be between 1 and 32,000.  The default is maxlength(32000).
+
+
+Examples
+
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------
+    Setup
+        . webuse hbp2
+        . describe sex
+
+    Create numeric variable gender based on the string variable sex and create value label gender
+        . encode sex, generate(gender)
+
+    List values of sex and gender
+        . list sex gender in 1/4
+
+    List values of sex and gender, but show numeric values of gender rather than the labels
+        . list sex gender in 1/4, nolabel
+
+    List the names and contents of the gender value label
+        . label list gender
+
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------
+    Setup
+        . webuse hbp2, clear
+        . describe sex
+
+    Create numeric variable gender based on the string variable sex and create value label sexlbl
+        . encode sex, generate(gender) label(sexlbl)
+
+    Describe the gender variable
+        . describe gender
+
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------
+    Setup
+        . webuse hbp2, clear
+        . describe sex
+
+    Create value label gender
+        . label define gender 1 "female" 2 "male"
+
+    Change the value of sex in the second observation to other
+        . replace sex = "other" in 2
+
+    Create numeric variable gender based on the string variable sex, adding to value label gender as necessary
+        . encode sex, generate(gender)
+
+    List the names and contents of the gender value label
+        . label list gender
+
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------
+    Setup
+        . webuse hbp3, clear
+        . describe female
+        . label list sexlbl
+
+    Create string variable sex based on the numeric variable female
+        . decode female, generate(sex)
+
+    Describe variable sex
+        . describe sex
+
+    List values of female and sex
+        . list female sex in 1/4
+
+    List values of female and sex, but show numeric values of female rather than the labels
+        . list female sex in 1/4, nolabel
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+Video example
+
+        How to convert categorical string variables to labeled numeric variables
