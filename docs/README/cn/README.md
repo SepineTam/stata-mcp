@@ -1,6 +1,8 @@
-<div align="center">
+<h1 align="center">
 
-# Stata-MCP
+<img src="../../../src/img/logo_with_name.jpg" width="300">
+
+</h1>
 
 [![en](https://img.shields.io/badge/lang-English-red.svg)](../../../README.md)
 [![fr](https://img.shields.io/badge/langue-Français-blue.svg)](../fr/README)
@@ -8,8 +10,6 @@
 ![Version](https://img.shields.io/badge/version-1.0.3-blue.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](../../../License)
 [![Issue](https://img.shields.io/badge/Issue-report-green.svg)](https://github.com/sepinetam/stata-mcp/issues/new)
-
-</div>
 
 > 让大语言模型（LLM）帮助您使用Stata完成回归分析。
 > 
