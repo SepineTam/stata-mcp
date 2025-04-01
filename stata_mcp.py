@@ -110,19 +110,96 @@ class StataCommandGenerator:
 
     @staticmethod
     @mcp.tool(name="use", description="生成并返回 Stata 的 'use' 命令（加载数据集的命令）")
-    def use(data_path: str, is_clear: bool = True) -> str:
+    def use(filename: str,
+            varlist: Optional[List[str]] = None,
+            if_condition: Optional[str] = None,
+            in_range: Optional[str] = None,
+            clear: bool = False,
+            nolabel: bool = False) -> str:
         """
-        Use data in Stata
+        Generate Stata's use command with various options.
+
+        This function constructs a Stata use command string based on provided parameters,
+        matching the official Stata documentation specifications for loading datasets.
 
         Args:
-            data_path: the data which will be used.
-            is_clear: whether clear the history data in Stata, default is True, and also suggest to set default.
+            filename: Path to the Stata dataset file (.dta) to be loaded.
+            varlist: Optional list of variables to load (subset of the dataset).
+            if_condition: Stata if condition as string (e.g., "foreign == 1").
+            in_range: Stata in range specification (e.g., "1/100").
+            clear: Whether to replace the data in memory, even if current data have not been saved.
+            nolabel: Whether to prevent value labels in the saved data from being loaded.
 
         Returns:
-            the stata-code of using the data whose path is data_path
+            A complete Stata use command string.
+
+        Raises:
+            ValueError: If invalid parameter combinations are provided.
+
+        Examples:
+            >>> use("auto.dta")
+            'use auto.dta'
+
+            >>> use("auto.dta", clear=True)
+            'use auto.dta, clear'
+
+            >>> use("myauto.dta", varlist=["make", "rep78", "foreign"])
+            'use make rep78 foreign using myauto.dta'
+
+            >>> use("myauto.dta", if_condition="foreign == 1")
+            'use if foreign == 1 using myauto.dta'
         """
-        options = ", clear" if is_clear else ""
-        return f"use {data_path}{options}"
+        # Input validation
+        if not filename or not isinstance(filename, str):
+            raise ValueError("filename must be a non-empty string")
+
+        # Start building the command
+        cmd_parts = []
+
+        # Handle the two different syntax forms:
+        # 1. use filename [, options]
+        # 2. use [varlist] [if] [in] using filename [, options]
+
+        if varlist or if_condition or in_range:
+            # Second syntax form with subset loading
+            cmd_parts.append("use")
+
+            # Add variable list if specified
+            if varlist:
+                if not all(isinstance(v, str) for v in varlist):
+                    raise ValueError("varlist must contain only strings")
+                cmd_parts.extend(varlist)
+
+            # Add if condition
+            if if_condition:
+                cmd_parts.append(f"if {if_condition}")
+
+            # Add in range
+            if in_range:
+                cmd_parts.append(f"in {in_range}")
+
+            # Add "using" with filename
+            cmd_parts.append(f"using {filename}")
+        else:
+            # First syntax form - direct file loading
+            cmd_parts.extend(["use", filename])
+
+        # Process options
+        options = []
+
+        # Add options based on flags
+        if clear:
+            options.append("clear")
+        if nolabel:
+            options.append("nolabel")
+
+        # Combine options if any exist
+        if options:
+            cmd_parts.append(",")
+            cmd_parts.extend(options)
+
+        # Join all parts with single spaces
+        return " ".join(cmd_parts)
 
     @staticmethod
     @mcp.tool(name="save", description="生成并返回 Stata 的 'save' 命令（保存数据集的命令）")
