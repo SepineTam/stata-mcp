@@ -2684,7 +2684,7 @@ def get_data_info(data_path: str, vars_list: Optional[List[str]] = None) -> str:
     return "\n".join(output)
 
 
-@mcp.tool(name="results_doc_path", description="Stata中`outreg2`等命令的返回文件存储路径")
+@mcp.tool(name="results_doc_path", description="Stata中`outreg2`等命令的返回文件存储路径（方便统一管理结果）")
 def results_doc_path() -> str:
     """
     生成并返回一个基于当前时间戳的结果文档存储路径。
@@ -2704,6 +2704,7 @@ def results_doc_path() -> str:
         - 使用`exist_ok=True`参数，当目标目录已存在时不会引发异常
         - 函数使用了Python 3.8+的海象运算符(:=)在表达式内进行变量赋值
         - 返回的路径适合用作Stata的`outreg2`等命令的输出目录
+        - 在具体地Stata代码中可以在前面设置文件输出路径。
     """
     os.makedirs(
         (path := os.path.join(result_doc_path, datetime.strftime(datetime.now(), "%Y%m%d%H%M%S"))),
@@ -2716,6 +2717,7 @@ def results_doc_path() -> str:
 def write_dofile(content: str) -> str:
     """
     Write stata code to a dofile.
+
     Args:
         content: The stata code content which will be writen to the designated do-file.
 
@@ -2723,12 +2725,75 @@ def write_dofile(content: str) -> str:
         the do-file path
 
     Notes:
+        Please be careful about the first command in dofile should be use data.
+        For avoiding make mistake, you can generate stata-code with the function from `StataCommandGenerator` class.
         Please avoid writing any code that draws graphics or requires human intervention for uncertainty bug.
+        If you find something went wrong about the code, you can use the function from `StataCommandGenerator` class.
+
+    Enhancement:
+        If you have `outreg2`, `esttab` command for output the result,
+        you should use the follow command to get the output path.
+        `results_doc_path`, and use `local output_path path` the path is the return of the function `results_doc_path`.
+        If you want to use the function `write_dofile`, please use `results_doc_path` before which is necessary.
+
     """
     file_path = os.path.join(dofile_base_path,  datetime.strftime(datetime.now(), "%Y%m%d%H%M%S")+".do")
     with open(file_path, "w", encoding="utf-8") as f:
         f.write(content)
     return file_path
+
+
+@mcp.tool(name="append_dofile", description="append stata-code to an existing dofile or create a new one")
+def append_dofile(original_dofile_path: str, content: str) -> str:
+    """
+    Append stata code to an existing dofile or create a new one if the original doesn't exist.
+
+    Args:
+        original_dofile_path: Path to the original dofile to append to. If empty or invalid, a new file will be created.
+        content: The stata code content which will be appended to the designated do-file.
+
+    Returns:
+        The new do-file path (either the modified original or a newly created file)
+
+    Notes:
+        When appending to an existing file, the content will be added at the end of the file.
+        If the original file doesn't exist or path is empty, a new file will be created with the content.
+        Please be careful about the syntax coherence when appending code to an existing file.
+        For avoiding mistakes, you can generate stata-code with the function from `StataCommandGenerator` class.
+        Please avoid writing any code that draws graphics or requires human intervention for uncertainty bug.
+        If you find something went wrong about the code, you can use the function from `StataCommandGenerator` class.
+
+    Enhancement:
+        If you have `outreg2`, `esttab` command for output the result,
+        you should use the follow command to get the output path.
+        `results_doc_path`, and use `local output_path path` the path is the return of the function `results_doc_path`.
+        If you want to use the function `append_dofile`, please use `results_doc_path` before which is necessary.
+    """
+    # Create a new file path for the output
+    new_file_path = os.path.join(dofile_base_path, datetime.strftime(datetime.now(), "%Y%m%d%H%M%S") + ".do")
+
+    # Check if original file exists and is valid
+    original_exists = False
+    original_content = ""
+    if original_dofile_path and os.path.exists(original_dofile_path):
+        try:
+            with open(original_dofile_path, "r", encoding="utf-8") as f:
+                original_content = f.read()
+            original_exists = True
+        except Exception:
+            # If there's any error reading the file, we'll create a new one
+            original_exists = False
+
+    # Write to the new file (either copying original content + new content, or just new content)
+    with open(new_file_path, "w", encoding="utf-8") as f:
+        if original_exists:
+            f.write(original_content)
+            # Add a newline if the original file doesn't end with one
+            if original_content and not original_content.endswith("\n"):
+                f.write("\n")
+        f.write(content)
+
+    return new_file_path
 
 
 @mcp.tool(name="stata_do", description="Run a stata-code via Stata")
