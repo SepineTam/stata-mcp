@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Dict, Any
 import subprocess
 import sys
 import os
@@ -249,9 +249,581 @@ class StataCommandGenerator:
         # Join all parts with single spaces
         return " ".join(cmd_parts)
 
-    # @staticmethod
-    # @mcp.tool(name="generate")
-    # def generate(): pass
+    @staticmethod
+    @mcp.tool(name="regress", description="Generate and return Stata's 'regress' command (linear regression)")
+    def regress(depvar: str, indepvars: Optional[List[str]] = None,
+                if_condition: Optional[str] = None,
+                in_range: Optional[str] = None,
+                weight: Optional[str] = None,
+                noconstant: bool = False,
+                hascons: bool = False,
+                tsscons: bool = False,
+                vce: Optional[str] = None,
+                level: Optional[int] = None,
+                beta: bool = False,
+                eform: Optional[str] = None,
+                depname: Optional[str] = None,
+                noheader: bool = False,
+                notable: bool = False,
+                plus: bool = False,
+                mse1: bool = False,
+                coeflegend: bool = False,
+                **display_options) -> str:
+        """
+        Generate Stata's regress command with various options.
+
+        This function constructs a Stata regress command string based on provided parameters,
+        matching the official Stata documentation specifications for linear regression.
+
+        Args:
+            depvar: The dependent variable name.
+            indepvars: List of independent variables. If None, only the dependent variable is included.
+            if_condition: Stata if condition as string (e.g., "foreign == 1").
+            in_range: Stata in range specification (e.g., "1/100").
+            weight: Weight specification (aweights, fweights, iweights, or pweights).
+            noconstant: Suppress constant term in the model.
+            hascons: Indicate that a user-defined constant is specified among the independent variables.
+            tsscons: Compute total sum of squares with constant (used with noconstant).
+            vce: Variance-covariance estimation type (ols, robust, cluster clustvar, bootstrap, jackknife, hc2, or hc3).
+            level: Set confidence level (default is 95 in Stata).
+            beta: Report standardized beta coefficients instead of confidence intervals.
+            eform: Report exponentiated coefficients and label as the provided string.
+            depname: Substitute dependent variable name (programmer's option).
+            noheader: Suppress output header.
+            notable: Suppress coefficient table.
+            plus: Make table extendable.
+            mse1: Force mean squared error to 1.
+            coeflegend: Display legend instead of statistics.
+            **display_options: Additional display options (noci, nopvalues, noomitted, vsquish, etc.).
+
+        Returns:
+            A complete Stata regress command string.
+
+        Raises:
+            ValueError: If invalid parameter combinations are provided.
+
+        Examples:
+            >>> regress("mpg", ["weight", "foreign"])
+            'regress mpg weight foreign'
+
+            >>> regress("gp100m", ["weight", "foreign"], vce="robust", beta=True)
+            'regress gp100m weight foreign, vce(robust) beta'
+
+            >>> regress("weight", ["length"], noconstant=True)
+            'regress weight length, noconstant'
+        """
+        # Input validation
+        if not isinstance(depvar, str) or not depvar:
+            raise ValueError("depvar must be a non-empty string")
+
+        if indepvars is not None and not all(isinstance(v, str) for v in indepvars):
+            raise ValueError("indepvars must contain only strings")
+
+        # Validate incompatible options
+        if noconstant and hascons:
+            raise ValueError("noconstant and hascons options cannot be used together")
+
+        if beta and vce and "cluster" in vce:
+            raise ValueError("beta may not be used with vce(cluster)")
+
+        # Start building the command
+        cmd_parts = ["regress", depvar]
+
+        # Add independent variables if specified
+        if indepvars:
+            cmd_parts.extend(indepvars)
+
+        # Add if condition
+        if if_condition:
+            cmd_parts.append(f"if {if_condition}")
+
+        # Add in range
+        if in_range:
+            cmd_parts.append(f"in {in_range}")
+
+        # Add weights
+        if weight:
+            valid_weights = ["aweights", "fweights", "iweights", "pweights"]
+            if not any(w in weight for w in valid_weights):
+                raise ValueError(f"weight must be one of {valid_weights}")
+            cmd_parts.append(f"[{weight}]")
+
+        # Process options
+        options = []
+
+        # Model options
+        if noconstant:
+            options.append("noconstant")
+        if hascons:
+            options.append("hascons")
+        if tsscons:
+            options.append("tsscons")
+
+        # SE/Robust options
+        if vce:
+            valid_vce = ["ols", "robust", "bootstrap", "jackknife", "hc2", "hc3"]
+            # For cluster, we check if it starts with "cluster " to allow for the cluster variable
+            if not (vce in valid_vce or vce.startswith("cluster ")):
+                raise ValueError(f"vce must be one of {valid_vce} or 'cluster clustvar'")
+            options.append(f"vce({vce})")
+
+        # Reporting options
+        if level:
+            if not isinstance(level, int) or level <= 0 or level >= 100:
+                raise ValueError("level must be an integer between 1 and 99")
+            options.append(f"level({level})")
+        if beta:
+            options.append("beta")
+        if eform:
+            options.append(f"eform({eform})")
+        if depname:
+            options.append(f"depname({depname})")
+
+        # Additional reporting options that don't appear in dialog box
+        if noheader:
+            options.append("noheader")
+        if notable:
+            options.append("notable")
+        if plus:
+            options.append("plus")
+        if mse1:
+            options.append("mse1")
+        if coeflegend:
+            options.append("coeflegend")
+
+        # Display options
+        valid_display_opts = {
+            'noci', 'nopvalues', 'noomitted', 'vsquish', 'noemptycells',
+            'baselevels', 'allbaselevels', 'nofvlabel', 'fvwrap', 'fvwrapon',
+            'cformat', 'pformat', 'sformat', 'nolstretch'
+        }
+
+        for opt, value in display_options.items():
+            if opt not in valid_display_opts:
+                raise ValueError(f"Invalid display option: {opt}")
+
+            if isinstance(value, bool) and value:
+                options.append(opt)
+            elif isinstance(value, int):
+                options.append(f"{opt}({value})")
+            elif isinstance(value, str):
+                options.append(f"{opt}({value})")
+
+        # Combine options if any exist
+        if options:
+            cmd_parts.append(",")
+            cmd_parts.extend(options)
+
+        # Join all parts with single spaces
+        return " ".join(cmd_parts)
+
+    @staticmethod
+    @mcp.tool(name="generate",
+              description="Generate and return Stata's 'generate' command (create or change variable contents)")
+    def generate(newvar: str, exp: str,
+                 type: Optional[str] = None,
+                 lblname: Optional[str] = None,
+                 if_condition: Optional[str] = None,
+                 in_range: Optional[str] = None,
+                 before: Optional[str] = None,
+                 after: Optional[str] = None) -> str:
+        """
+        Generate Stata's generate command to create a new variable.
+
+        This function constructs a Stata generate command string based on provided parameters,
+        matching the official Stata documentation specifications.
+
+        Args:
+            newvar: Name of the new variable to create.
+            exp: Expression defining the contents of the new variable.
+            type: Optional storage type for the new variable (byte, int, long, float, double, str, str1, ..., str2045).
+            lblname: Optional value label name to be associated with the new variable.
+            if_condition: Stata if condition as string (e.g., "age > 30").
+            in_range: Stata in range specification (e.g., "1/100").
+            before: Place the new variable before the specified variable in the dataset.
+            after: Place the new variable after the specified variable in the dataset.
+
+        Returns:
+            A complete Stata generate command string.
+
+        Raises:
+            ValueError: If invalid parameter combinations or values are provided.
+
+        Examples:
+            >>> generate("age2", "age^2")
+            'generate age2 = age^2'
+
+            >>> generate("age2", "age^2", type="int", if_condition="age > 30")
+            'generate int age2 = age^2 if age > 30'
+
+            >>> generate("lastname", "word(name,2)")
+            'generate lastname = word(name,2)'
+
+            >>> generate("posttran", "(_n==2)", type="byte", lblname="yesno")
+            'generate byte posttran:yesno = (_n==2)'
+        """
+        # Input validation
+        if not newvar or not isinstance(newvar, str):
+            raise ValueError("newvar must be a non-empty string")
+
+        if not exp or not isinstance(exp, str):
+            raise ValueError("exp must be a non-empty string")
+
+        # Validate storage type if provided
+        valid_types = {"byte", "int", "long", "float", "double", "str"}
+        str_types = {f"str{i}" for i in range(1, 2046)}
+        valid_types.update(str_types)
+
+        if type and type not in valid_types:
+            raise ValueError(f"type must be one of: byte, int, long, float, double, str, str1, ..., str2045")
+
+        # Validate incompatible options
+        if before and after:
+            raise ValueError("before and after options cannot be used together")
+
+        # Start building the command
+        cmd_parts = ["generate"]
+
+        # Add type if specified
+        if type:
+            cmd_parts.append(type)
+
+        # Add new variable name with optional label name
+        if lblname:
+            cmd_parts.append(f"{newvar}:{lblname}")
+        else:
+            cmd_parts.append(newvar)
+
+        # Add expression
+        cmd_parts.append(f"= {exp}")
+
+        # Add if condition
+        if if_condition:
+            cmd_parts.append(f"if {if_condition}")
+
+        # Add in range
+        if in_range:
+            cmd_parts.append(f"in {in_range}")
+
+        # Add placement options
+        options = []
+        if before:
+            options.append(f"before({before})")
+        if after:
+            options.append(f"after({after})")
+
+        # Combine options if any exist
+        if options:
+            cmd_parts.append(",")
+            cmd_parts.extend(options)
+
+        # Join all parts with single spaces
+        return " ".join(cmd_parts)
+
+    @staticmethod
+    @mcp.tool(name="replace",
+              description="Generate and return Stata's 'replace' command (replace contents of existing variable)")
+    def replace(oldvar: str, exp: str,
+                if_condition: Optional[str] = None,
+                in_range: Optional[str] = None,
+                nopromote: bool = False) -> str:
+        """
+        Generate Stata's replace command to change the contents of an existing variable.
+
+        This function constructs a Stata replace command string based on provided parameters,
+        matching the official Stata documentation specifications.
+
+        Args:
+            oldvar: Name of the existing variable to be modified.
+            exp: Expression defining the new contents of the variable.
+            if_condition: Stata if condition as string (e.g., "age > 30").
+            in_range: Stata in range specification (e.g., "1/100").
+            nopromote: Prevent promotion of the variable type to accommodate the change.
+
+        Returns:
+            A complete Stata replace command string.
+
+        Raises:
+            ValueError: If invalid parameter values are provided.
+
+        Examples:
+            >>> replace("age2", "age^2")
+            'replace age2 = age^2'
+
+            >>> replace("odd", "5", in_range="3")
+            'replace odd = 5 in 3'
+
+            >>> replace("weight", "weight*2.2", if_condition="weight < 100", nopromote=True)
+            'replace weight = weight*2.2 if weight < 100, nopromote'
+        """
+        # Input validation
+        if not oldvar or not isinstance(oldvar, str):
+            raise ValueError("oldvar must be a non-empty string")
+
+        if not exp or not isinstance(exp, str):
+            raise ValueError("exp must be a non-empty string")
+
+        # Start building the command
+        cmd_parts = ["replace", oldvar, f"= {exp}"]
+
+        # Add if condition
+        if if_condition:
+            cmd_parts.append(f"if {if_condition}")
+
+        # Add in range
+        if in_range:
+            cmd_parts.append(f"in {in_range}")
+
+        # Add nopromote option if specified
+        if nopromote:
+            cmd_parts.append(", nopromote")
+
+        # Join all parts with single spaces
+        return " ".join(cmd_parts)
+
+    @staticmethod
+    @mcp.tool(name="egen", description="Generate and return Stata's 'egen' command (extensions to generate)")
+    def egen(newvar: str, fcn: str, arguments: Optional[str] = None,
+             if_condition: Optional[str] = None,
+             in_range: Optional[str] = None,
+             type: Optional[str] = None,
+             options: Optional[Dict[str, Any]] = None) -> str:
+        """
+        Generate Stata's egen command with various function options.
+
+        This function constructs a Stata egen command string based on provided parameters,
+        matching the official Stata documentation specifications for extended variable generation.
+
+        Args:
+            newvar: Name of the new variable to create.
+            fcn: The egen function to use (e.g., "mean", "total", "group").
+            arguments: The arguments for the function, typically an expression or varlist.
+            if_condition: Stata if condition as string (e.g., "age > 30").
+            in_range: Stata in range specification (e.g., "1/100").
+            type: Optional storage type for the new variable (byte, int, long, float, double, str).
+            options: Dictionary of options specific to the given function.
+
+        Returns:
+            A complete Stata egen command string.
+
+        Raises:
+            ValueError: If invalid parameter combinations or values are provided.
+
+        Examples:
+            >>> egen("avg", "mean", "cholesterol")
+            'egen avg = mean(cholesterol)'
+
+            >>> egen("medstay", "median", "los")
+            'egen medstay = median(los)'
+
+            >>> egen("totalsum", "total", "x")
+            'egen totalsum = total(x)'
+
+            >>> egen("differ", "diff", "inc1 inc2 inc3", type="byte")
+            'egen byte differ = diff(inc1 inc2 inc3)'
+
+            >>> egen("rank", "rank", "mpg")
+            'egen rank = rank(mpg)'
+
+            >>> egen("stdage", "std", "age")
+            'egen stdage = std(age)'
+
+            >>> egen("hsum", "rowtotal", "a b c")
+            'egen hsum = rowtotal(a b c)'
+
+            >>> egen("racesex", "group", "race sex", options={"missing": True})
+            'egen racesex = group(race sex), missing'
+        """
+        # Input validation
+        if not newvar or not isinstance(newvar, str):
+            raise ValueError("newvar must be a non-empty string")
+
+        if not fcn or not isinstance(fcn, str):
+            raise ValueError("fcn must be a non-empty string")
+
+        # Valid egen functions
+        valid_fcns = {
+            # Single expression functions
+            "count", "iqr", "kurt", "mad", "max", "mdev", "mean", "median",
+            "min", "mode", "pc", "pctile", "rank", "sd", "skew", "std", "total",
+            # Variable list functions
+            "anycount", "anymatch", "anyvalue", "concat", "cut", "diff", "ends",
+            "fill", "group", "mtr", "rowfirst", "rowlast", "rowmax", "rowmean",
+            "rowmedian", "rowmin", "rowmiss", "rownonmiss", "rowpctile", "rowsd",
+            "rowtotal", "seq", "tag"
+        }
+
+        if fcn not in valid_fcns:
+            raise ValueError(f"fcn must be one of the valid egen functions: {', '.join(valid_fcns)}")
+
+        # Validate storage type if provided
+        valid_types = {"byte", "int", "long", "float", "double", "str"}
+        str_types = {f"str{i}" for i in range(1, 2046)}
+        valid_types.update(str_types)
+
+        if type and type not in valid_types:
+            raise ValueError(f"type must be one of: byte, int, long, float, double, str, str1, ..., str2045")
+
+        # Start building the command
+        cmd_parts = ["egen"]
+
+        # Add type if specified
+        if type:
+            cmd_parts.append(type)
+
+        # Add new variable name
+        cmd_parts.append(newvar)
+
+        # Add function with arguments
+        if arguments:
+            cmd_parts.append(f"= {fcn}({arguments})")
+        else:
+            # Some functions like seq() can have empty arguments
+            cmd_parts.append(f"= {fcn}()")
+
+        # Add if condition
+        if if_condition:
+            cmd_parts.append(f"if {if_condition}")
+
+        # Add in range
+        if in_range:
+            cmd_parts.append(f"in {in_range}")
+
+        # Process function-specific options
+        if options:
+            option_parts = []
+
+            # Function-specific option handling
+            if fcn == "anycount" or fcn == "anymatch" or fcn == "anyvalue":
+                if "values" in options:
+                    values = options["values"]
+                    if isinstance(values, list):
+                        values_str = "/".join(str(v) for v in values)
+                    else:
+                        values_str = str(values)
+                    option_parts.append(f"values({values_str})")
+
+            elif fcn == "concat":
+                if "format" in options:
+                    option_parts.append(f"format({options['format']})")
+                if "decode" in options and options["decode"]:
+                    option_parts.append("decode")
+                if "maxlength" in options:
+                    option_parts.append(f"maxlength({options['maxlength']})")
+                if "punct" in options:
+                    option_parts.append(f"punct({options['punct']})")
+
+            elif fcn == "cut":
+                if "at" in options:
+                    at_values = options["at"]
+                    if isinstance(at_values, list):
+                        at_str = ",".join(str(v) for v in at_values)
+                    else:
+                        at_str = str(at_values)
+                    option_parts.append(f"at({at_str})")
+                if "group" in options:
+                    option_parts.append(f"group({options['group']})")
+                if "icodes" in options and options["icodes"]:
+                    option_parts.append("icodes")
+                if "label" in options and options["label"]:
+                    option_parts.append("label")
+
+            elif fcn == "ends":
+                if "punct" in options:
+                    option_parts.append(f"punct({options['punct']})")
+                if "trim" in options and options["trim"]:
+                    option_parts.append("trim")
+                if "head" in options and options["head"]:
+                    option_parts.append("head")
+                if "last" in options and options["last"]:
+                    option_parts.append("last")
+                if "tail" in options and options["tail"]:
+                    option_parts.append("tail")
+
+            elif fcn == "group":
+                if "missing" in options and options["missing"]:
+                    option_parts.append("missing")
+                if "autotype" in options and options["autotype"]:
+                    option_parts.append("autotype")
+                if "label" in options:
+                    label_opt = "label"
+                    if isinstance(options["label"], str):
+                        label_opt = f"label({options['label']}"
+                        if "replace" in options and options["replace"]:
+                            label_opt += ", replace"
+                        if "truncate" in options:
+                            label_opt += f", truncate({options['truncate']})"
+                        label_opt += ")"
+                    option_parts.append(label_opt)
+
+            elif fcn == "max" or fcn == "min" or fcn == "total" or fcn == "rowtotal":
+                if "missing" in options and options["missing"]:
+                    option_parts.append("missing")
+
+            elif fcn == "mode":
+                if "minmode" in options and options["minmode"]:
+                    option_parts.append("minmode")
+                if "maxmode" in options and options["maxmode"]:
+                    option_parts.append("maxmode")
+                if "nummode" in options:
+                    option_parts.append(f"nummode({options['nummode']})")
+                if "missing" in options and options["missing"]:
+                    option_parts.append("missing")
+
+            elif fcn == "pc":
+                if "prop" in options and options["prop"]:
+                    option_parts.append("prop")
+
+            elif fcn == "pctile" or fcn == "rowpctile":
+                if "p" in options:
+                    option_parts.append(f"p({options['p']})")
+
+            elif fcn == "rank":
+                if "field" in options and options["field"]:
+                    option_parts.append("field")
+                if "track" in options and options["track"]:
+                    option_parts.append("track")
+                if "unique" in options and options["unique"]:
+                    option_parts.append("unique")
+
+            elif fcn == "rownonmiss":
+                if "strok" in options and options["strok"]:
+                    option_parts.append("strok")
+
+            elif fcn == "seq":
+                if "from" in options:
+                    option_parts.append(f"from({options['from']})")
+                if "to" in options:
+                    option_parts.append(f"to({options['to']})")
+                if "block" in options:
+                    option_parts.append(f"block({options['block']})")
+
+            elif fcn == "std":
+                if "mean" in options:
+                    option_parts.append(f"mean({options['mean']})")
+                if "sd" in options:
+                    option_parts.append(f"sd({options['sd']})")
+
+            elif fcn == "tag":
+                if "missing" in options and options["missing"]:
+                    option_parts.append("missing")
+
+            # Add general options that apply to all functions
+            for opt, val in options.items():
+                if opt not in ["values", "format", "decode", "maxlength", "punct",
+                               "at", "group", "icodes", "label", "trim", "head",
+                               "last", "tail", "missing", "autotype", "replace",
+                               "truncate", "minmode", "maxmode", "nummode", "prop",
+                               "p", "field", "track", "unique", "strok", "from",
+                               "to", "block", "mean", "sd"] and isinstance(val, bool) and val:
+                    option_parts.append(opt)
+
+            # Combine options if any exist
+            if option_parts:
+                cmd_parts.append(", " + " ".join(option_parts))
+
+            # Join all parts with single spaces
+            return " ".join(cmd_parts)
 
 
 @mcp.tool()
