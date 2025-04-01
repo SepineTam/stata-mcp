@@ -1414,6 +1414,102 @@ class StataCommandGenerator:
         # Join all parts with single spaces
         return " ".join(cmd_parts)
 
+    @staticmethod
+    @mcp.tool(name="append", description="生成并返回 Stata 的 'append' 命令（追加数据集命令）")
+    def append(using_files: Union[str, List[str]],
+               generate: Optional[str] = None,
+               keep: Optional[List[str]] = None,
+               nolabel: bool = False,
+               nonotes: bool = False,
+               force: bool = False) -> str:
+        """
+        Generate Stata's append command to append datasets.
+
+        This function constructs a Stata append command string based on provided parameters,
+        matching the official Stata documentation specifications.
+
+        Args:
+            using_files: Path(s) to the Stata dataset file(s) (.dta) to be appended.
+                Can be a single file path as string or a list of file paths.
+            generate: Optional name for a new variable that will mark the source of observations.
+                Observations from the master dataset will contain 0, observations from the
+                first using dataset will contain 1, and so on.
+            keep: Optional list of variables to be kept from the using dataset(s).
+                If not specified, all variables are kept.
+            nolabel: Whether to prevent copying value-label definitions from the using dataset(s).
+            nonotes: Whether to prevent copying notes from the using dataset(s).
+            force: Whether to allow string variables to be appended to numeric variables and vice versa,
+                resulting in missing values from the using dataset(s).
+
+        Returns:
+            A complete Stata append command string.
+
+        Raises:
+            ValueError: If invalid parameter values are provided.
+
+        Examples:
+            >>> append("even.dta")
+            'append using even.dta'
+
+            >>> append(["west.dta", "south.dta"], generate="filenum", nolabel=True)
+            'append using west.dta south.dta, generate(filenum) nolabel'
+
+            >>> append("domestic.dta", keep=["make", "price", "mpg", "rep78", "foreign"])
+            'append using domestic.dta, keep(make price mpg rep78 foreign)'
+
+            >>> append("data2.dta", force=True, nonotes=True)
+            'append using data2.dta, nonotes force'
+        """
+        # Input validation
+        if not using_files:
+            raise ValueError("using_files must be provided")
+
+        # Process using_files
+        if isinstance(using_files, list):
+            if not all(isinstance(f, str) for f in using_files):
+                raise ValueError("All file paths in using_files must be strings")
+            using_files_str = " ".join(using_files)
+        else:
+            if not isinstance(using_files, str):
+                raise ValueError("using_files must be a string or list of strings")
+            using_files_str = using_files
+
+        # Start building the command
+        cmd_parts = ["append using", using_files_str]
+
+        # Process options
+        options = []
+
+        # Add generate option if specified
+        if generate:
+            if not isinstance(generate, str):
+                raise ValueError("generate must be a string")
+            options.append(f"generate({generate})")
+
+        # Add keep option if specified
+        if keep:
+            if not all(isinstance(v, str) for v in keep):
+                raise ValueError("All variable names in keep must be strings")
+            options.append(f"keep({' '.join(keep)})")
+
+        # Add other options
+        if nolabel:
+            options.append("nolabel")
+
+        if nonotes:
+            options.append("nonotes")
+
+        if force:
+            options.append("force")
+
+        # Combine options if any exist
+        if options:
+            cmd_parts.append(",")
+            cmd_parts.append(" ".join(options))
+
+        # Join all parts with single spaces
+        return " ".join(cmd_parts)
+
 
 @mcp.tool()
 def read_log(log_path: str) -> str:

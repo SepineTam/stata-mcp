@@ -1,0 +1,117 @@
+[D] append -- Append datasets
+              (View complete PDF manual entry)
+
+
+Syntax
+
+        append using filename [filename ...] [, options]
+
+    You may enclose filename in double quotes and must do so if filename contains blanks or other special characters.
+
+    options          Description
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------
+    generate(newvar) newvar marks source of resulting observations
+    keep(varlist)    keep specified variables from appending dataset(s)
+    nolabel          do not copy value-label definitions from dataset(s) on disk
+    nonotes          do not copy notes from dataset(s) on disk
+    force            append string to numeric or numeric to string without error
+    ---------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+Menu
+
+    Data > Combine datasets > Append datasets
+
+
+Description
+
+    append appends Stata-format datasets stored on disk to the end of the dataset in memory.  If any filename is specified without an extension, .dta is
+    assumed.
+
+    Stata can also join observations from two datasets into one; see [D] merge.  See [U] 23 Combining datasets for a comparison of append, merge, and joinby.
+
+
+Links to PDF documentation
+
+        Quick start
+
+        Remarks and examples
+
+    The above sections are not included in this help file.
+
+
+Options
+
+    generate(newvar) specifies the name of a variable to be created that will mark the source of observations.  Observations from the master dataset (the
+        data in memory before the append command) will contain 0 for this variable.  Observations from the first using dataset will contain 1 for this
+        variable; observations from the second using dataset will contain 2 for this variable; and so on.
+
+    keep(varlist) specifies the variables to be kept from the using dataset.  If keep() is not specified, all variables are kept.
+
+        The varlist in keep(varlist) differs from standard Stata varlists in two ways: variable names in varlist may not be abbreviated, except by the use of
+        wildcard characters, and you may not refer to a range of variables, such as price-weight.
+
+    nolabel prevents Stata from copying the value-label definitions from the disk dataset into the dataset in memory.  Even if you do not specify this
+        option, label definitions from the disk dataset never replace definitions already in memory.
+
+    nonotes prevents notes in the using dataset from being incorporated into the result.  The default is to incorporate notes from the using dataset that do
+        not already appear in the master data.
+
+    force allows string variables to be appended to numeric variables and vice versa, resulting in missing values from the using dataset.  If omitted, append
+        issues an error message; if specified, append issues a warning message.
+
+
+Examples
+
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------
+    Setup
+        . webuse even
+        . list
+        . webuse odd
+        . list
+
+    Append even data to the end of the odd data
+        . append using https://www.stata-press.com/data/r17/even
+
+    List the results
+        . list
+
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------
+    Setup
+        . sysuse auto, clear
+        . keep if foreign == 0
+        . save domestic
+        . sysuse auto
+        . keep if foreign == 1
+        . keep make price mpg rep78 foreign
+
+    Append domestic car data to the end of the foreign car data and only keep variables make, price, mpg, rep78, and foreign from domestic car data
+        . append using domestic, keep(make price mpg rep78 foreign)
+
+    List the results
+        . list
+
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------
+    Setup
+        . sysuse citytemp, clear
+        . keep if region == 4
+        . save west
+        . sysuse citytemp
+        . keep if region == 3
+        . save south
+        . sysuse citytemp
+        . keep if region == 1
+
+    Append temperature data for the West region (region==4) and the South region (region==3) to the end of the data for the New England region (region==1),
+    and generate new variable filenum to indicate from which file each observation came.  Do not load value-label definitions from west.dta or south.dta.
+        . append using west south, generate(filenum) nolabel
+
+    List the results
+        . list
+
+    -----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+Video example
+
+    How to append files into a single dataset
