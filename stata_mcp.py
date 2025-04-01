@@ -126,20 +126,72 @@ class StataCommandGenerator:
 
     @staticmethod
     @mcp.tool(name="save", description="生成并返回 Stata 的 'save' 命令（保存数据集的命令）")
-    def save(data_path: str, is_replace: bool = False) -> str:
+    def save(filename: Optional[str] = None,
+             nolabel: bool = False,
+             replace: bool = False,
+             all: bool = False,
+             orphans: bool = False,
+             emptyok: bool = False) -> str:
         """
-        Save data from stata
+        Generate Stata's save command with various options.
+
+        This function constructs a Stata save command string based on provided parameters,
+        matching the official Stata documentation specifications for saving datasets.
 
         Args:
-            data_path: the data which will be saved.
-            is_replace: whether replace the data for the ori-data, default is False,
-                        and also suggest keep False(and use the another path difference to the ori-data)
+            filename: The path where the dataset will be saved. If None, the dataset is saved
+                     under the name it was last known to Stata.
+            nolabel: Whether to omit value labels from the saved dataset.
+            replace: Whether to overwrite an existing dataset.
+            all: Programmer's option to save e(sample) with the dataset.
+            orphans: Whether to save all value labels, including those not attached to any variable.
+            emptyok: Programmer's option to save the dataset even if it has zero observations and variables.
 
         Returns:
-            the stata-code of saving the data to the path data_path
+            A complete Stata save command string.
+
+        Examples:
+            >>> save("mydata")
+            'save mydata'
+
+            >>> save("mydata", replace=True)
+            'save mydata, replace'
+
+            >>> save("mydata", replace=True, nolabel=True)
+            'save mydata, nolabel replace'
+
+            >>> save()
+            'save'
         """
-        options = ", replace" if is_replace else ""
-        return f"save {data_path}{options}"
+        # Start building the command
+        cmd_parts = ["save"]
+
+        # Add filename if specified
+        if filename is not None:
+            cmd_parts.append(filename)
+
+        # Process options
+        options = []
+
+        # Add options based on flags
+        if nolabel:
+            options.append("nolabel")
+        if replace:
+            options.append("replace")
+        if all:
+            options.append("all")
+        if orphans:
+            options.append("orphans")
+        if emptyok:
+            options.append("emptyok")
+
+        # Combine options if any exist
+        if options:
+            cmd_parts.append(",")
+            cmd_parts.extend(options)
+
+        # Join all parts with single spaces
+        return " ".join(cmd_parts)
 
     @staticmethod
     @mcp.tool(name="summarize", description="生成并返回 Stata 的 'summarize' 命令（数据的描述性统计命令）")
