@@ -1,12 +1,10 @@
 <h1 align="center">
-
-<img src="src/img/logo_with_name.jpg" width="300">
-
+  <img src="src/img/logo_with_name.jpg" alt="logo" width="300"/>
 </h1>
 
 [![en](https://img.shields.io/badge/lang-English-red.svg)](README.md)
-[![fr](https://img.shields.io/badge/langue-Français-blue.svg)](docs/README/fr/README)
-[![cn](https://img.shields.io/badge/语言-中文-yellow.svg)](docs/README/cn/README)
+[![fr](https://img.shields.io/badge/langue-Français-blue.svg)](docs/README/fr/README.md)
+[![cn](https://img.shields.io/badge/语言-中文-yellow.svg)](docs/README/cn/README.md)
 ![Version](https://img.shields.io/badge/version-1.0.3-blue.svg)
 [![smithery badge](https://smithery.ai/badge/@SepineTam/stata-mcp)](https://smithery.ai/server/@SepineTam/stata-mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -15,12 +13,14 @@
 
 > Let LLM help you achieve your regression analysis with Stata.
 > 
-> Currently supports **macOS** only (as of 20250329)
+> Currently supports **macOS** only (as of 20250402)
+> 
+> Good News! **Windows** will be supported at the end of April 2025.
 
 ---
 
 # 💡 Quick Start
-For more detailed usage information, visit the [Usage guide](docs/Usage).
+For more detailed usage information, visit the [Usage guide](docs/Usage.md).
 
 ## Prerequisites
 - [uv](https://github.com/astral-sh/uv) - Package installer and virtual environment manager
@@ -96,7 +96,7 @@ command: uv --directory /Users/yourname/path/to/repo/ run stata_mcp.py 17 se
 ```
 
 # 📝 Documentation
-For more detailed usage information, visit the [Usage guide](docs/Usage).
+For more detailed usage information, visit the [Usage guide](docs/Usage.md).
 
 # 🚀 Roadmap
 - [x] macOS support

@@ -1,12 +1,10 @@
 <h1 align="center">
-
-<img src="../../../src/img/logo_with_name.jpg" width="300">
-
+  <img src="../../../src/img/logo_with_name.jpg" alt="logo" width="300">
 </h1>
 
 [![en](https://img.shields.io/badge/lang-English-red.svg)](../../../README.md)
-[![fr](https://img.shields.io/badge/langue-Français-blue.svg)](../fr/README)
-[![cn](https://img.shields.io/badge/语言-中文-yellow.svg)](README)
+[![fr](https://img.shields.io/badge/langue-Français-blue.svg)](../fr/README.md)
+[![cn](https://img.shields.io/badge/语言-中文-yellow.svg)](README.md)
 ![Version](https://img.shields.io/badge/version-1.0.3-blue.svg)
 [![smithery badge](https://smithery.ai/badge/@SepineTam/stata-mcp)](https://smithery.ai/server/@SepineTam/stata-mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](../../../License)
@@ -15,11 +13,13 @@
 > 让大语言模型（LLM）帮助您使用Stata完成回归分析。
 > 
 > 目前仅支持**macOS**系统（截至20250329）
+> 
+> 好消息！**Windows** 将于 2025 年 4 月底获得支持。
 
 ---
 
 # 💡 快速开始
-有关更详细的使用信息，请访问[使用指南](../../Usage)。
+有关更详细的使用信息，请访问[使用指南](../../Usage.md)。
 
 ## 前提条件
 - [uv](https://github.com/astral-sh/uv) - 包安装器和虚拟环境管理器
@@ -95,7 +95,7 @@ command: uv --directory /Users/yourname/path/to/repo/ run stata_mcp.py 17 se
 ```
 
 # 📝 文档
-有关更详细的使用信息，请访问[使用指南](../../Usage)。
+有关更详细的使用信息，请访问[使用指南](../../Usage.md)。
 
 # 🚀 路线图
 - [x] macOS支持

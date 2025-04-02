@@ -1,11 +1,9 @@
 <h1 align="center">
-
-<img src="../../../src/img/logo_with_name.jpg" width="300">
-
+  <img src="../../../src/img/logo_with_name.jpg" alt="logo" width="300"/>
 </h1>
 
 [![en](https://img.shields.io/badge/lang-English-red.svg)](../../../README.md)
-[![fr](https://img.shields.io/badge/langue-Français-blue.svg)](README)
+[![fr](https://img.shields.io/badge/langue-Français-blue.svg)](README.md)
 [![cn](https://img.shields.io/badge/语言-中文-yellow.svg)](../cn/README.md)
 ![Version](https://img.shields.io/badge/version-1.0.3-blue.svg)
 [![smithery badge](https://smithery.ai/badge/@SepineTam/stata-mcp)](https://smithery.ai/server/@SepineTam/stata-mcp)
@@ -16,11 +14,13 @@
 > Laissez les modèles de langage (LLM) vous aider à réaliser vos analyses de régression avec Stata.
 > 
 > Actuellement compatible uniquement avec **macOS** (à partir du 29/03/2025)
+> 
+> bonne nouvelle ! **Windows** sera pris en charge jusqu'à fin avril 2025.
 
 ---
 
 # 💡 Démarrage Rapide
-Pour des informations d'utilisation plus détaillées, consultez le [guide d'utilisation](../../Usage).
+Pour des informations d'utilisation plus détaillées, consultez le [guide d'utilisation](../../Usage.md).
 
 ## Prérequis
 - [uv](https://github.com/astral-sh/uv) - Gestionnaire de paquets et d'environnements virtuels
@@ -96,7 +96,7 @@ command: uv --directory /Users/votrenom/chemin/vers/repo/ run stata_mcp.py 17 se
 ```
 
 # 📝 Documentation
-Pour des informations d'utilisation plus détaillées, consultez le [guide d'utilisation](../../Usage).
+Pour des informations d'utilisation plus détaillées, consultez le [guide d'utilisation](../../Usage.md).
 
 # 🚀 Feuille de Route
 - [x] Support macOS
