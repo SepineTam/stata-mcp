@@ -3,8 +3,6 @@ import subprocess
 import sys
 import os
 import platform
-import tempfile
-from datetime import datetime
 
 from mcp.server.fastmcp import FastMCP
 
@@ -21,22 +19,21 @@ version_type = args[1]  # 第二个参数是版本类型（如se）
 
 # 初始化可选参数（默认为None）
 stata_cli_path = None
-log_file_path = None
 operating_system = None
+
+output_base_path = None
+
+log_file_path = None
 dofile_base_path = None
 result_doc_path = None
 
 for arg in args[2:]:
     if arg.startswith("stata_cli_path="):
         stata_cli_path = arg.split("=", 1)[1]  # 提取路径部分
-    elif arg.startswith("log_file_path="):
-        log_file_path = arg.split("=", 1)[1]  # 提取日志路径
     elif arg.startswith("operating_system="):
         operating_system = arg.split("=", 1)[1].lower()
-    elif arg.startswith("dofile_base_path="):
-        dofile_base_path = arg.split("=", 1)[1]
-    elif arg.startswith("result_doc_path="):
-        result_doc_path = arg.split("=", 1)[1]
+    elif arg.startswith("output_base_path="):
+        output_base_path = arg.split("=", 1)[1]
     else:
         print(f"警告：未知参数 `{arg}`，已忽略")
 
@@ -50,52 +47,36 @@ if operating_system is None:
         operating_system = "lunix"
     else:
         operating_system = None
-        print("未知操作系统")
+        sys.exit("未知操作系统")
 
-if operating_system != "macos":
+if operating_system == "macos":
+    # check the stata cli path
+    if stata_cli_path is None:
+        stata_cli_path = f"/usr/local/bin/stata-{version_type}"
+        # stata_cli_path = f"/Applications/Stata/StataSE.app/Contents/MacOS/stata-{version_type}"
+
+    # check the output base path
+    if output_base_path is None:
+        _user_name = os.getenv("USER")
+        output_base_path = f"/Users/{_user_name}/Documents/stata-mcp-folder"
+        os.makedirs(output_base_path, exist_ok=True)
+
+elif operating_system == "windows" or operating_system == "linux":
     sys.exit("目前仅支持macOS，如确定你的电脑是macOS，请加上参数operating_system=macos")
+else:
+    sys.exit("未知操作系统")
 
-if stata_cli_path is None:
-    if operating_system == "macos":
-        stata_cli_path = f"/Applications/Stata/StataSE.app/Contents/MacOS/stata-{version_type}"
-        # stata_cli_path = f"/usr/local/bin/stata-{version_type}"
-    elif operating_system == "windows":
-        pass  # 目前手头没有Windows电脑去看stata-cli的配置
+# Create a series of folder
+log_file_path = os.path.join(output_base_path, "stata-mcp-log")
+os.makedirs(log_file_path, exist_ok=True)
+dofile_base_path = os.path.join(output_base_path, "stata-mcp-dofile")
+os.makedirs(log_file_path, exist_ok=True)
+result_doc_path = os.path.join(output_base_path, "stata-mcp-result")
+os.makedirs(log_file_path, exist_ok=True)
 
-if log_file_path is None:
-    if operating_system == "macos":
-        _name = os.getenv('USER')
-        # _home = os.getenv('HOME')
-        # log_file_path = f"{_home}/Documents/stata-mcp-log/"
-        log_file_path = f"/Users/{_name}/Documents/stata-mcp-log/"
-        # 创建目录（如果不存在）
-        os.makedirs(log_file_path, exist_ok=True)
-    elif operating_system == "windows":
-        pass
-
-if dofile_base_path is None:
-    if operating_system == "macos":
-        _name = os.getenv('USER')
-        # _home = os.getenv('HOME')
-        # dofile_base_path = f"{_home}/Documents/stata-mcp-dofile/"
-        dofile_base_path = f"/Users/{_name}/Documents/stata-mcp-dofile/"
-        # 创建目录（如果不存在）
-        os.makedirs(dofile_base_path, exist_ok=True)
-
-if result_doc_path is None:
-    if operating_system == "macos":
-        _name = os.getenv('USER')
-        # _home = os.getenv('HOME')
-        # result_doc_path = f"{_home}/Documents/stata-mcp-result_doc/"
-        result_doc_path = f"/Users/{_name}/Documents/stata-mcp-result_doc/"
-        # 创建目录（如果不存在）
-        os.makedirs(result_doc_path, exist_ok=True)
-    elif operating_system == "windows":
-        pass
-
-# README文件路径
-readme_path = os.path.join(log_file_path, "README.md")
-metadata = os.path.join(log_file_path, "metadata")
+# output_base_path/README文件
+readme_path = os.path.join(output_base_path, "README.md")
+metadata = os.path.join(output_base_path, "metadata")
 
 # 检查并创建README文件
 if not os.path.exists(readme_path):
