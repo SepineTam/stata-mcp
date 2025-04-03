@@ -104,6 +104,9 @@ Pour des informations d'utilisation plus détaillées, consultez le [guide d'uti
 - [ ] Intégrations supplémentaires de LLM
 - [ ] Optimisations de performance
 
+# 💡 Questions
+- [Cherry Studio 32000 wrong](../../../docs/Questions.md#cherry-studio-32000-wrong)
+
 # ⚠️ Avertissement
 Ce projet est destiné uniquement à des fins de recherche. Je ne suis pas responsable des dommages causés par ce projet. Veuillez vous assurer que vous disposez des licences appropriées pour utiliser Stata.
 

@@ -97,6 +97,9 @@ command: uv --directory /Users/yourname/path/to/repo/ run stata_mcp.py 17 se
 # 📝 文档
 有关更详细的使用信息，请访问[使用指南](../../Usage.md)。
 
+# 💡 常见问题
+- [Cherry Studio 32000 wrong](../../../docs/Questions.md#cherry-studio-32000-wrong)
+
 # 🚀 路线图
 - [x] macOS支持
 - [ ] Windows支持

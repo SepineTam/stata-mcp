@@ -98,6 +98,9 @@ command: uv --directory /Users/yourname/path/to/repo/ run stata_mcp.py 17 se
 # 📝 Documentation
 For more detailed usage information, visit the [Usage guide](docs/Usage.md).
 
+# 💡 Questions
+- [Cherry Studio 32000 wrong](docs/Questions.md#cherry-studio-32000-wrong)
+
 # 🚀 Roadmap
 - [x] macOS support
 - [ ] Windows support
