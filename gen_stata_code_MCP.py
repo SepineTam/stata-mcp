@@ -5,7 +5,7 @@
 #
 # @Author : Sepine Tam
 # @Email  : sepinetam@gmail.com
-# @File   : StataCommandGenerator.py
+# @File   : gen_stata_code_MCP.py
 
 from mcp.server.fastmcp import FastMCP
 from typing import Optional, List, Dict, Any, Union
