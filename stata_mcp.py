@@ -8,7 +8,7 @@ from mcp.server.fastmcp import FastMCP
 
 from config import *
 
-mcp = FastMCP('stata-mcp')
+mcp = FastMCP(name='stata-mcp')
 
 args = sys.argv[1:]
 if len(args) < 2:
