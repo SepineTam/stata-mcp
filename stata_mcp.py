@@ -44,7 +44,7 @@ if operating_system is None:
     elif os_name == "Darwin":
         operating_system = "macos"
     elif os_name == "Linux":
-        operating_system = "lunix"
+        operating_system = "linux"
     else:
         operating_system = None
         sys.exit("未知操作系统")
