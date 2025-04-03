@@ -72,7 +72,6 @@ os.makedirs(log_file_path, exist_ok=True)
 dofile_base_path = os.path.join(output_base_path, "stata-mcp-dofile")
 os.makedirs(dofile_base_path, exist_ok=True)
 result_doc_path = os.path.join(output_base_path, "stata-mcp-result")
-os.makedirs(log_file_path, exist_ok=True)
 os.makedirs(result_doc_path, exist_ok=True)
 
 # output_base_path/README文件
