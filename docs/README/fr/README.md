@@ -146,3 +146,7 @@ Song Tan. 2025. "Stata-MCP: Let LLM help you achieve your regression analysis wi
 Email : [sepinetam@gmail.com](mailto:sepinetam@gmail.com)
 
 Ou contribuez directement en soumettant une [Pull Request](https://github.com/sepinetam/stata-mcp/pulls) ! Nous accueillons les contributions de toutes sortes, des corrections de bugs aux nouvelles fonctionnalités.
+
+# ✨ Histoire des étoiles
+
+[![Star History Chart](https://api.star-history.com/svg?repos=sepinetam/stata-mcp&type=Date)](https://www.star-history.com/#sepinetam/stata-mcp&Date)
