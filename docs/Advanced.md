@@ -68,6 +68,9 @@
   - 进一步分析的建议
 ```
 
+## 建议
+### 模型选择
+- 不要使用思考模型
 
 # Advanced
 ## Using Appropriate Prompts to Improve Model Performance
@@ -148,3 +151,6 @@ After executing the code, report to the user:
 - Suggestions for further analysis
 ```
 
+## Suggestion
+### Model Choice
+- Do not use thinking model
