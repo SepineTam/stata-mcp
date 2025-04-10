@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="src/img/logo_with_name.jpg" alt="logo" width="300"/>
+  <a href="https://www.statamcp.com"><img src="src/img/logo_with_name.jpg" alt="logo" width="300"/></a>
 </h1>
 
 [![en](https://img.shields.io/badge/lang-English-red.svg)](README.md)
@@ -19,16 +19,16 @@
 
 ---
 
-# 💡 Quick Start
+## 💡 Quick Start
 For more detailed usage information, visit the [Usage guide](docs/Usage.md).
 
-## Prerequisites
+### Prerequisites
 - [uv](https://github.com/astral-sh/uv) - Package installer and virtual environment manager
 - Claude, Cline, ChatWise, or other LLM service
 - Stata License
 - Your API-KEY from LLM
 
-## Installation
+### Installation
 ```bash
 # Clone the repository
 git clone https://github.com/sepinetam/stata-mcp.git
@@ -48,9 +48,9 @@ uv run stata_mcp.py 17 se  # Test run with Stata 17 SE
 
 **Note:** Windows support is not currently available. If you have a Stata license for Windows and would like to contribute, please submit a PR.
 
-# 🔧 MCP Server Configuration
+## 🔧 MCP Server Configuration
 
-## [Claude](https://claude.ai/)
+### [Claude](https://claude.ai/)
 ```json
 {
   "stata-mcp": {
@@ -67,7 +67,7 @@ uv run stata_mcp.py 17 se  # Test run with Stata 17 SE
 }
 ```
 
-## [ChatWise](https://chatwise.app/)
+### [ChatWise](https://chatwise.app/)
 Open ChatWise app and navigate to the tools tab (subscription required):
 
 ```
@@ -76,7 +76,7 @@ ID: stata-mcp
 command: uv --directory /Users/yourname/path/to/repo/ run stata_mcp.py 17 se
 ```
 
-## [Cline](https://github.com/cline/cline)
+### [Cline](https://github.com/cline/cline)
 ```json
 {
   "mcpServers": {
@@ -95,33 +95,33 @@ command: uv --directory /Users/yourname/path/to/repo/ run stata_mcp.py 17 se
 }
 ```
 
-# 📝 Documentation
+## 📝 Documentation
 For more detailed usage information, visit the [Usage guide](docs/Usage.md).
 
-# 💡 Questions
+## 💡 Questions
 - [Cherry Studio 32000 wrong](docs/Questions.md#cherry-studio-32000-wrong)
 
-# 🚀 Roadmap
+## 🚀 Roadmap
 - [x] macOS support
 - [ ] Windows support
 - [ ] Additional LLM integrations
 - [ ] Performance optimizations
 
-# ⚠️ Disclaimer
+## ⚠️ Disclaimer
 This project is for research purposes only. I am not responsible for any damage caused by this project. Please ensure you have proper licensing to use Stata.
 
 For more information, refer to the [Statement](docs/Statement.md).
 
-# 🐛 Report Issues
+## 🐛 Report Issues
 If you encounter any bugs or have feature requests, please [open an issue](https://github.com/sepinetam/stata-mcp/issues/new).
 
-# 📄 License
+## 📄 License
 [MIT License](License)
 
-# 📚 Citation
+## 📚 Citation
 If you use Stata-MCP in your research, please cite this repository using one of the following formats:
 
-## BibTeX
+### BibTeX
 ```bibtex
 @software{sepinetam2025stata,
   author = {Song Tan},
@@ -132,22 +132,22 @@ If you use Stata-MCP in your research, please cite this repository using one of 
 }
 ```
 
-## APA
+### APA
 ```
 Song Tan. (2025). Stata-MCP: Let LLM help you achieve your regression analysis with Stata (Version 1.0.3) [Computer software]. https://github.com/sepinetam/stata-mcp
 ```
 
-## Chicago
+### Chicago
 ```
 Song Tan. 2025. "Stata-MCP: Let LLM help you achieve your regression analysis with Stata." Version 1.0.3. https://github.com/sepinetam/stata-mcp.
 ```
 
-# 📬 Contact
+## 📬 Contact
 Email: [sepinetam@gmail.com](mailto:sepinetam@gmail.com)
 
 Or contribute directly by submitting a [Pull Request](https://github.com/sepinetam/stata-mcp/pulls)! We welcome contributions of all kinds, from bug fixes to new features.
 
-# ✨ Star History
+## ✨ Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=sepinetam/stata-mcp&type=Date)](https://www.star-history.com/#sepinetam/stata-mcp&Date)
 

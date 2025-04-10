@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="../../../src/img/logo_with_name.jpg" alt="logo" width="300"/>
+  <a href="https://www.statamcp.com"><img src="../../../src/img/logo_with_name.jpg" alt="logo" width="300"/></a>
 </h1>
 
 [![en](https://img.shields.io/badge/lang-English-red.svg)](../../../README.md)
@@ -19,16 +19,16 @@
 
 ---
 
-# 💡 Démarrage Rapide
+## 💡 Démarrage Rapide
 Pour des informations d'utilisation plus détaillées, consultez le [guide d'utilisation](../../Usage.md).
 
-## Prérequis
+### Prérequis
 - [uv](https://github.com/astral-sh/uv) - Gestionnaire de paquets et d'environnements virtuels
 - Claude, Cline, ChatWise, ou autre service LLM
 - Licence Stata
 - Votre clé API pour le service LLM
 
-## Installation
+### Installation
 ```bash
 # Cloner le dépôt
 git clone https://github.com/sepinetam/stata-mcp.git
@@ -48,9 +48,9 @@ uv run stata_mcp.py 17 se  # Test avec Stata 17 SE
 
 **Remarque :** La compatibilité Windows n'est pas disponible actuellement. Si vous possédez une licence Stata pour Windows et souhaitez contribuer, veuillez soumettre une PR.
 
-# 🔧 Configuration du Serveur MCP
+## 🔧 Configuration du Serveur MCP
 
-## [Claude](https://claude.ai/)
+### [Claude](https://claude.ai/)
 ```json
 {
   "stata-mcp": {
@@ -67,7 +67,7 @@ uv run stata_mcp.py 17 se  # Test avec Stata 17 SE
 }
 ```
 
-## [ChatWise](https://chatwise.app/)
+### [ChatWise](https://chatwise.app/)
 Ouvrez l'application ChatWise et accédez à l'onglet outils (abonnement requis) :
 
 ```
@@ -76,7 +76,7 @@ ID: stata-mcp
 command: uv --directory /Users/votrenom/chemin/vers/repo/ run stata_mcp.py 17 se
 ```
 
-## [Cline](https://github.com/cline/cline)
+### [Cline](https://github.com/cline/cline)
 ```json
 {
   "mcpServers": {
@@ -95,33 +95,33 @@ command: uv --directory /Users/votrenom/chemin/vers/repo/ run stata_mcp.py 17 se
 }
 ```
 
-# 📝 Documentation
+## 📝 Documentation
 Pour des informations d'utilisation plus détaillées, consultez le [guide d'utilisation](../../Usage.md).
 
-# 🚀 Feuille de Route
+## 🚀 Feuille de Route
 - [x] Support macOS
 - [ ] Support Windows
 - [ ] Intégrations supplémentaires de LLM
 - [ ] Optimisations de performance
 
-# 💡 Questions
+## 💡 Questions
 - [Cherry Studio 32000 wrong](../../../docs/Questions.md#cherry-studio-32000-wrong)
 
-# ⚠️ Avertissement
+## ⚠️ Avertissement
 Ce projet est destiné uniquement à des fins de recherche. Je ne suis pas responsable des dommages causés par ce projet. Veuillez vous assurer que vous disposez des licences appropriées pour utiliser Stata.
 
 Pour plus d'informations, consultez la [Déclaration](../../Statement.md).
 
-# 🐛 Signaler des Problèmes
+## 🐛 Signaler des Problèmes
 Si vous rencontrez des bugs ou avez des demandes de fonctionnalités, veuillez [ouvrir un ticket](https://github.com/sepinetam/stata-mcp/issues/new).
 
-# 📄 Licence
+## 📄 Licence
 [Licence MIT](../../../License)
 
-# 📚 Citation
+## 📚 Citation
 Si vous utilisez Stata-MCP dans vos recherches, veuillez citer ce référentiel en utilisant l'un des formats suivants:
 
-## BibTeX
+### BibTeX
 ```bibtex
 @software{sepinetam2025stata,
   author = {Song Tan},
@@ -132,21 +132,21 @@ Si vous utilisez Stata-MCP dans vos recherches, veuillez citer ce référentiel 
 }
 ```
 
-## APA
+### APA
 ```
 Song Tan. (2025). Stata-MCP: Let LLM help you achieve your regression analysis with Stata (Version 1.0.3) [Computer software]. https://github.com/sepinetam/stata-mcp
 ```
 
-## Chicago
+### Chicago
 ```
 Song Tan. 2025. "Stata-MCP: Let LLM help you achieve your regression analysis with Stata." Version 1.0.3. https://github.com/sepinetam/stata-mcp.
 ```
 
-# 📬 Contact
+## 📬 Contact
 Email : [sepinetam@gmail.com](mailto:sepinetam@gmail.com)
 
 Ou contribuez directement en soumettant une [Pull Request](https://github.com/sepinetam/stata-mcp/pulls) ! Nous accueillons les contributions de toutes sortes, des corrections de bugs aux nouvelles fonctionnalités.
 
-# ✨ Histoire des étoiles
+## ✨ Histoire des étoiles
 
 [![Star History Chart](https://api.star-history.com/svg?repos=sepinetam/stata-mcp&type=Date)](https://www.star-history.com/#sepinetam/stata-mcp&Date)
