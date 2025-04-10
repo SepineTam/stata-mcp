@@ -18,6 +18,13 @@
 
 ---
 
+> 正在寻找其他 Stata 集成？
+>
+> - VScode 或 Cursor 集成 [此处](https://github.com/hanlulong/stata-mcp)。搞不清楚？️💡 [区别](docs/Difference.md)
+> - Jupyter Lab 使用方法（重要提示：Stata 17+）[此处](https://github.com/sepinetam/Jupyter-Stata)
+> - [NBER-MCP](https://github.com/sepinetam/NBER-MCP) 🔧 建造之下
+
+
 ## 💡 快速开始
 有关更详细的使用信息，请访问[使用指南](../../Usage.md)。
 

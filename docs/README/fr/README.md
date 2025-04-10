@@ -19,6 +19,12 @@
 
 ---
 
+> Vous cherchez d'autres intégrations Stata?
+>
+> - Une intégration VScode ou Cursor [ici](https://github.com/hanlulong/stata-mcp). Vous êtes perdu? 💡 [Différence](docs/Difference.md)
+> - Utilisation de Jupyter Lab (Important: Stata 17+) [ici](https://github.com/sepinetam/Jupyter-Stata)
+> - [NBER-MCP](https://github.com/sepinetam/NBER-MCP) 🔧 en cours de construction
+
 ## 💡 Démarrage Rapide
 Pour des informations d'utilisation plus détaillées, consultez le [guide d'utilisation](../../Usage.md).
 
