@@ -2,6 +2,7 @@
 
 - [中文](#使用指南中文)
 - [English](#usage-guide-english)
+- [Video/视频] Coming Soon
 
 ## 使用指南（中文）
 > 目前该项目只支持macOS操作系统，且目前只在Stata 17上进行测试，预计Windows版本将在4月中旬发布。
