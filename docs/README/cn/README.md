@@ -5,16 +5,14 @@
 [![en](https://img.shields.io/badge/lang-English-red.svg)](../../../README.md)
 [![fr](https://img.shields.io/badge/langue-Français-blue.svg)](../fr/README.md)
 [![cn](https://img.shields.io/badge/语言-中文-yellow.svg)](README.md)
-![Version](https://img.shields.io/badge/version-1.0.3-blue.svg)
+![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)
 [![smithery badge](https://smithery.ai/badge/@SepineTam/stata-mcp)](https://smithery.ai/server/@SepineTam/stata-mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](../../../License)
 [![Issue](https://img.shields.io/badge/Issue-report-green.svg)](https://github.com/sepinetam/stata-mcp/issues/new)
 
 > 让大语言模型（LLM）帮助您使用Stata完成回归分析。
 > 
-> 目前仅支持**macOS**系统（截至20250329）
-> 
-> 好消息！**Windows** 将于 2025 年 4 月底获得支持。
+> **Windows**被支持现在
 
 ---
 

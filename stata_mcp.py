@@ -4,10 +4,12 @@ import sys
 import os
 import platform
 
+import dotenv
 from mcp.server.fastmcp import FastMCP
 
 from config import *
 
+dotenv.load_dotenv()
 mcp = FastMCP(name='stata-mcp')
 
 args = sys.argv[1:]
@@ -60,8 +62,16 @@ if operating_system == "macos":
         _user_name = os.getenv("USER")
         output_base_path = f"/Users/{_user_name}/Documents/stata-mcp-folder"
         os.makedirs(output_base_path, exist_ok=True)
+elif operating_system == "windows":
+    if stata_cli_path is None:
+        stata_cli_path = f"C:\\Program Files\\Stata{version_number}\\Stata{version_number}.exe"
 
-elif operating_system == "windows" or operating_system == "linux":
+    if output_base_path is None:
+        # there is something wrong on cherry studio, so you should config the env as `USERPROFILE=YOU_RNAME`
+        _user_name = os.getenv("USERPROFILE").split("\\")[-1]
+        output_base_path = f"C:\\Users\\{_user_name}\\Documents\\stata-mcp-folder"
+        os.makedirs(output_base_path, exist_ok=True)
+elif operating_system == "linux":
     sys.exit("目前仅支持macOS，如确定你的电脑是macOS，请加上参数operating_system=macos")
 else:
     sys.exit("未知操作系统")
@@ -478,6 +488,7 @@ def append_dofile(original_dofile_path: str, content: str) -> str:
 
 
 @mcp.tool(name="stata_do", description="Run a stata-code via Stata")
+@mcp.tool(name="stata_do", description="Run a stata-code via Stata")
 def stata_do(dofile_path: str) -> str:
     """
     Execute a Stata do-file and return the path to its log file.
@@ -489,30 +500,50 @@ def stata_do(dofile_path: str) -> str:
         str: Path to the generated Stata log file.
 
     Note:
-        Requires StataSE to be installed at the default macOS location.
-        The log file will be created in a temporary directory.
+        Supports multiple operating systems (macOS, Windows, Linux).
+        The log file will be created in the log_file_path directory.
     """
     nowtime: str = datetime.strftime(datetime.now(), "%Y%m%d%H%M%S")
     log_file = os.path.join(log_file_path, f"{nowtime}.log")
 
-    # 启动 Stata 进程（交互模式）
-    proc = subprocess.Popen(
-        [stata_cli_path],  # 启动 Stata 命令行
-        stdin=subprocess.PIPE,  # 准备输入命令
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-        shell=True  # 如果路径有空格需要 shell=True
-    )
+    # 针对不同操作系统使用不同的执行方式
+    if operating_system == "macos" or operating_system == "linux":
+        # macOS/Linux 方式
+        proc = subprocess.Popen(
+            [stata_cli_path],  # 启动 Stata 命令行
+            stdin=subprocess.PIPE,  # 准备输入命令
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            shell=True  # 如果路径有空格需要 shell=True
+        )
 
-    # 在 Stata 中依次执行命令
-    commands = f"""
-    log using "{log_file}", replace
-    do "{dofile_path}"
-    log close
-    exit, STATA
-    """
-    proc.communicate(input=commands)  # 发送命令并等待结束
+        # 在 Stata 中依次执行命令
+        commands = f"""
+        log using "{log_file}", replace
+        do "{dofile_path}"
+        log close
+        exit, STATA
+        """
+        proc.communicate(input=commands)  # 发送命令并等待结束
+
+    elif operating_system == "windows":
+        # Windows 方式 - 使用 /e 参数执行批处理命令
+        # 创建临时批处理文件
+        batch_file = os.path.join(dofile_base_path, f"{nowtime}_batch.do")
+        with open(batch_file, 'w', encoding='utf-8') as f:
+            f.write(f'log using "{log_file}", replace\n')
+            f.write(f'do "{dofile_path}"\n')
+            f.write('log close\n')
+            f.write('exit, STATA\n')
+
+        # 在Windows上执行Stata，使用/e参数运行批处理文件
+        # 使用双引号处理路径中的空格
+        cmd = f'"{stata_cli_path}" /e do "{batch_file}"'
+        subprocess.run(cmd, shell=True)
+
+    else:
+        raise ValueError(f"不支持的操作系统: {operating_system}")
 
     return log_file
 
