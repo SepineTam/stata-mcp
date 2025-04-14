@@ -488,7 +488,6 @@ def append_dofile(original_dofile_path: str, content: str) -> str:
 
 
 @mcp.tool(name="stata_do", description="Run a stata-code via Stata")
-@mcp.tool(name="stata_do", description="Run a stata-code via Stata")
 def stata_do(dofile_path: str) -> str:
     """
     Execute a Stata do-file and return the path to its log file.
