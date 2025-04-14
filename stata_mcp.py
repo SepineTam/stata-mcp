@@ -7,17 +7,11 @@ import platform
 import dotenv
 from mcp.server.fastmcp import FastMCP
 
+from utils import StataFinder
 from config import *
 
 dotenv.load_dotenv()
 mcp = FastMCP(name='stata-mcp')
-
-args = sys.argv[1:]
-if len(args) < 2:
-    sys.exit("错误：必须提供版本号和版本类型，如uv run stata_mcp.py 17 se")
-
-version_number = args[0]  # 第一个参数是版本号（如17）
-version_type = args[1]  # 第二个参数是版本类型（如se）
 
 # 初始化可选参数（默认为None）
 stata_cli_path = None
@@ -29,7 +23,25 @@ log_file_path = None
 dofile_base_path = None
 result_doc_path = None
 
-for arg in args[2:]:
+sys_os = platform.system()
+
+if sys_os == "Darwin":
+    args = sys.argv[1:]
+    if len(args) == 0:
+        is_env_stata_cli = False
+    else:
+        is_env_stata_cli = eval(args[0])
+        if type(is_env_stata_cli) is not bool:
+            is_env_stata_cli = True
+else:
+    args = sys.argv[1:]
+    if len(args) < 2:
+        sys.exit("错误：必须提供版本号和版本类型，如uv run stata_mcp.py 17 se")
+
+    version_number = args[0]  # 第一个参数是版本号（如17）
+    version_type = args[1]  # 第二个参数是版本类型（如se）
+
+for arg in args[1:]:
     if arg.startswith("stata_cli_path="):
         stata_cli_path = arg.split("=", 1)[1]  # 提取路径部分
     elif arg.startswith("operating_system="):
@@ -52,11 +64,8 @@ if operating_system is None:
         sys.exit("未知操作系统")
 
 if operating_system == "macos":
-    # check the stata cli path
     if stata_cli_path is None:
-        stata_cli_path = f"/usr/local/bin/stata-{version_type}"
-        # stata_cli_path = f"/Applications/Stata/StataSE.app/Contents/MacOS/stata-{version_type}"
-
+        stata_cli_path = StataFinder._find_stata_macos(is_env=is_env_stata_cli)
     # check the output base path
     if output_base_path is None:
         _user_name = os.getenv("USER")
@@ -72,7 +81,7 @@ elif operating_system == "windows":
         output_base_path = f"C:\\Users\\{_user_name}\\Documents\\stata-mcp-folder"
         os.makedirs(output_base_path, exist_ok=True)
 elif operating_system == "linux":
-    sys.exit("目前仅支持macOS，如确定你的电脑是macOS，请加上参数operating_system=macos")
+    sys.exit("目前仅支持macOS和Windows，如确定你的电脑是macOS，请加上参数operating_system=macos")
 else:
     sys.exit("未知操作系统")
 
