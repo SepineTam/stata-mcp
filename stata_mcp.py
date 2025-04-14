@@ -24,7 +24,7 @@ result_doc_path = None
 
 sys_os = platform.system()
 
-if sys_os == "Darwin" or sys_os == "Windows":
+if sys_os == "Darwin" or sys_os == "Windows" or sys_os == "Linux":
     args = sys.argv[1:]
     if len(args) == 0:
         is_env_stata_cli = False
@@ -86,7 +86,7 @@ os.makedirs(result_doc_path, exist_ok=True)
 readme_path = os.path.join(output_base_path, "README.md")
 metadata = os.path.join(output_base_path, "metadata")
 
-# 检查并创建README文件
+# Check and make README file and metadate future it would be sued.
 if not os.path.exists(readme_path):
     with open(readme_path, 'w', encoding='utf-8') as f:
         f.write(readme_content)
