@@ -120,7 +120,7 @@ command: uv --directory /Users/yourname/path/to/repo/ run stata_mcp.py 17 se
 如果您遇到任何错误或有功能请求，请[提交问题](https://github.com/sepinetam/stata-mcp/issues/new)。
 
 ## 📄 许可证
-[MIT许可证](../../../License)
+[MIT许可证](../../../License)和扩展
 
 ## 📚 引用
 如果您在研究中使用 Stata-MCP，请使用以下格式之一引用此存储库：

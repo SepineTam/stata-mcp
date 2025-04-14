@@ -120,7 +120,7 @@ Pour plus d'informations, consultez la [Déclaration](../../Statement.md).
 Si vous rencontrez des bugs ou avez des demandes de fonctionnalités, veuillez [ouvrir un ticket](https://github.com/sepinetam/stata-mcp/issues/new).
 
 ## 📄 Licence
-[Licence MIT](../../../License)
+[Licence MIT](../../../License) et extensions
 
 ## 📚 Citation
 Si vous utilisez Stata-MCP dans vos recherches, veuillez citer ce référentiel en utilisant l'un des formats suivants:

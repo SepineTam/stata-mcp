@@ -19,3 +19,74 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+Additional License
+This section is expanded upon the MIT LICENSE and is stated in both English and Chinese.
+If there is any conflict, the Chinese version shall prevail.
+
+The project provides support for Stata's AI extensions based on LLM, 
+and provides carrier support through third parties 
+that support the MCP (Model Context Protocol) protocol, such as Claude client and Cursor.
+
+1. Individual Use License:
+   a) Authorized Users: This software is exclusively authorized for use by individuals who possess legitimate licensed copies of Stata acquired through official channels. The use of this software constitutes an acceptance of these terms.
+   b) Unauthorized Use: The author explicitly recognizes the existence of unauthorized or pirated versions of Stata software in circulation. While the author does not possess the legal authority to pursue action against users of such unauthorized versions, the author hereby expressly disclaims any and all liability arising from such unauthorized use.
+   c) Risk Assumption: Any individual who chooses to utilize this software in conjunction with an unauthorized version of Stata does so entirely at their own risk. Such use may constitute a violation of Stata's end-user license agreement and applicable intellectual property laws.
+   d) Indemnification: By using this software, the user agrees to indemnify, defend, and hold harmless the author from any claims, damages, liabilities, costs, and expenses (including reasonable attorney's fees) arising from or related to the user's use of this software with unauthorized versions of Stata.
+
+2. Commercial Use Limitations:
+   a) Academic and Research Priority: This software is primarily designed and intended for academic and research purposes. Use by individual scholars, academic institutions, and research organizations for non-commercial purposes is fully permitted under this license.
+   b) Commercial Utilization Restriction: Commercial utilization of this software for direct profit-making activities is strongly discouraged and is not the intended purpose of this software.
+   c) Profit Sharing Obligation: In the event that commercial profit is derived from the use of this software, the user is ethically obligated to contribute 20% of such profits to support economic research and development in China. This contribution should be made to recognized academic institutions, research foundations, or economic development organizations in China dedicated to advancing economic research.
+   d) Commercial Reporting: Commercial users who derive profit from this software are requested to report such use and resulting contributions to the author for record-keeping purposes, though this reporting is voluntary.
+
+3. Extended Disclaimer and Limitation of Liability:
+   a) Software Integrity: The author makes no representations or warranties regarding the compatibility of this software with any version of Stata, whether licensed or unlicensed.
+   b) Consequential Damages: In no event shall the author be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services, loss of use, data, or profits; or business interruption) arising from the use of this software, regardless of the cause and regardless of whether the author has been advised of the possibility of such damages.
+   c) Third-Party Claims: The author bears no responsibility for any third-party claims that may arise against users for intellectual property infringement or other legal violations resulting from the use of this software in conjunction with unauthorized software.
+   d) Complete Responsibility: Users assume complete responsibility and risk for their use of this software and any results obtained from it.
+
+4. License Acceptance:
+   a) By downloading, installing, or using this software, users acknowledge that they have read, understood, and agree to be bound by the terms of this license.
+   b) If users do not agree to these terms, they are not authorized to use, download, or install the software.
+   
+5. Litigation and Dispute Resolution:
+   a) Governing Law: All legal matters and interpretation related to this software shall be governed by the laws of the People's Republic of China.
+   b) Jurisdiction: Any legal disputes, lawsuits, or legal proceedings arising from or related to the use of this software or the interpretation of these license terms shall be brought and resolved in courts with jurisdiction in the author's location (China). Users expressly agree to the exclusive jurisdiction of this venue and waive any objections to such jurisdiction.
+   c) Mediation and Arbitration: Before initiating any legal action, the disputing parties shall first attempt to resolve the dispute through friendly negotiation or mediation. If negotiation or mediation fails to resolve the dispute, it shall be submitted to the China International Economic and Trade Arbitration Commission for arbitration in accordance with its then-effective arbitration rules.
+   d) Costs and Fees: In any legal proceeding, the prevailing party shall be entitled to recover its reasonable legal costs, attorney fees, and other related expenses.
+   e) Severability: If any part of these terms is found to be unenforceable, the remaining portions shall continue to be valid. Failure of the author to enforce any right under these terms shall not be deemed a waiver of such right or any other right.
+
+追加协议
+这部分是在MIT LICENSE的基础上扩展而来，以英语和中文双语进行陈述，如有冲突以中文为准。
+
+该项目为基于大语言模型的Stata的AI扩展支持，通过诸如Claude客户端、Cursor等支持MCP（Model Context Protocol）协议的第三方提供载体支持。
+
+1. 个人使用授权条款：
+   a) 授权用户：本软件仅授权给通过官方渠道获得合法Stata许可证的个人使用。使用本软件即表示接受这些条款。
+   b) 未授权使用声明：作者明确认识到市场上存在未经授权或盗版的Stata软件。尽管作者无权对使用此类未授权版本的用户采取法律行动，但作者在此明确声明不承担因此类未授权使用而产生的任何及所有责任。
+   c) 风险承担：任何选择将本软件与未授权版本的Stata一起使用的个人，完全自行承担风险。此类使用可能违反Stata的最终用户许可协议和适用的知识产权法律。
+   d) 赔偿保证：使用本软件即表示用户同意对因用户将本软件与未授权版本的Stata一起使用而产生的或与之相关的任何索赔、损害、责任、成本和费用（包括合理的律师费）向作者进行赔偿、辩护并使其免受损害。
+
+2. 商业使用限制：
+   a) 学术和研究优先：本软件主要为学术和研究目的而设计和预期使用。完全允许个人学者、学术机构和研究组织将其用于非商业目的。
+   b) 商业使用限制：强烈不鼓励将本软件用于直接营利活动的商业利用，这并非本软件的预期用途。
+   c) 利润分享义务：如果从本软件的使用中获得商业利润，使用者在道德上有义务将此类利润的20%用于支持中国的经济研究和发展。这一贡献应当向中国致力于推进经济研究的公认学术机构、研究基金会或经济发展组织进行。
+   d) 商业报告：从本软件中获得利润的商业用户被要求向作者报告此类使用和由此产生的贡献，以供记录之用，尽管此类报告是自愿的。
+
+3. 扩展免责声明和责任限制：
+   a) 软件完整性：作者不对本软件与任何版本的Stata（无论是授权的还是未授权的）的兼容性做出任何陈述或保证。
+   b) 间接损害：在任何情况下，作者均不对因使用本软件而产生的任何直接、间接、附带、特殊、示范性或后果性损害（包括但不限于替代商品或服务的采购、使用损失、数据或利润损失；或业务中断）负责，无论原因如何，也无论作者是否已被告知可能发生此类损害。
+   c) 第三方索赔：作者对因将本软件与未授权软件一起使用而导致的知识产权侵权或其他法律违反行为而可能针对用户提出的任何第三方索赔不承担任何责任。
+   d) 完全责任：用户对其使用本软件及从中获得的任何结果承担完全责任和风险。
+
+4. 许可接受：
+   a) 通过下载、安装或使用本软件，用户确认他们已阅读、理解并同意受本许可条款的约束。
+   b) 如果用户不同意这些条款，则不授权其使用、下载或安装软件。
+
+5. 诉讼管辖与争议解决：
+   a) 管辖法律：与本软件相关的所有法律事务及解释均受中华人民共和国法律管辖。
+   b) 管辖地点：任何因本软件使用、许可条款解释或与之相关的法律争议、诉讼或法律程序，均应在作者所在地（中国）的有管辖权法院提起和解决。用户明确同意该管辖地点的专属管辖权，并放弃对该管辖地点提出异议的权利。
+   c) 调解与仲裁：在提起任何法律诉讼前，争议各方应首先尝试通过友好协商或调解解决争议。如协商或调解未能解决争议，则应通过中国国际经济贸易仲裁委员会按照其届时有效的仲裁规则进行仲裁。
+   d) 费用承担：在任何法律程序中，胜诉方有权获得其合理的法律费用、律师费和其他相关开支的补偿。
+   e) 弃权声明：如本条款的任何部分被认定为不可执行，其余部分仍应继续有效。作者未能执行本条款中的任何权利不应被视为对该权利或任何其他权利的放弃。
