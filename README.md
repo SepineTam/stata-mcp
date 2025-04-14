@@ -5,7 +5,7 @@
 [![en](https://img.shields.io/badge/lang-English-red.svg)](README.md)
 [![fr](https://img.shields.io/badge/langue-Français-blue.svg)](docs/README/fr/README.md)
 [![cn](https://img.shields.io/badge/语言-中文-yellow.svg)](docs/README/cn/README.md)
-![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)
+![Version](https://img.shields.io/badge/version-1.1.1-blue.svg)
 [![smithery badge](https://smithery.ai/badge/@SepineTam/stata-mcp)](https://smithery.ai/server/@SepineTam/stata-mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Issue](https://img.shields.io/badge/Issue-report-green.svg)](https://github.com/sepinetam/stata-mcp/issues/new)
