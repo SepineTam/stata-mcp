@@ -9,11 +9,13 @@
 
 import os
 import glob
+import dotenv
 
 from typing import Dict, Callable, Any
 
 from utils import windows
 
+dotenv.load_dotenv()
 
 def _stata_version_macos():
     stata_dir = "/Applications/Stata"
@@ -107,8 +109,22 @@ def _find_stata_windows(is_env: bool = False) -> str:
         _stata_cli_path = __default_cli_path
     return _stata_cli_path
 
-def _find_stata_linux() -> str:
+def __default_stata_cli_path_linux() -> Any | None:
     pass
+
+def _find_stata_linux() -> str:
+    """
+    Due to author don't have a Linux Computer with License of Stata,
+    so user of Linux should manual config the Stata path from env.
+
+    Return:
+        The path of stata cli
+    """
+    _default__cli_path = __default_stata_cli_path_linux()
+    if _default__cli_path is None:
+        _default__cli_path = None
+    _stata_cli_path = os.getenv("stata_cli", _default__cli_path)
+    return _stata_cli_path
 
 
 if __name__ == "__main__":
