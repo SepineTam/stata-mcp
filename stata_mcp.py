@@ -15,7 +15,6 @@ mcp = FastMCP(name='stata-mcp')
 
 # 初始化可选参数（默认为None）
 stata_cli_path = None
-operating_system = None
 
 output_base_path = None
 
@@ -34,60 +33,46 @@ if sys_os == "Darwin" or sys_os == "Windows":
         if type(is_env_stata_cli) is not bool:
             is_env_stata_cli = True
 else:
-    args = sys.argv[1:]
-    if len(args) < 2:
-        sys.exit("错误：必须提供版本号和版本类型，如uv run stata_mcp.py 17 se")
+    sys.exit("Unknown OS")
+try:
+    for arg in args[1:]:
+        if arg.startswith("stata_cli_path="):
+            stata_cli_path = arg.split("=", 1)[1]  # 提取路径部分
+        elif arg.startswith("output_base_path="):
+            output_base_path = arg.split("=", 1)[1]
+        else:
+            print(f"Warning: Unknown arg `{arg}`")
+except Exception as e:
+    print(e)
 
-    version_number = args[0]  # 第一个参数是版本号（如17）
-    version_type = args[1]  # 第二个参数是版本类型（如se）
+if output_base_path is None:
+    documents_path = os.path.expanduser("~/Documents")
+    output_base_path = os.path.join(documents_path, "stata-mcp-folder/")
+os.makedirs(output_base_path, exist_ok=True)
 
-for arg in args[1:]:
-    if arg.startswith("stata_cli_path="):
-        stata_cli_path = arg.split("=", 1)[1]  # 提取路径部分
-    elif arg.startswith("operating_system="):
-        operating_system = arg.split("=", 1)[1].lower()
-    elif arg.startswith("output_base_path="):
-        output_base_path = arg.split("=", 1)[1]
-    else:
-        print(f"警告：未知参数 `{arg}`，已忽略")
-
-if operating_system is None:
-    os_name = platform.system()  # 返回 'Windows', 'Linux', 'Darwin'(macOS) 等
-    if os_name == "Windows":
-        operating_system = "windows"
-    elif os_name == "Darwin":
-        operating_system = "macos"
-    elif os_name == "Linux":
-        operating_system = "linux"
-    else:
-        operating_system = None
-        sys.exit("未知操作系统")
-
-if operating_system == "macos":
+if sys_os == "Darwin":
     if stata_cli_path is None:
-        stata_cli_path = StataFinder._find_stata_macos(is_env=is_env_stata_cli)
+        stata_cli_path = StataFinder.find_stata(is_env=is_env_stata_cli)
     # check the output base path
-    if output_base_path is None:
-        _user_name = os.getenv("USER")
-        output_base_path = f"/Users/{_user_name}/Documents/stata-mcp-folder"
-        os.makedirs(output_base_path, exist_ok=True)
-elif operating_system == "windows":
+elif sys_os == "Windows":
     if stata_cli_path is None:
-        stata_cli_path = StataFinder._find_stata_windows(is_env=is_env_stata_cli)
+        stata_cli_path = StataFinder.find_stata(is_env=is_env_stata_cli)
         if stata_cli_path is None:
             exit_msg = ('Missing Stata.exe, you could config your Stata.exe abspath in your env\n'
                         r'e.g. stata_cli="C:\\Program Files\\Stata19\StataMP.exe"')
             sys.exit(exit_msg)
 
-    if output_base_path is None:
+    if output_base_path is None:  # need to be tested
         # there is something wrong on cherry studio, so you should config the env as `USERPROFILE=YOU_RNAME`
         _user_name = os.getenv("USERPROFILE").split("\\")[-1]
         output_base_path = f"C:\\Users\\{_user_name}\\Documents\\stata-mcp-folder"
         os.makedirs(output_base_path, exist_ok=True)
-elif operating_system == "linux":
+elif sys_os == "Linux":
+    if stata_cli_path is None:
+        stata_cli_path = StataFinder.find_stata()
     sys.exit("目前仅支持macOS和Windows，如确定你的电脑是macOS，请加上参数operating_system=macos")
 else:
-    sys.exit("未知操作系统")
+    sys.exit("Unknown OS")
 
 # Create a series of folder
 log_file_path = os.path.join(output_base_path, "stata-mcp-log")
@@ -519,7 +504,7 @@ def stata_do(dofile_path: str) -> str:
     log_file = os.path.join(log_file_path, f"{nowtime}.log")
 
     # 针对不同操作系统使用不同的执行方式
-    if operating_system == "macos" or operating_system == "linux":
+    if sys_os == "Darwin" or sys_os == "Linux":
         # macOS/Linux 方式
         proc = subprocess.Popen(
             [stata_cli_path],  # 启动 Stata 命令行
@@ -539,7 +524,7 @@ def stata_do(dofile_path: str) -> str:
         """
         proc.communicate(input=commands)  # 发送命令并等待结束
 
-    elif operating_system == "windows":
+    elif sys_os == "Windows":
         # Windows 方式 - 使用 /e 参数执行批处理命令
         # 创建临时批处理文件
         batch_file = os.path.join(dofile_base_path, f"{nowtime}_batch.do")
@@ -555,7 +540,7 @@ def stata_do(dofile_path: str) -> str:
         subprocess.run(cmd, shell=True)
 
     else:
-        raise ValueError(f"不支持的操作系统: {operating_system}")
+        raise ValueError(f"不支持的操作系统: {sys_os}")
 
     return log_file
 
