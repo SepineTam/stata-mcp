@@ -25,7 +25,7 @@ result_doc_path = None
 
 sys_os = platform.system()
 
-if sys_os == "Darwin":
+if sys_os == "Darwin" or sys_os == "Windows":
     args = sys.argv[1:]
     if len(args) == 0:
         is_env_stata_cli = False
