@@ -61,16 +61,15 @@ elif sys_os == "Windows":
             exit_msg = ('Missing Stata.exe, you could config your Stata.exe abspath in your env\n'
                         r'e.g. stata_cli="C:\\Program Files\\Stata19\StataMP.exe"')
             sys.exit(exit_msg)
-
-    if output_base_path is None:  # need to be tested
-        # there is something wrong on cherry studio, so you should config the env as `USERPROFILE=YOU_RNAME`
-        _user_name = os.getenv("USERPROFILE").split("\\")[-1]
-        output_base_path = f"C:\\Users\\{_user_name}\\Documents\\stata-mcp-folder"
-        os.makedirs(output_base_path, exist_ok=True)
+    # not sure whether windows could use `documents_path = os.path.expanduser("~/Documents")`
+    # if output_base_path is None:  # need to be tested
+    #     # there is something wrong on cherry studio, so you should config the env as `USERPROFILE=YOU_RNAME`
+    #     _user_name = os.getenv("USERPROFILE").split("\\")[-1]
+    #     output_base_path = f"C:\\Users\\{_user_name}\\Documents\\stata-mcp-folder"
+    #     os.makedirs(output_base_path, exist_ok=True)
 elif sys_os == "Linux":
     if stata_cli_path is None:
         stata_cli_path = StataFinder.find_stata()
-    sys.exit("目前仅支持macOS和Windows，如确定你的电脑是macOS，请加上参数operating_system=macos")
 else:
     sys.exit("Unknown OS")
 
