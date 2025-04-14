@@ -73,16 +73,11 @@ if operating_system == "macos":
         os.makedirs(output_base_path, exist_ok=True)
 elif operating_system == "windows":
     if stata_cli_path is None:
-        drives = ['C:', 'D:', 'E:', 'F:', 'G:']
-        for drive in drives:
-            for pf in ["Program Files", "Program Files(x86)"]:
-                path = rf"{drive}\\{pf}\\Stata{version_number}\\Stata{version_type}.exe"
-                if os.path.exists(path):
-                    stata_cli_path = path
-                else:
-                    pass
+        stata_cli_path = StataFinder._find_stata_windows(is_env=is_env_stata_cli)
         if stata_cli_path is None:
-            stata_cli_path = rf"C:\\Program Files\\Stata{version_number}\\Stata{version_type}.exe"
+            exit_msg = ('Missing Stata.exe, you could config your Stata.exe abspath in your env\n'
+                        r'e.g. stata_cli="C:\\Program Files\\Stata19\StataMP.exe"')
+            sys.exit(exit_msg)
 
     if output_base_path is None:
         # there is something wrong on cherry studio, so you should config the env as `USERPROFILE=YOU_RNAME`
