@@ -73,7 +73,16 @@ if operating_system == "macos":
         os.makedirs(output_base_path, exist_ok=True)
 elif operating_system == "windows":
     if stata_cli_path is None:
-        stata_cli_path = f"C:\\Program Files\\Stata{version_number}\\Stata{version_number}.exe"
+        drives = ['C:', 'D:', 'E:', 'F:', 'G:']
+        for drive in drives:
+            for pf in ["Program Files", "Program Files(x86)"]:
+                path = rf"{drive}\\{pf}\\Stata{version_number}\\Stata{version_type}.exe"
+                if os.path.exists(path):
+                    stata_cli_path = path
+                else:
+                    pass
+        if stata_cli_path is None:
+            stata_cli_path = rf"C:\\Program Files\\Stata{version_number}\\Stata{version_type}.exe"
 
     if output_base_path is None:
         # there is something wrong on cherry studio, so you should config the env as `USERPROFILE=YOU_RNAME`
