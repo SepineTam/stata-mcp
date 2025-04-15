@@ -5,9 +5,12 @@
 - [Video/视频] Coming Soon
 
 ## 使用指南（中文）
-> 目前该项目只支持macOS操作系统，且目前只在Stata 17上进行测试，预计Windows版本将在4月中旬发布。
+> ~~目前该项目只支持macOS操作系统，且目前只在Stata 17上进行测试，预计Windows版本将在4月中旬发布。~~
+> 
+> 目前已加入Windows支持，但是配置较为麻烦，请遵循[指引](Usage_Windows.md)
 
-### 环境配置
+### 准备工作——macOS
+#### 环境配置
 1. 请确保您的计算机已安装并激活 Stata 软件（需具备有效的 Stata 许可证）。
    > 注意：本工具仅作为 Stata 的扩展功能，与 Stata 的版权问题无关。
 
@@ -16,9 +19,9 @@
    - 点击菜单栏中的 "Stata"
    - 选择 "安装终端工具..."（如下图所示）
 
-![](../src/img/usage_01.png)
+![](../../src/img/usage_01.png)
 
-### 验证安装
+#### 验证安装
 1. 打开终端（Terminal）
 2. 执行以下命令：
 ```bash
@@ -29,9 +32,24 @@
    - 如果终端显示 Stata 的启动界面（如下图所示），则表示安装成功
    - 如果出现"command not found"等错误提示，请检查安装步骤是否正确执行
 
-![](../src/img/usage_02.png)
+![](../../src/img/usage_02.png)
 
 > 提示：安装成功后，您就可以开始使用本工具进行后续操作了。
+
+### 准备工作——Windows
+#### 环境配置
+1. 请确保您的计算机已安装并激活 Stata 软件（需具备有效的 Stata 许可证）。
+   > 注意：本工具仅作为 Stata 的扩展功能，与 Stata 的版权问题无关。
+
+2. 按照[Stata官方指引](https://www.stata.com/support/faqs/windows/install-from-command-line/)安装命令行工具
+
+#### 验证安装
+1. 打开命令行窗口（win+R，输入CMD进入）
+2. 执行以下命令:
+
+```bash
+
+```
 
 ### Stata-MCP配置
 ```bash
@@ -102,9 +120,9 @@ command: uv --directory /Users/yourname/path/to/repo/ run stata_mcp.py 17 se
 ```
 
 ### 视频演示
-![](../src/video/usage_03.gif)
+![](../../src/video/usage_03.gif)
 
-[示例数据](../src/data/did_show.dta)
+[示例数据](../../src/data/did_show.dta)
 
 示例提示词:
 ```text
@@ -139,7 +157,7 @@ Prompt:
    - Click on "Stata" in the menu bar
    - Select "Install Terminal Tools..." (as shown in the image below)
 
-![](../src/img/usage_01.png)
+![](../../src/img/usage_01.png)
 
 ### Verify Installation
 1. Open Terminal
@@ -152,7 +170,7 @@ Prompt:
    - If the terminal displays Stata's startup interface (as shown in the image below), the installation is successful
    - If an error message such as "command not found" appears, please check if the installation steps were executed correctly
 
-![](../src/img/usage_02.png)
+![](../../src/img/usage_02.png)
 
 > Tip: After successful installation, you can start using this tool for subsequent operations.
 
@@ -225,9 +243,9 @@ Args:
 ```
 
 ### Video Demonstration
-![](../src/video/usage_03.gif)
+![](../../src/video/usage_03.gif)
 
-[Demo Data](../src/data/did_show.dta)
+[Demo Data](../../src/data/did_show.dta)
 
 Demo Prompt:
 ```text

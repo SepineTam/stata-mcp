@@ -34,7 +34,7 @@ This implementation leverages the Model Context Protocol to enable AI assistants
 - Advanced Querying: Enables natural language interactions with Stata's statistical and data manipulation capabilities
 
 ### Installation
-Installation instructions are provided in the repository [README](../README.md) or [Usage](Usage.md). Initial setup typically requires configuring your Stata path and preferred connection settings.
+Installation instructions are provided in the repository [README](../README.md) or [Usage](Usages/Usage.md). Initial setup typically requires configuring your Stata path and preferred connection settings.
 
 ### MCP Integration
 This implementation uses the Model Context Protocol to create a semantic layer between Stata and AI systems:
@@ -78,7 +78,7 @@ Shortly, Stata-MCP@sepinetam provides interaction with large language models to 
 - 高级查询：实现与Stata的统计和数据操作功能的自然语言交互
 
 ### 安装
-安装说明在仓库的[README](../README.md)或[Usage](Usage.md)中提供。初始设置通常需要配置您的Stata路径和首选连接设置。
+安装说明在仓库的[README](../README.md)或[Usage](Usages/Usage.md)中提供。初始设置通常需要配置您的Stata路径和首选连接设置。
 
 ### MCP集成
 此实现使用模型上下文协议在Stata和AI系统之间创建语义层：

@@ -17,5 +17,5 @@ $ whoami  # YOUR_COMPUTER_NAME
 
 The windows is supported at 2025-04-11 (and it is my birthday). Thanks each of whom use Stata-MCP, it is the best gift for me.
 
-More information you can visit the [Usage doc for Windows](Usage_Windows.md).
+More information you can visit the [Usage doc for Windows](Usages/Usage_Windows.md).
 

@@ -25,7 +25,7 @@
 > - [NBER-MCP](https://github.com/sepinetam/NBER-MCP) 🔧 en cours de construction
 
 ## 💡 Démarrage Rapide
-Pour des informations d'utilisation plus détaillées, consultez le [guide d'utilisation](../../Usage.md).
+Pour des informations d'utilisation plus détaillées, consultez le [guide d'utilisation](../../Usages/Usage.md).
 
 ### Prérequis
 - [uv](https://github.com/astral-sh/uv) - Gestionnaire de paquets et d'environnements virtuels
@@ -101,7 +101,7 @@ command: uv --directory /Users/votrenom/chemin/vers/repo/ run stata_mcp.py 17 se
 ```
 
 ## 📝 Documentation
-Pour des informations d'utilisation plus détaillées, consultez le [guide d'utilisation](../../Usage.md).
+Pour des informations d'utilisation plus détaillées, consultez le [guide d'utilisation](../../Usages/Usage.md).
 
 ## 🚀 Feuille de Route
 - [x] Support macOS
