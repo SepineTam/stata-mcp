@@ -6,7 +6,7 @@
 [![cn](https://img.shields.io/badge/语言-中文-yellow.svg)](docs/README/cn/README.md)
 [![fr](https://img.shields.io/badge/langue-Français-blue.svg)](docs/README/fr/README.md)
 [![sp](https://img.shields.io/badge/Idioma-Español-green.svg)](docs/README/sp/README.md)
-![Version](https://img.shields.io/badge/version-1.2.2-blue.svg)
+![Version](https://img.shields.io/badge/version-1.2.3-blue.svg)
 [![smithery badge](https://smithery.ai/badge/@SepineTam/stata-mcp)](https://smithery.ai/server/@SepineTam/stata-mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](License)
 [![Issue](https://img.shields.io/badge/Issue-report-green.svg)](https://github.com/sepinetam/stata-mcp/issues/new)
@@ -14,7 +14,7 @@
 
 > Let LLM help you achieve your regression analysis with Stata.
 > 
-> **Windows** is supported now!
+> Now Stata-MCP has been supported to find Stata CLI **automatically**.
 
 ---
 
@@ -44,8 +44,8 @@ cd stata-mcp
 # Copy example config
 cp example.config.py config.py
 
-# Using uv (recommended)
-uv run stata_mcp.py 17 se  # Test run with Stata 17 SE
+# Using uv (recommended) to test usable
+uv run usable.py
 
 # Alternative setup with pip
 # python3.11 -m venv .venv
@@ -53,64 +53,19 @@ uv run stata_mcp.py 17 se  # Test run with Stata 17 SE
 # pip install -r requirements.txt
 ```
 
-**Note:** Windows support is not currently available. If you have a Stata license for Windows and would like to contribute, please submit a PR.
-
-## 🔧 MCP Server Configuration
-
-### [Claude](https://claude.ai/)
-```json
-{
-  "stata-mcp": {
-    "command":"uv",
-    "args":[
-      "--directory",
-      "/Users/yourname/path/to/repo/",
-      "run",
-      "stata_mcp.py",
-      "17",
-      "se"
-    ]
-  }
-}
-```
-
-### [ChatWise](https://chatwise.app/)
-Open ChatWise app and navigate to the tools tab (subscription required):
-
-```
-type: stdio
-ID: stata-mcp
-command: uv --directory /Users/yourname/path/to/repo/ run stata_mcp.py 17 se
-```
-
-### [Cline](https://github.com/cline/cline)
-```json
-{
-  "mcpServers": {
-    "stata-mcp": {
-      "command":"uv",
-      "args":[
-        "--directory",
-        "/Users/yourname/path/to/repo/",
-        "run",
-        "stata_mcp.py",
-        "17",
-        "se"
-      ]
-    }
-  }
-}
-```
-
 ## 📝 Documentation
-For more detailed usage information, visit the [Usage guide](docs/Usages/Usage.md).
+- For more detailed usage information, visit the [Usage guide](docs/Usages/Usage.md).
+- Advanced Usage, visit the [Advanced](docs/Usages/Advanced.md)
+- Some questions, visit the [Questions](docs/Usages/Questions.md)
+- Difference with [Stata-MCP@hanlulong](https://github.com/hanlulong/stata-mcp), visit the [Difference](docs/Difference.md)
 
 ## 💡 Questions
 - [Cherry Studio 32000 wrong](docs/Usages/Questions.md#cherry-studio-32000-wrong)
+- [Windows Support](docs/Usages/Questions.md#windows-supports)
 
 ## 🚀 Roadmap
 - [x] macOS support
-- [ ] Windows support
+- [x] Windows support
 - [ ] Additional LLM integrations
 - [ ] Performance optimizations
 
@@ -135,18 +90,18 @@ If you use Stata-MCP in your research, please cite this repository using one of 
   title = {Stata-MCP: Let LLM help you achieve your regression analysis with Stata},
   year = {2025},
   url = {https://github.com/sepinetam/stata-mcp},
-  version = {1.0.3}
+  version = {1.2.3}
 }
 ```
 
 ### APA
 ```
-Song Tan. (2025). Stata-MCP: Let LLM help you achieve your regression analysis with Stata (Version 1.0.3) [Computer software]. https://github.com/sepinetam/stata-mcp
+Song Tan. (2025). Stata-MCP: Let LLM help you achieve your regression analysis with Stata (Version 1.2.3) [Computer software]. https://github.com/sepinetam/stata-mcp
 ```
 
 ### Chicago
 ```
-Song Tan. 2025. "Stata-MCP: Let LLM help you achieve your regression analysis with Stata." Version 1.0.3. https://github.com/sepinetam/stata-mcp.
+Song Tan. 2025. "Stata-MCP: Let LLM help you achieve your regression analysis with Stata." Version 1.2.3. https://github.com/sepinetam/stata-mcp.
 ```
 
 ## 📬 Contact

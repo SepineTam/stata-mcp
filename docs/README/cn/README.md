@@ -6,20 +6,20 @@
 [![cn](https://img.shields.io/badge/语言-中文-yellow.svg)](README.md)
 [![fr](https://img.shields.io/badge/langue-Français-blue.svg)](../fr/README.md)
 [![sp](https://img.shields.io/badge/Idioma-Español-green.svg)](../sp/README.md)
-![Version](https://img.shields.io/badge/version-1.2.2-blue.svg)
+![Version](https://img.shields.io/badge/version-1.2.3-blue.svg)
 [![smithery badge](https://smithery.ai/badge/@SepineTam/stata-mcp)](https://smithery.ai/server/@SepineTam/stata-mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](../../../License)
 [![Issue](https://img.shields.io/badge/Issue-report-green.svg)](https://github.com/sepinetam/stata-mcp/issues/new)
 
 > 让大语言模型（LLM）帮助您使用Stata完成回归分析。
 > 
-> **Windows**被支持现在
+> 现在Stata-MCP已支持自动查找Stata CLI。
 
 ---
 
 > 正在寻找其他 Stata 集成？
 >
-> - VScode 或 Cursor 集成 [此处](https://github.com/hanlulong/stata-mcp)。搞不清楚？️💡 [区别](docs/Difference.md)
+> - VScode 或 Cursor 集成 [此处](https://github.com/hanlulong/stata-mcp)。搞不清楚？️💡 [区别](../../Difference.md)
 > - Jupyter Lab 使用方法（重要提示：Stata 17+）[此处](https://github.com/sepinetam/Jupyter-Stata)
 > - [NBER-MCP](https://github.com/sepinetam/NBER-MCP) 🔧 建造之下
 
@@ -44,8 +44,8 @@ cd stata-mcp
 # 复制示例配置
 cp example.config.py config.py
 
-# 使用uv（推荐）
-uv run stata_mcp.py 17 se  # 使用Stata 17 SE进行测试运行
+# 使用uv（推荐）测试可用性
+uv run usable.py
 
 # 使用pip的替代设置
 # python3.11 -m venv .venv
@@ -53,64 +53,19 @@ uv run stata_mcp.py 17 se  # 使用Stata 17 SE进行测试运行
 # pip install -r requirements.txt
 ```
 
-**注意：** 目前不支持Windows系统。如果您拥有Windows版Stata许可证并希望做出贡献，请提交PR。
-
-## 🔧 MCP服务器配置
-
-### [Claude](https://claude.ai/)
-```json
-{
-  "stata-mcp": {
-    "command":"uv",
-    "args":[
-      "--directory",
-      "/Users/yourname/path/to/repo/",
-      "run",
-      "stata_mcp.py",
-      "17",
-      "se"
-    ]
-  }
-}
-```
-
-### [ChatWise](https://chatwise.app/)
-打开ChatWise应用并导航至工具选项卡（需要订阅）：
-
-```
-type: stdio
-ID: stata-mcp
-command: uv --directory /Users/yourname/path/to/repo/ run stata_mcp.py 17 se
-```
-
-### [Cline](https://github.com/cline/cline)
-```json
-{
-  "mcpServers": {
-    "stata-mcp": {
-      "command":"uv",
-      "args":[
-        "--directory",
-        "/Users/yourname/path/to/repo/",
-        "run",
-        "stata_mcp.py",
-        "17",
-        "se"
-      ]
-    }
-  }
-}
-```
-
 ## 📝 文档
-有关更详细的使用信息，请访问[使用指南](../../Usages/Usage.md)。
+- 有关更详细的使用信息，请访问[使用指南](../../Usages/Usage.md)。
+- 高级用法，请访问[高级指南](../../Usages/Advanced.md)
+- 一些问题，请访问[问题](../../Usages/Questions.md)
+- 与[Stata-MCP@hanlulong](https://github.com/hanlulong/stata-mcp)的区别，请访问[区别](../../Difference.md)
 
 ## 💡 常见问题
 - [Cherry Studio 32000 wrong](../../Usages/Questions.md#cherry-studio-32000-wrong)
+- [Windows 支持](../../Usages/Questions.md#windows-supports)
 
 ## 🚀 路线图
 - [x] macOS支持
-- [ ] Windows支持
+- [x] Windows支持
 - [ ] 更多LLM集成
 - [ ] 性能优化
 
@@ -135,18 +90,18 @@ command: uv --directory /Users/yourname/path/to/repo/ run stata_mcp.py 17 se
   title = {Stata-MCP: Let LLM help you achieve your regression analysis with Stata},
   year = {2025},
   url = {https://github.com/sepinetam/stata-mcp},
-  version = {1.0.3}
+  version = {1.2.3}
 }
 ```
 
 ### APA
 ```
-Song Tan. (2025). Stata-MCP: Let LLM help you achieve your regression analysis with Stata (Version 1.0.3) [Computer software]. https://github.com/sepinetam/stata-mcp
+Song Tan. (2025). Stata-MCP: Let LLM help you achieve your regression analysis with Stata (Version 1.2.3) [Computer software]. https://github.com/sepinetam/stata-mcp
 ```
 
 ### Chicago
 ```
-Song Tan. 2025. "Stata-MCP: Let LLM help you achieve your regression analysis with Stata." Version 1.0.3. https://github.com/sepinetam/stata-mcp.
+Song Tan. 2025. "Stata-MCP: Let LLM help you achieve your regression analysis with Stata." Version 1.2.3. https://github.com/sepinetam/stata-mcp.
 ```
 
 ## 📬 联系方式
