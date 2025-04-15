@@ -25,7 +25,9 @@
 > - [NBER-MCP](https://github.com/sepinetam/NBER-MCP) 🔧 under construction
 
 ## 💡 Quick Start
-For more detailed usage information, visit the [Usage guide](docs/Usages/Usage.md). If you are using **Windows**, follow [Usage](docs/Usages/Usage_Windows.md)
+For more detailed usage information, visit the [Usage guide](docs/Usages/Usage.md). 
+
+And some advanced usage, visit the [Advanced guide](docs/Usages/Advanced.md)
 
 ### Prerequisites
 - [uv](https://github.com/astral-sh/uv) - Package installer and virtual environment manager
@@ -104,7 +106,7 @@ command: uv --directory /Users/yourname/path/to/repo/ run stata_mcp.py 17 se
 For more detailed usage information, visit the [Usage guide](docs/Usages/Usage.md).
 
 ## 💡 Questions
-- [Cherry Studio 32000 wrong](docs/Questions.md#cherry-studio-32000-wrong)
+- [Cherry Studio 32000 wrong](docs/Usages/Questions.md#cherry-studio-32000-wrong)
 
 ## 🚀 Roadmap
 - [x] macOS support

@@ -26,6 +26,8 @@
 ## 💡 Inicio Rápido
 Para información más detallada sobre el uso, visita la [guía de Uso](../../Usages/Usage.md). Si estás usando **Windows**, sigue la [guía de Uso para Windows](../../Usages/Usage_Windows.md)
 
+Y para un uso más avanzado, visita la [Guía avanzada](../../Usages/Advanced.md)
+
 ### Requisitos previos
 - [uv](https://github.com/astral-sh/uv) - Instalador de paquetes y gestor de entornos virtuales
 - Claude, Cline, ChatWise u otro servicio LLM
@@ -103,7 +105,7 @@ command: uv --directory /Users/yourname/path/to/repo/ run stata_mcp.py 17 se
 Para información más detallada sobre el uso, visita la [guía de Uso](../../Usages/Usage.md).
 
 ## 💡 Preguntas
-- [Cherry Studio 32000 wrong](../../../docs/Questions.md#cherry-studio-32000-wrong)
+- [Cherry Studio 32000 wrong](../../Usages/Questions.md#cherry-studio-32000-wrong)
 
 ## 🚀 Hoja de ruta
 - [x] Soporte para macOS

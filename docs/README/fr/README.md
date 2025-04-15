@@ -27,6 +27,8 @@
 ## 💡 Démarrage Rapide
 Pour des informations d'utilisation plus détaillées, consultez le [guide d'utilisation](../../Usages/Usage.md).
 
+Et pour une utilisation avancée, visitez le [Guide avancé](../../Usages/Advanced.md)
+
 ### Prérequis
 - [uv](https://github.com/astral-sh/uv) - Gestionnaire de paquets et d'environnements virtuels
 - Claude, Cline, ChatWise, ou autre service LLM
@@ -110,7 +112,7 @@ Pour des informations d'utilisation plus détaillées, consultez le [guide d'uti
 - [ ] Optimisations de performance
 
 ## 💡 Questions
-- [Cherry Studio 32000 wrong](../../../docs/Questions.md#cherry-studio-32000-wrong)
+- [Cherry Studio 32000 wrong](../../Usages/Questions.md#cherry-studio-32000-wrong)
 
 ## ⚠️ Avertissement
 Ce projet est destiné uniquement à des fins de recherche. Je ne suis pas responsable des dommages causés par ce projet. Veuillez vous assurer que vous disposez des licences appropriées pour utiliser Stata.

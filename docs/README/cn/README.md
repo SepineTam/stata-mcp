@@ -27,6 +27,8 @@
 ## 💡 快速开始
 有关更详细的使用信息，请访问[使用指南](../../Usages/Usage.md)。
 
+一些高级的功能，访问[高级指南](../../Usages/Advanced.md)
+
 ### 前提条件
 - [uv](https://github.com/astral-sh/uv) - 包安装器和虚拟环境管理器
 - Claude、Cline、ChatWise或其他LLM服务
@@ -104,7 +106,7 @@ command: uv --directory /Users/yourname/path/to/repo/ run stata_mcp.py 17 se
 有关更详细的使用信息，请访问[使用指南](../../Usages/Usage.md)。
 
 ## 💡 常见问题
-- [Cherry Studio 32000 wrong](../../../docs/Questions.md#cherry-studio-32000-wrong)
+- [Cherry Studio 32000 wrong](../../Usages/Questions.md#cherry-studio-32000-wrong)
 
 ## 🚀 路线图
 - [x] macOS支持
