@@ -8,101 +8,132 @@
 # @File   : usable.py
 
 """
-Stata MCP配置检查脚本
-用于检查用户的Stata MCP配置是否正确
+Stata MCP Configuration Check Script
+This script automatically checks if your Stata MCP configuration is correct
 """
 
 import os
 import platform
 import subprocess
 import sys
-import argparse
+from pathlib import Path
+import time
 from typing import Dict, List, Optional, Tuple
+
+from utils import StataFinder
 
 
 def print_status(message: str, status: bool) -> None:
-    """打印带有状态的消息"""
-    status_str = "✅ 通过" if status else "❌ 失败"
+    """Print a message with status indicator"""
+    status_str = "✅ PASSED" if status else "❌ FAILED"
     print(f"{message}: {status_str}")
 
 
 def check_os() -> Tuple[str, bool]:
-    """检查操作系统类型"""
+    """Check current operating system"""
     os_name = platform.system()
     os_mapping = {
-        "Darwin": "macos",
-        "Windows": "windows",
-        "Linux": "linux"
+        "Darwin": "macOS",
+        "Windows": "Windows",
+        "Linux": "Linux"
     }
     detected_os = os_mapping.get(os_name, "unknown")
-    is_supported = detected_os == "macos"  # 目前仅支持macOS
+    is_supported = detected_os in ["macOS", "Windows", "Linux"]  # All three are now supported
 
     return detected_os, is_supported
 
 
-def check_stata_cli(version_number: str, version_type: str, stata_cli_path: Optional[str] = None) -> Tuple[str, bool]:
-    """检查Stata CLI路径是否存在且可执行"""
-    if stata_cli_path is None:
-        # 尝试使用默认路径
-        detected_os, _ = check_os()
-        if detected_os == "macos":
-            stata_cli_path = f"/Applications/Stata/StataSE.app/Contents/MacOS/stata-{version_type}"
-        elif detected_os == "windows":
-            # Windows路径可能需要根据实际情况调整
-            stata_cli_path = f"C:\\Program Files\\Stata{version_number}\\StataMP-{version_type}.exe"
-        else:
-            return "", False
+def check_python_version() -> Tuple[str, bool]:
+    """Check if the Python version is compatible"""
+    current_version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+    is_compatible = sys.version_info.major == 3 and sys.version_info.minor >= 11
 
-    # 检查文件是否存在
-    exists = os.path.exists(stata_cli_path)
-
-    # 检查是否可执行
-    is_executable = False
-    if exists:
-        if os.name == 'posix':  # macOS/Linux
-            is_executable = os.access(stata_cli_path, os.X_OK)
-        else:  # Windows
-            is_executable = stata_cli_path.endswith('.exe')
-
-    return stata_cli_path, exists and is_executable
+    return current_version, is_compatible
 
 
-def check_directories(dofile_base_path: Optional[str] = None,
-                      log_file_path: Optional[str] = None,
-                      result_doc_path: Optional[str] = None) -> Dict[str, Tuple[str, bool]]:
-    """检查必要的目录是否存在"""
-    detected_os, _ = check_os()
+def test_stata_execution(stata_cli_path: str) -> bool:
+    """Test if Stata can be executed"""
+    if not stata_cli_path or not os.path.exists(stata_cli_path):
+        return False
+
+    sys_os = platform.system()
+
+    try:
+        if sys_os == "Darwin" or sys_os == "Linux":  # macOS or Linux
+            proc = subprocess.Popen(
+                [stata_cli_path],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                shell=True
+            )
+            # Send a simple command and exit
+            commands = """
+            display "Stata-MCP test successful"
+            exit, STATA
+            """
+            proc.communicate(input=commands, timeout=10)
+            return proc.returncode == 0
+
+        elif sys_os == "Windows":  # Windows
+            # Create a temporary do-file for testing
+            temp_dir = os.path.dirname(os.path.abspath(__file__))
+            temp_do_file = os.path.join(temp_dir, "temp_test.do")
+
+            with open(temp_do_file, "w") as f:
+                f.write('display "Stata-MCP test successful"\nexit, STATA\n')
+
+            # Run Stata with the temp do-file
+            cmd = f'"{stata_cli_path}" /e do "{temp_do_file}"'
+            result = subprocess.run(cmd, shell=True, timeout=10)
+
+            # Clean up
+            if os.path.exists(temp_do_file):
+                os.remove(temp_do_file)
+
+            return result.returncode == 0
+
+    except (subprocess.TimeoutExpired, subprocess.SubprocessError, OSError) as e:
+        print(f"  Error testing Stata: {e}")
+        return False
+
+    return False
+
+
+def check_directories() -> Dict[str, Tuple[str, bool]]:
+    """Check if required directories exist and create them if needed"""
     home_dir = os.path.expanduser("~")
+    documents_path = os.path.join(home_dir, "Documents")
 
-    # 初始化默认路径
-    if detected_os == "macos":
-        if dofile_base_path is None:
-            dofile_base_path = f"{home_dir}/Documents/stata-mcp-dofile/"
-        if log_file_path is None:
-            log_file_path = f"{home_dir}/Documents/stata-mcp-log/"
-        if result_doc_path is None:
-            result_doc_path = f"{home_dir}/Documents/stata-mcp-result_doc/"
+    # Define directories that should exist
+    base_path = os.path.join(documents_path, "stata-mcp-folder")
+    dirs = {
+        "base_dir": (base_path, False),
+        "log_dir": (os.path.join(base_path, "stata-mcp-log"), False),
+        "dofile_dir": (os.path.join(base_path, "stata-mcp-dofile"), False),
+        "result_dir": (os.path.join(base_path, "stata-mcp-result"), False),
+    }
 
-    # 检查目录是否存在
-    results = {}
-    for name, path in [
-        ("dofile_base_path", dofile_base_path),
-        ("log_file_path", log_file_path),
-        ("result_doc_path", result_doc_path)
-    ]:
-        if path:
-            exists = os.path.exists(path)
-            is_dir = os.path.isdir(path) if exists else False
-            is_writable = os.access(path, os.W_OK) if exists else False
-            results[name] = (path, exists and is_dir and is_writable)
-        else:
-            results[name] = ("未指定", False)
+    # Check and create directories if they don't exist
+    for name, (path, _) in dirs.items():
+        exists = os.path.exists(path)
+        if not exists:
+            try:
+                os.makedirs(path, exist_ok=True)
+                exists = True
+                print(f"  Created directory: {path}")
+            except Exception as e:
+                print(f"  Error creating directory {path}: {e}")
 
-    return results
+        is_writable = os.access(path, os.W_OK) if exists else False
+        dirs[name] = (path, exists and is_writable)
+
+    return dirs
 
 
 def check_mcp_installation() -> bool:
-    """检查MCP库是否安装"""
+    """Check if MCP library is installed"""
     try:
         import mcp.server.fastmcp
         return True
@@ -110,100 +141,92 @@ def check_mcp_installation() -> bool:
         return False
 
 
-def test_stata_execution(stata_cli_path: str) -> bool:
-    """测试运行Stata命令"""
-    if not os.path.exists(stata_cli_path):
-        return False
-
-    try:
-        # 创建临时文件
-        temp_do_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "temp_test.do")
-        with open(temp_do_file, "w") as f:
-            f.write("display \"Stata MCP test successful\"\nexit, STATA")
-
-        # 运行Stata命令
-        result = subprocess.run(
-            [stata_cli_path, "-b", "do", temp_do_file],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
-            timeout=10  # 设置超时时间
-        )
-
-        # 清理临时文件
-        if os.path.exists(temp_do_file):
-            os.remove(temp_do_file)
-
-        return result.returncode == 0
-    except Exception as e:
-        print(f"测试Stata执行时出错: {e}")
-        return False
+def animate_loading(seconds: int) -> None:
+    """Display an animated loading spinner"""
+    chars = "|/-\\"
+    for _ in range(seconds * 5):
+        for char in chars:
+            sys.stdout.write(f"\r  Finding Stata CLI {char} ")
+            sys.stdout.flush()
+            time.sleep(0.05)
+    sys.stdout.write("\r" + " " * 20 + "\r")
+    sys.stdout.flush()
 
 
 def main():
-    """主函数"""
-    parser = argparse.ArgumentParser(description="检查Stata MCP配置")
-    parser.add_argument("version_number", help="Stata版本号，例如: 17")
-    parser.add_argument("version_type", help="Stata版本类型，例如: se")
-    parser.add_argument("--stata-cli-path", help="Stata CLI路径")
-    parser.add_argument("--log-file-path", help="日志文件路径")
-    parser.add_argument("--dofile-base-path", help="do文件基础路径")
-    parser.add_argument("--result-doc-path", help="结果文档路径")
+    """Main function to check Stata MCP configuration"""
+    print("\n===== Stata MCP Configuration Check =====\n")
 
-    args = parser.parse_args()
-
-    print("\n===== Stata MCP 配置检查 =====\n")
-
-    # 检查操作系统
+    # Check operating system
     detected_os, os_supported = check_os()
-    print_status(f"操作系统检查 (当前: {detected_os})", os_supported)
+    print_status(f"Operating system (Current: {detected_os})", os_supported)
     if not os_supported:
-        print("  警告: 目前仅支持macOS。如果您确定是在macOS上运行，请添加参数 operating_system=macos")
+        print("  Warning: Your operating system may not be fully supported by Stata-MCP.")
 
-    # 检查Stata CLI
-    stata_cli_path, stata_cli_exists = check_stata_cli(
-        args.version_number,
-        args.version_type,
-        args.stata_cli_path
-    )
-    print_status(f"Stata CLI检查 (路径: {stata_cli_path})", stata_cli_exists)
-    if not stata_cli_exists:
-        print("  提示: 如果Stata已安装但路径不同，请使用 --stata-cli-path 参数指定正确路径")
+    # Check Python version
+    python_version, python_compatible = check_python_version()
+    print_status(f"Python version (Current: {python_version})", python_compatible)
+    if not python_compatible:
+        print("  Warning: Python 3.11+ is recommended for Stata-MCP.")
 
-    # 检查目录
-    directories = check_directories(
-        args.dofile_base_path,
-        args.log_file_path,
-        args.result_doc_path
-    )
-    for name, (path, exists) in directories.items():
-        print_status(f"{name}检查 (路径: {path})", exists)
-        if not exists:
-            print(f"  提示: 此目录不存在或无写入权限，请创建目录或使用 --{name.replace('_', '-')} 参数指定有效路径")
-
-    # 检查MCP库
+    # Check MCP library
     mcp_installed = check_mcp_installation()
-    print_status("MCP库安装检查", mcp_installed)
+    print_status("MCP library installation", mcp_installed)
     if not mcp_installed:
-        print("  提示: 请安装MCP库，可以使用: pip install mcp")
+        print("  Please install MCP library: pip install mcp[cli]")
 
-    # 如果Stata CLI存在，测试执行
-    if stata_cli_exists:
-        stata_exec_works = test_stata_execution(stata_cli_path)
-        print_status("Stata执行测试", stata_exec_works)
-        if not stata_exec_works:
-            print("  警告: Stata执行测试失败，可能是权限问题或Stata安装有问题")
+    # Find Stata CLI
+    print("Locating Stata CLI...")
+    animate_loading(2)  # Show loading animation for 2 seconds
+    stata_cli_path = StataFinder.find_stata(is_env=True)
 
-    # 总结
-    all_passed = (os_supported and stata_cli_exists and
-                  all(exists for _, exists in directories.values()) and
-                  mcp_installed)
+    stata_found = bool(stata_cli_path and os.path.exists(stata_cli_path))
+    print_status(f"Stata CLI (Path: {stata_cli_path or 'Not found'})", stata_found)
 
-    print("\n===== 检查结果 =====")
+    # Test Stata execution if found
+    stata_works = False
+    if stata_found:
+        print("Testing Stata execution...")
+        stata_works = test_stata_execution(stata_cli_path)
+        print_status("Stata execution test", stata_works)
+        if not stata_works:
+            print("  Warning: Stata was found but could not be executed properly.")
+            print("  You may need to specify the path manually in config.py or as an environment variable.")
+
+    # Check and create necessary directories
+    print("\nChecking required directories...")
+    directories = check_directories()
+    all_dirs_ok = True
+    for name, (path, exists) in directories.items():
+        dir_name = name.replace("_", " ").title()
+        print_status(f"{dir_name} (Path: {path})", exists)
+        if not exists:
+            all_dirs_ok = False
+            print(f"  Warning: Could not create or access {path}")
+
+    # Check if config.py exists
+    config_exists = os.path.exists("config.py")
+    print_status("Configuration file (config.py)", config_exists)
+    if not config_exists:
+        print("  Please copy example.config.py to config.py to complete setup")
+
+    # Overall summary
+    print("\n===== Summary =====")
+    all_passed = os_supported and python_compatible and mcp_installed and stata_found and stata_works and all_dirs_ok and config_exists
+
     if all_passed:
-        print("✅ 所有检查通过！Stata MCP可以正常运行。")
+        print("\n✅ Success! Your Stata-MCP setup is ready to use.")
+        print("You can now use Stata-MCP with your preferred MCP client (Claude, Cherry Studio, etc.)")
     else:
-        print("❌ 部分检查未通过。请解决上述问题后再次尝试运行Stata MCP。")
+        print("\n⚠️ Some checks failed. Please address the issues above to use Stata-MCP.")
+        if not config_exists:
+            print("\nQuick fix: Copy the example config file:")
+            print("  cp example.config.py config.py")
+        if not stata_found or not stata_works:
+            print("\nTo manually specify your Stata path, add this to your MCP configuration:")
+            print('  "env": {')
+            print('    "stata_cli": "/path/to/your/stata/executable"')
+            print('  }')
 
     return 0 if all_passed else 1
 
