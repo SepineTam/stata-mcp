@@ -1,13 +1,18 @@
 from typing import List, Optional, Union, Dict, Any
+
 import subprocess
 import sys
 import os
 import platform
 
+import pandas as pd
+import numpy as np
+
 import dotenv
 from mcp.server.fastmcp import FastMCP
 
 from utils import StataFinder
+from utils.Prompt.prompts import pmp
 from config import *
 
 dotenv.load_dotenv()
@@ -93,6 +98,68 @@ if not os.path.exists(metadata):
     with open(metadata, 'w', encoding='utf-8') as f:
         f.write("Using Log Serve...")
 
+pmp.set_lang(os.getenv("lang", "en"))
+
+
+@mcp.prompt()
+def stata_assistant_role(lang=None):
+    """
+    Return the Stata assistant role prompt content.
+
+    This function retrieves a predefined prompt that defines the role and capabilities
+    of a Stata analysis assistant. The prompt helps set expectations and context for
+    the assistant's behavior when handling Stata-related tasks.
+
+    Args:
+        lang (str, optional): Language code for localization of the prompt content.
+            If None, returns the default language version. Defaults to None.
+            Examples: "en" for English, "cn" for Chinese.
+
+    Returns:
+        str: The Stata assistant role prompt text in the requested language.
+
+    Examples:
+        >>> stata_assistant_role()  # Returns default language version
+        "I am a Stata analysis assistant..."
+
+        >>> stata_assistant_role(lang="en")  # Returns English version
+        "I am a Stata analysis assistant..."
+
+        >>> stata_assistant_role(lang="cn")  # Returns Chinese version
+        "我是一个Stata分析助手..."
+    """
+    return pmp.get_prompt(prompt_id="stata_assistant_role", lang=lang)
+
+
+@mcp.prompt()
+def stata_analysis_strategy(lang=None):
+    """
+    Return the Stata analysis strategy prompt content.
+
+    This function retrieves a predefined prompt that outlines the recommended
+    strategy for conducting data analysis using Stata. The prompt includes
+    guidelines for data preparation, code generation, results management,
+    reporting, and troubleshooting.
+
+    Args:
+        lang (str, optional): Language code for localization of the prompt content.
+            If None, returns the default language version. Defaults to None.
+            Examples: "en" for English, "cn" for Chinese.
+
+    Returns:
+        str: The Stata analysis strategy prompt text in the requested language.
+
+    Examples:
+        >>> stata_analysis_strategy()  # Returns default language version
+        "When conducting data analysis using Stata..."
+
+        >>> stata_analysis_strategy(lang="en")  # Returns English version
+        "When conducting data analysis using Stata..."
+
+        >>> stata_analysis_strategy(lang="cn")  # Returns Chinese version
+        "使用Stata进行数据分析时，请遵循以下策略..."
+    """
+    return pmp.get_prompt(prompt_id="stata_analysis_strategy", lang=lang)
 @mcp.tool()
 def read_log(log_path: str) -> str:
     """
@@ -151,13 +218,6 @@ def get_data_info(data_path: str, vars_list: Optional[List[str]] = None) -> str:
          变量数：3 (从原始变量中选择)
          ...'
     """
-    # 导入必要的库
-    import os
-    import pandas as pd
-    import numpy as np
-    from pathlib import Path
-    import tempfile
-
     # 检查文件是否存在
     if not os.path.exists(data_path):
         raise ValueError(f"文件不存在：{data_path}")
