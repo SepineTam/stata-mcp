@@ -12,13 +12,14 @@ import dotenv
 from mcp.server.fastmcp import FastMCP
 
 from utils import StataFinder
-from utils.Prompt.prompts import pmp
+from utils.Prompt import pmp
+
 from config import *
 
 dotenv.load_dotenv()
-mcp = FastMCP(name='stata-mcp')
+mcp = FastMCP(name='stata-mcp', version="1.3.1")
 
-# 初始化可选参数（默认为None）
+# Initialize optional parameters (defaults to None)
 stata_cli_path = None
 
 output_base_path = None
@@ -28,21 +29,25 @@ dofile_base_path = None
 result_doc_path = None
 
 sys_os = platform.system()
+is_env_stata_cli: bool = True
 
 if sys_os == "Darwin" or sys_os == "Windows" or sys_os == "Linux":
     args = sys.argv[1:]
     if len(args) == 0:
-        is_env_stata_cli = False
+        is_env_stata_cli = True
     else:
-        is_env_stata_cli = eval(args[0])
-        if type(is_env_stata_cli) is not bool:
+        if args[0].lower() == "true":
+            is_env_stata_cli = True
+        elif args[0].lower() == "false":
+            is_env_stata_cli = False
+        else:
             is_env_stata_cli = True
 else:
     sys.exit("Unknown OS")
 try:
     for arg in args[1:]:
         if arg.startswith("stata_cli_path="):
-            stata_cli_path = arg.split("=", 1)[1]  # 提取路径部分
+            stata_cli_path = arg.split("=", 1)[1]  # Extract the path part
         elif arg.startswith("output_base_path="):
             output_base_path = arg.split("=", 1)[1]
         else:
@@ -86,11 +91,11 @@ os.makedirs(dofile_base_path, exist_ok=True)
 result_doc_path = os.path.join(output_base_path, "stata-mcp-result")
 os.makedirs(result_doc_path, exist_ok=True)
 
-# output_base_path/README文件
+# output_base_path/README file
 readme_path = os.path.join(output_base_path, "README.md")
 metadata = os.path.join(output_base_path, "metadata")
 
-# Check and make README file and metadate future it would be sued.
+# Check and make README file and metadata future it would be used.
 if not os.path.exists(readme_path):
     with open(readme_path, 'w', encoding='utf-8') as f:
         f.write(readme_content)
@@ -102,7 +107,7 @@ pmp.set_lang(os.getenv("lang", "en"))
 
 
 @mcp.prompt()
-def stata_assistant_role(lang=None):
+def stata_assistant_role(lang: str = None) -> str:
     """
     Return the Stata assistant role prompt content.
 
@@ -130,9 +135,8 @@ def stata_assistant_role(lang=None):
     """
     return pmp.get_prompt(prompt_id="stata_assistant_role", lang=lang)
 
-
 @mcp.prompt()
-def stata_analysis_strategy(lang=None):
+def stata_analysis_strategy(lang: str = None) -> str:
     """
     Return the Stata analysis strategy prompt content.
 
@@ -160,6 +164,7 @@ def stata_analysis_strategy(lang=None):
         "使用Stata进行数据分析时，请遵循以下策略..."
     """
     return pmp.get_prompt(prompt_id="stata_analysis_strategy", lang=lang)
+
 @mcp.tool()
 def read_log(log_path: str) -> str:
     """
@@ -175,195 +180,195 @@ def read_log(log_path: str) -> str:
         log = file.read()
     return log
 
-
-@mcp.tool(name="get_data_info", description="获取数据文件的描述性统计信息")
+@mcp.tool(name="get_data_info", description="Get descriptive statistics for the data file")
 def get_data_info(data_path: str, vars_list: Optional[List[str]] = None) -> str:
     """
-    分析数据文件并返回描述性统计信息。支持多种文件格式，包括Stata数据文件(.dta)、
-    CSV文件(.csv)和Excel文件(.xlsx, .xls)。
-    如果AI要查看数据的情况，不能使用 `use` ，而应该使用 `get_data_info` 。
+    Analyze the data file and return descriptive statistics. Supports various file formats,
+    including Stata data files (.dta), CSV files (.csv), and Excel files (.xlsx, .xls).
+    If the AI wants to examine the data situation, it should not use `use`, but should use
+    `get_data_info` instead.
 
     Args:
-        data_path: 数据文件的路径，支持.dta、.csv、.xlsx和.xls格式。
-        vars_list: 可选的变量列表。如果提供，则仅返回这些变量的统计信息。
-                  如果为None，则返回所有变量的统计信息。
+        data_path: Path to the data file, supporting .dta, .csv, .xlsx, and .xls formats.
+        vars_list: Optional list of variables. If provided, returns statistics only for these variables.
+                  If None, returns statistics for all variables.
 
     Returns:
-        str: 包含数据描述性统计信息的字符串，包括：
-             - 文件基本信息（格式、大小、变量数量、观测数量等）
-             - 变量类型统计
-             - 数值变量的统计摘要（均值、标准差、最小值、最大值等）
-             - 分类变量的频率分布
-             - 缺失值分析
-             - 如果是面板数据，还包括面板结构信息
+        str: A string containing descriptive statistics of the data, including:
+             - Basic file information (format, size, number of variables, number of observations, etc.)
+             - Variable type statistics
+             - Statistical summary of numerical variables (mean, standard deviation, min, max, etc.)
+             - Frequency distribution of categorical variables
+             - Missing value analysis
+             - Panel structure information, if it is panel data
 
     Raises:
-        ValueError: 如果文件格式不支持或文件不存在
-        ImportError: 如果缺少处理特定文件格式所需的包
+        ValueError: If the file format is not supported or the file does not exist
+        ImportError: If packages required for processing specific file formats are missing
 
     Examples:
         >>> get_data_info("example.dta")
-        '文件信息：
-         格式：Stata数据文件(.dta)
-         文件大小：1.2 MB
-         观测数：1000
-         变量数：15
+        'File Information:
+         Format: Stata data file (.dta)
+         File size: 1.2 MB
+         Observations: 1000
+         Variables: 15
          ...'
 
         >>> get_data_info("sales.csv", vars_list=["price", "quantity", "date"])
-        '文件信息：
-         格式：CSV文件(.csv)
-         文件大小：0.5 MB
-         观测数：500
-         变量数：3 (从原始变量中选择)
+        'File Information:
+         Format: CSV file (.csv)
+         File size: 0.5 MB
+         Observations: 500
+         Variables: 3 (selected from original variables)
          ...'
     """
-    # 检查文件是否存在
+    # Check if the file exists
     if not os.path.exists(data_path):
-        raise ValueError(f"文件不存在：{data_path}")
+        raise ValueError(f"File does not exist: {data_path}")
 
-    # 获取文件信息
-    file_size = os.path.getsize(data_path) / (1024 * 1024)  # 转换为MB
+    # Get file information
+    file_size = os.path.getsize(data_path) / (1024 * 1024)  # Convert to MB
     file_extension = os.path.splitext(data_path)[1].lower()
 
-    # 根据文件扩展名读取数据
+    # Read data according to file extension
     if file_extension == '.dta':
         try:
-            # 尝试读取Stata文件
+            # Try to read Stata file
             df = pd.read_stata(data_path)
-            file_type = "Stata数据文件(.dta)"
+            file_type = "Stata data file (.dta)"
         except ImportError:
-            raise ImportError("缺少读取Stata文件所需的包。请安装pandas: pip install pandas")
+            raise ImportError("Missing package required to read Stata files. Please install pandas: pip install pandas")
     elif file_extension == '.csv':
         try:
-            # 尝试读取CSV文件，处理可能的编码问题
+            # Try to read CSV file, handle potential encoding issues
             try:
                 df = pd.read_csv(data_path)
             except UnicodeDecodeError:
-                # 尝试不同的编码
+                # Try different encoding
                 df = pd.read_csv(data_path, encoding='latin1')
-            file_type = "CSV文件(.csv)"
+            file_type = "CSV file (.csv)"
         except ImportError:
-            raise ImportError("缺少读取CSV文件所需的包。请安装pandas: pip install pandas")
+            raise ImportError("Missing package required to read CSV files. Please install pandas: pip install pandas")
     elif file_extension in ['.xlsx', '.xls']:
         try:
-            # 尝试读取Excel文件
+            # Try to read Excel file
             df = pd.read_excel(data_path)
-            file_type = f"Excel文件({file_extension})"
+            file_type = f"Excel file ({file_extension})"
         except ImportError:
-            raise ImportError("缺少读取Excel文件所需的包。请安装openpyxl: pip install openpyxl")
+            raise ImportError("Missing package required to read Excel files. Please install openpyxl: pip install openpyxl")
     else:
-        raise ValueError(f"不支持的文件格式：{file_extension}。支持的格式包括.dta、.csv、.xlsx和.xls")
+        raise ValueError(f"Unsupported file format: {file_extension}. Supported formats include .dta, .csv, .xlsx, and .xls")
 
-    # 如果提供了变量列表，则仅保留这些变量
+    # If variable list is provided, only keep these variables
     if vars_list is not None:
-        # 检查所有请求的变量是否存在
+        # Check if all requested variables exist
         missing_vars = [var for var in vars_list if var not in df.columns]
         if missing_vars:
-            raise ValueError(f"以下变量在数据集中不存在：{', '.join(missing_vars)}")
+            raise ValueError(f"The following variables do not exist in the dataset: {', '.join(missing_vars)}")
 
-        # 选择指定的变量
+        # Select specified variables
         df = df[vars_list]
 
-    # 创建输出字符串
-    output = []
+    # Create output string
+    output: list = []
 
-    # 1. 文件基本信息
-    output.append("文件信息：")
-    output.append(f"格式：{file_type}")
-    output.append(f"文件大小：{file_size:.2f} MB")
-    output.append(f"观测数：{df.shape[0]}")
+    # 1. Basic file information
+    output.append("File Information:")
+    output.append(f"Format: {file_type}")
+    output.append(f"File size: {file_size:.2f} MB")
+    output.append(f"Observations: {df.shape[0]}")
 
     if vars_list is not None:
-        output.append(f"变量数：{len(vars_list)} (从原始变量中选择)")
+        output.append(f"Variables: {len(vars_list)} (selected from original variables)")
     else:
-        output.append(f"变量数：{df.shape[1]}")
+        output.append(f"Variables: {df.shape[1]}")
 
-    # 2. 变量类型统计
+    # 2. Variable type statistics
     num_numeric = sum(pd.api.types.is_numeric_dtype(df[col]) for col in df.columns)
     num_categorical = sum(pd.api.types.is_categorical_dtype(df[col]) or df[col].dtype == 'object' for col in df.columns)
     num_datetime = sum(pd.api.types.is_datetime64_dtype(df[col]) for col in df.columns)
     num_boolean = sum(pd.api.types.is_bool_dtype(df[col]) for col in df.columns)
 
-    output.append("\n变量类型统计：")
-    output.append(f"数值型变量：{num_numeric}")
-    output.append(f"分类型变量：{num_categorical}")
-    output.append(f"日期时间型变量：{num_datetime}")
-    output.append(f"布尔型变量：{num_boolean}")
+    output.append("\nVariable Type Statistics:")
+    output.append(f"Numeric variables: {num_numeric}")
+    output.append(f"Categorical variables: {num_categorical}")
+    output.append(f"Datetime variables: {num_datetime}")
+    output.append(f"Boolean variables: {num_boolean}")
 
-    # 3. 缺失值分析
+    # 3. Missing value analysis
     total_missing = df.isna().sum().sum()
     missing_percent = (total_missing / (df.shape[0] * df.shape[1])) * 100
 
-    output.append("\n缺失值分析：")
-    output.append(f"总缺失值数量：{total_missing}")
-    output.append(f"缺失值占比：{missing_percent:.2f}%")
+    output.append("\nMissing Value Analysis:")
+    output.append(f"Total missing values: {total_missing}")
+    output.append(f"Missing value percentage: {missing_percent:.2f}%")
 
-    # 获取每个变量的缺失值数量和百分比
-    if df.shape[1] <= 30:  # 如果变量数量不多，则显示每个变量的缺失值情况
-        output.append("\n各变量缺失值情况：")
+    # Get missing value count and percentage for each variable
+    if df.shape[1] <= 30:  # If there aren't many variables, show missing values for each
+        output.append("\nMissing values by variable:")
         for col in df.columns:
             missing_count = df[col].isna().sum()
             missing_percent = (missing_count / df.shape[0]) * 100
             if missing_count > 0:
                 output.append(f"  {col}: {missing_count} ({missing_percent:.2f}%)")
     else:
-        # 如果变量太多，只显示有缺失值的前10个变量
+        # If there are too many variables, only show the top 10 with missing values
         missing_cols = df.isna().sum().sort_values(ascending=False)
         missing_cols = missing_cols[missing_cols > 0]
         if len(missing_cols) > 0:
-            output.append("\n缺失值最多的10个变量：")
+            output.append("\nTop 10 variables with most missing values:")
             for col, count in missing_cols.head(10).items():
                 missing_percent = (count / df.shape[0]) * 100
                 output.append(f"  {col}: {count} ({missing_percent:.2f}%)")
 
-    # 4. 数值变量的统计摘要
+    # 4. Statistical summary of numerical variables
     numeric_cols = df.select_dtypes(include=['number']).columns
 
     if len(numeric_cols) > 0:
-        output.append("\n数值变量统计摘要：")
+        output.append("\nNumerical Variable Statistics:")
 
-        # 计算统计量
+        # Calculate statistics
         desc_stats = df[numeric_cols].describe().T
 
-        # 添加额外的统计量
-        if df.shape[0] > 0:  # 确保有数据
-            desc_stats['缺失值'] = df[numeric_cols].isna().sum()
-            desc_stats['缺失值比例'] = df[numeric_cols].isna().sum() / df.shape[0]
+        # Add additional statistics
+        if df.shape[0] > 0:  # Ensure there is data
+            desc_stats['Missing'] = df[numeric_cols].isna().sum()
+            desc_stats['Missing Ratio'] = df[numeric_cols].isna().sum() / df.shape[0]
 
-            # 可选：添加更多统计量
-            desc_stats['偏度'] = df[numeric_cols].skew()
-            desc_stats['峰度'] = df[numeric_cols].kurtosis()
+            # Optional: Add more statistics
+            desc_stats['Skewness'] = df[numeric_cols].skew()
+            desc_stats['Kurtosis'] = df[numeric_cols].kurtosis()
 
-        # 格式化并添加到输出
+        # Format and add to output
         for col in desc_stats.index:
             output.append(f"\n  {col}:")
-            output.append(f"    计数: {desc_stats.loc[col, 'count']:.0f}")
-            output.append(f"    均值: {desc_stats.loc[col, 'mean']:.4f}")
-            output.append(f"    标准差: {desc_stats.loc[col, 'std']:.4f}")
-            output.append(f"    最小值: {desc_stats.loc[col, 'min']:.4f}")
-            output.append(f"    25%分位数: {desc_stats.loc[col, '25%']:.4f}")
-            output.append(f"    中位数: {desc_stats.loc[col, '50%']:.4f}")
-            output.append(f"    75%分位数: {desc_stats.loc[col, '75%']:.4f}")
-            output.append(f"    最大值: {desc_stats.loc[col, 'max']:.4f}")
-            output.append(f"    缺失值: {desc_stats.loc[col, '缺失值']:.0f} ({desc_stats.loc[col, '缺失值比例']:.2%})")
-            output.append(f"    偏度: {desc_stats.loc[col, '偏度']:.4f}")
-            output.append(f"    峰度: {desc_stats.loc[col, '峰度']:.4f}")
+            output.append(f"    Count: {desc_stats.loc[col, 'count']:.0f}")
+            output.append(f"    Mean: {desc_stats.loc[col, 'mean']:.4f}")
+            output.append(f"    Std Dev: {desc_stats.loc[col, 'std']:.4f}")
+            output.append(f"    Min: {desc_stats.loc[col, 'min']:.4f}")
+            output.append(f"    25th Percentile: {desc_stats.loc[col, '25%']:.4f}")
+            output.append(f"    Median: {desc_stats.loc[col, '50%']:.4f}")
+            output.append(f"    75th Percentile: {desc_stats.loc[col, '75%']:.4f}")
+            output.append(f"    Max: {desc_stats.loc[col, 'max']:.4f}")
+            output.append(f"    Missing Values: {desc_stats.loc[col, 'Missing']:.0f} ({desc_stats.loc[col, 'Missing Ratio']:.2%})")
+            output.append(f"    Skewness: {desc_stats.loc[col, 'Skewness']:.4f}")
+            output.append(f"    Kurtosis: {desc_stats.loc[col, 'Kurtosis']:.4f}")
 
-    # 5. 分类变量的频率分布
+    # 5. Frequency distribution of categorical variables
     categorical_cols = df.select_dtypes(include=['object', 'category']).columns
 
     if len(categorical_cols) > 0:
-        output.append("\n分类变量频率分布：")
+        output.append("\nCategorical Variable Frequency Distribution:")
 
         for col in categorical_cols:
-            # 获取唯一值的数量
+            # Get number of unique values
             unique_count = df[col].nunique()
 
             output.append(f"\n  {col}:")
-            output.append(f"    唯一值数量: {unique_count}")
+            output.append(f"    Unique values: {unique_count}")
 
-            # 如果唯一值数量合理（不超过10个），则显示频率分布
+            # If number of unique values is reasonable (not more than 10), show frequency distribution
             if unique_count <= 10 and unique_count > 0:
                 value_counts = df[col].value_counts().head(10)
                 value_percent = df[col].value_counts(normalize=True).head(10) * 100
@@ -372,8 +377,8 @@ def get_data_info(data_path: str, vars_list: Optional[List[str]] = None) -> str:
                     percent = value_percent[i]
                     output.append(f"    {value}: {count} ({percent:.2f}%)")
             elif unique_count > 10:
-                # 如果唯一值太多，只显示前5个
-                output.append("    前5个最常见值:")
+                # If too many unique values, only show top 5
+                output.append("    Top 5 most common values:")
                 value_counts = df[col].value_counts().head(5)
                 value_percent = df[col].value_counts(normalize=True).head(5) * 100
 
@@ -381,85 +386,83 @@ def get_data_info(data_path: str, vars_list: Optional[List[str]] = None) -> str:
                     percent = value_percent[i]
                     output.append(f"    {value}: {count} ({percent:.2f}%)")
 
-    # 6. 检测是否为面板数据并分析面板结构
-    # 通常面板数据具有ID和时间两个维度
+    # 6. Detect if it's panel data and analyze panel structure
+    # Typically panel data has ID and time dimensions
     potential_id_cols = [col for col in df.columns if 'id' in str(col).lower() or
                          'code' in str(col).lower() or 'key' in str(col).lower()]
     potential_time_cols = [col for col in df.columns if 'time' in str(col).lower() or
                            'date' in str(col).lower() or 'year' in str(col).lower() or
                            'month' in str(col).lower() or 'day' in str(col).lower()]
 
-    # 如果存在可能的ID列和时间列，则尝试分析面板结构
+    # If there are potential ID columns and time columns, try to analyze panel structure
     if potential_id_cols and potential_time_cols:
-        for id_col in potential_id_cols[:1]:  # 只尝试第一个ID列
-            for time_col in potential_time_cols[:1]:  # 只尝试第一个时间列
-                # 计算面板结构
+        for id_col in potential_id_cols[:1]:  # Only try the first ID column
+            for time_col in potential_time_cols[:1]:  # Only try the first time column
+                # Calculate panel structure
                 try:
                     n_ids = df[id_col].nunique()
                     n_times = df[time_col].nunique()
                     n_obs = df.shape[0]
 
-                    output.append("\n潜在面板数据结构检测：")
-                    output.append(f"  ID变量: {id_col} (唯一值数量: {n_ids})")
-                    output.append(f"  时间变量: {time_col} (唯一值数量: {n_times})")
-                    output.append(f"  总观测数: {n_obs}")
+                    output.append("\nPotential Panel Data Structure Detection:")
+                    output.append(f"  ID variable: {id_col} (unique values: {n_ids})")
+                    output.append(f"  Time variable: {time_col} (unique values: {n_times})")
+                    output.append(f"  Total observations: {n_obs}")
 
-                    # 检查面板是否平衡
+                    # Check if panel is balanced
                     cross_table = pd.crosstab(df[id_col], df[time_col])
                     is_balanced = (cross_table == 1).all().all()
 
                     if is_balanced and n_ids * n_times == n_obs:
-                        output.append("  面板状态: 强平衡面板 (每个ID在每个时间点都有一个观测值)")
+                        output.append("  Panel status: Strongly balanced panel (each ID has one observation at each time point)")
                     elif df.groupby(id_col)[time_col].count().var() == 0:
-                        output.append("  面板状态: 弱平衡面板 (每个ID有相同数量的观测值，但可能不在相同的时间点)")
+                        output.append("  Panel status: Weakly balanced panel (each ID has the same number of observations, but possibly not at the same time points)")
                     else:
-                        output.append("  面板状态: 非平衡面板 (不同ID有不同数量的观测值)")
+                        output.append("  Panel status: Unbalanced panel (different IDs have different numbers of observations)")
 
-                    # 计算每个ID的平均观测数
+                    # Calculate average observations per ID
                     avg_obs_per_id = df.groupby(id_col).size().mean()
-                    output.append(f"  每个ID的平均观测数: {avg_obs_per_id:.2f}")
+                    output.append(f"  Average observations per ID: {avg_obs_per_id:.2f}")
 
-                    # 计算时间跨度
+                    # Calculate time span
                     if pd.api.types.is_datetime64_dtype(df[time_col]):
                         min_time = df[time_col].min()
                         max_time = df[time_col].max()
-                        output.append(f"  时间跨度: {min_time} 至 {max_time}")
+                        output.append(f"  Time span: {min_time} to {max_time}")
                 except:
-                    # 如果计算出错，跳过面板分析
+                    # If calculation fails, skip panel analysis
                     pass
 
-    # 返回格式化的输出
+    # Return formatted output
     return "\n".join(output)
 
-
-@mcp.tool(name="results_doc_path", description="Stata中`outreg2`等命令的返回文件存储路径（方便统一管理结果）")
+@mcp.tool(name="results_doc_path", description="Storage path for Stata `outreg2` and other command return files (for convenient result management)")
 def results_doc_path() -> str:
     """
-    生成并返回一个基于当前时间戳的结果文档存储路径。
+    Generate and return a result document storage path based on the current timestamp.
 
-    该函数执行以下操作：
-    1. 获取当前系统时间并格式化为'%Y%m%d%H%M%S'格式的时间戳字符串
-    2. 将该时间戳字符串与预设的result_doc_path基础路径拼接，形成完整路径
-    3. 创建该路径对应的目录（如果目录已存在不会报错）
-    4. 返回新创建的完整路径字符串
+    This function performs the following operations:
+    1. Gets the current system time and formats it as a '%Y%m%d%H%M%S' timestamp string
+    2. Concatenates this timestamp string with the preset result_doc_path base path to form a complete path
+    3. Creates the directory corresponding to that path (no error if directory already exists)
+    4. Returns the complete path string of the newly created directory
 
     Returns:
-        str: 新创建的结果文档目录的完整路径，路径格式为：
-            `<result_doc_path>/<YYYYMMDDHHMMSS>`，其中时间戳部分由函数执行时的系统时间生成
+        str: The complete path of the newly created result document directory, formatted as:
+            `<result_doc_path>/<YYYYMMDDHHMMSS>`, where the timestamp portion is generated from the system time when the function is executed
 
     Notes:
-        （以下内容对于LLM来说不需要懂）
-        - 使用`exist_ok=True`参数，当目标目录已存在时不会引发异常
-        - 函数使用了Python 3.8+的海象运算符(:=)在表达式内进行变量赋值
-        - 返回的路径适合用作Stata的`outreg2`等命令的输出目录
-        - 在具体地Stata代码中可以在前面设置文件输出路径。
+        (The following content is not needed for LLM to understand)
+        - Using the `exist_ok=True` parameter, no exception will be raised when the target directory already exists
+        - The function uses the walrus operator (:=) in Python 3.8+ to assign a variable within an expression
+        - The returned path is suitable for use as the output directory for Stata commands such as `outreg2`
+        - In specific Stata code, you can set the file output path at the beginning.
     """
     os.makedirs(
         (path := os.path.join(result_doc_path, datetime.strftime(datetime.now(), "%Y%m%d%H%M%S"))),
         exist_ok=True
     )
     return path
-
 
 @mcp.tool(name="write_dofile", description="write the stata-code to dofile")
 def write_dofile(content: str) -> str:
@@ -489,7 +492,6 @@ def write_dofile(content: str) -> str:
     with open(file_path, "w", encoding="utf-8") as f:
         f.write(content)
     return file_path
-
 
 @mcp.tool(name="append_dofile", description="append stata-code to an existing dofile or create a new one")
 def append_dofile(original_dofile_path: str, content: str) -> str:
@@ -542,7 +544,6 @@ def append_dofile(original_dofile_path: str, content: str) -> str:
         f.write(content)
 
     return new_file_path
-
 
 @mcp.tool(name="stata_do", description="Run a stata-code via Stata")
 def stata_do(dofile_path: str) -> str:

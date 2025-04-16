@@ -7,6 +7,9 @@
 # @Email  : sepinetam@gmail.com
 # @File   : __init__.py
 
+from utils.Prompt.string import frame
+
+
 class Prompt:
     def __init__(self):
         self.prompts = {}
@@ -44,3 +47,19 @@ class Prompt:
         for key, prompt in prompts_dict.items():
             prompt_id, lang = Prompt.extract(key)
             self.add_prompt(prompt_id=prompt_id, lang=lang, prompt=prompt)
+
+def filter_system_vars(dictionary):
+    exclude_prefixes = ['__']
+    exclude_vars = ['inspect', 'frame']
+
+    filtered_dict = {}
+    for key, value in dictionary.items():
+        if not any(key.startswith(prefix) for prefix in exclude_prefixes) and key not in exclude_vars:
+            filtered_dict[key] = value
+    return filtered_dict
+
+
+prompts_dict: dict = filter_system_vars(frame.f_locals)
+
+pmp = Prompt()
+pmp.auto_extract(prompts_dict)
