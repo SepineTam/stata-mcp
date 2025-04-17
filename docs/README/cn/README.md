@@ -8,7 +8,7 @@
 [![sp](https://img.shields.io/badge/Idioma-Español-green.svg)](../sp/README.md)
 ![Version](https://img.shields.io/badge/version-1.3.1-blue.svg)
 [![smithery badge](https://smithery.ai/badge/@SepineTam/stata-mcp)](https://smithery.ai/server/@SepineTam/stata-mcp)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](../../../License)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](../../../LICENSE)
 [![Issue](https://img.shields.io/badge/Issue-report-green.svg)](https://github.com/sepinetam/stata-mcp/issues/new)
 
 > 让大语言模型（LLM）帮助您使用Stata完成回归分析。
@@ -78,7 +78,7 @@ uv run usable.py
 如果您遇到任何错误或有功能请求，请[提交问题](https://github.com/sepinetam/stata-mcp/issues/new)。
 
 ## 📄 许可证
-[MIT许可证](../../../License)和扩展
+[MIT许可证](../../../LICENSE)和扩展
 
 ## 📚 引用
 如果您在研究中使用 Stata-MCP，请使用以下格式之一引用此存储库：
@@ -108,6 +108,9 @@ Song Tan. 2025. "Stata-MCP: Let LLM help you achieve your regression analysis wi
 电子邮件：[sepinetam@gmail.com](mailto:sepinetam@gmail.com)
 
 或通过提交[拉取请求](https://github.com/sepinetam/stata-mcp/pulls)直接贡献！我们欢迎各种形式的贡献，从错误修复到新功能。
+
+## ❤️ 致谢
+作者诚挚感谢Stata官方团队给予的支持和授权测试开发使用的Stata License
 
 ## ✨ 历史Star
 

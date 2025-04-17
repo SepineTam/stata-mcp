@@ -8,7 +8,7 @@
 [![sp](https://img.shields.io/badge/Idioma-Español-green.svg)](README.md)
 ![Version](https://img.shields.io/badge/version-1.3.1-blue.svg)
 [![smithery badge](https://smithery.ai/badge/@SepineTam/stata-mcp)](https://smithery.ai/server/@SepineTam/stata-mcp)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](../../../License)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](../../../LICENSE)
 [![Issue](https://img.shields.io/badge/Issue-report-green.svg)](https://github.com/sepinetam/stata-mcp/issues/new)
 
 > Deja que LLM te ayude a realizar tu análisis de regresión con Stata.
@@ -77,7 +77,7 @@ Para más información, consulta la [Declaración](../../Statement.md).
 Si encuentras algún error o tienes solicitudes de funciones, por favor [abre un issue](https://github.com/sepinetam/stata-mcp/issues/new).
 
 ## 📄 Licencia
-[Licencia MIT](../../../License) y Extensiones
+[Licencia MIT](../../../LICENSE) y Extensiones
 
 ## 📚 Cita
 Si utilizas Stata-MCP en tu investigación, por favor cita este repositorio utilizando uno de los siguientes formatos:
@@ -107,6 +107,9 @@ Song Tan. 2025. "Stata-MCP: Let LLM help you achieve your regression analysis wi
 Correo electrónico: [sepinetam@gmail.com](mailto:sepinetam@gmail.com)
 
 ¡O contribuye directamente enviando un [Pull Request](https://github.com/sepinetam/stata-mcp/pulls)! Damos la bienvenida a contribuciones de todo tipo, desde correcciones de errores hasta nuevas funcionalidades.
+
+## ❤️ Agradecimientos
+El autor agradece sinceramente al equipo oficial de Stata por su apoyo y a la Licencia Stata por autorizar el desarrollo de la prueba.
 
 ## ✨ Historial de Estrellas
 
