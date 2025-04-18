@@ -22,6 +22,7 @@
 > - Una integración para VScode o Cursor [aquí](https://github.com/hanlulong/stata-mcp). ¿Confundido? 💡 [Diferencias](../../Difference.md)
 > - Uso en Jupyter Lab (Importante: Stata 17+) [aquí](https://github.com/sepinetam/Jupyter-Stata)
 > - [NBER-MCP](https://github.com/sepinetam/NBER-MCP) 🔧 en construcción
+> - [AER-MCP](https://github.com/sepinetam/AER-MCP)
 
 ## 💡 Inicio Rápido
 Para información más detallada sobre el uso, visita la [guía de Uso](../../Usages/Usage.md).
