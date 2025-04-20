@@ -24,7 +24,6 @@
 ```bash
 git clone https://www.github.com/sepinetam/stata-mcp.git
 cd stata-mcp
-cp example.config.py config.py
 ```
 
 #### 环境配置
@@ -144,7 +143,6 @@ uv --directory /path/to/the/repo run stata_mcp.py True
 ```bash
 git clone https://www.github.com/sepinetam/stata-mcp.git
 cd stata-mcp
-cp example.config.py config.py
 ```
 
 #### 环境配置
@@ -261,7 +259,6 @@ uv --directory "C:\\path\\to\\the\\repo" run stata_mcp.py True
 ```bash
 git clone https://www.github.com/sepinetam/stata-mcp.git
 cd stata-mcp
-cp example.config.py config.py
 ```
 
 #### Environment Setup
@@ -386,7 +383,6 @@ Refer to [Advanced](Advanced.md#advanced)
 ```bash
 git clone https://www.github.com/sepinetam/stata-mcp.git
 cd stata-mcp
-cp example.config.py config.py
 ```
 
 #### Environment Setup

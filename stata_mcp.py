@@ -4,6 +4,7 @@ import subprocess
 import sys
 import os
 import platform
+from datetime import datetime
 
 import pandas as pd
 import numpy as np
@@ -14,10 +15,10 @@ from mcp.server.fastmcp import FastMCP
 from utils import StataFinder
 from utils.Prompt import pmp
 
-from config import *
+# from config import *
 
 dotenv.load_dotenv()
-mcp = FastMCP(name='stata-mcp', version="1.3.1")
+mcp = FastMCP(name='stata-mcp')
 
 # Initialize optional parameters (defaults to None)
 stata_cli_path = None
@@ -95,13 +96,13 @@ os.makedirs(result_doc_path, exist_ok=True)
 readme_path = os.path.join(output_base_path, "README.md")
 metadata = os.path.join(output_base_path, "metadata")
 
-# Check and make README file and metadata future it would be used.
-if not os.path.exists(readme_path):
-    with open(readme_path, 'w', encoding='utf-8') as f:
-        f.write(readme_content)
-if not os.path.exists(metadata):
-    with open(metadata, 'w', encoding='utf-8') as f:
-        f.write("Using Log Serve...")
+# # Check and make README file and metadata future it would be used.
+# if not os.path.exists(readme_path):
+#     with open(readme_path, 'w', encoding='utf-8') as f:
+#         f.write(readme_content)
+# if not os.path.exists(metadata):
+#     with open(metadata, 'w', encoding='utf-8') as f:
+#         f.write("Using Log Serve...")
 
 pmp.set_lang(os.getenv("lang", "en"))
 

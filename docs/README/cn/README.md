@@ -42,9 +42,6 @@
 git clone https://github.com/sepinetam/stata-mcp.git
 cd stata-mcp
 
-# 复制示例配置
-cp example.config.py config.py
-
 # 使用uv（推荐）测试可用性
 uv run usable.py
 

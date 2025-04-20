@@ -42,9 +42,6 @@ And some advanced usage, visit the [Advanced guide](docs/Usages/Advanced.md)
 git clone https://github.com/sepinetam/stata-mcp.git
 cd stata-mcp
 
-# Copy example config
-cp example.config.py config.py
-
 # Using uv (recommended) to test usable
 uv run usable.py
 
