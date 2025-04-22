@@ -182,7 +182,7 @@ def read_log(log_path: str) -> str:
     return log
 
 @mcp.tool(name="get_data_info", description="Get descriptive statistics for the data file")
-def get_data_info(data_path: str, vars_list: Optional[List[str]] = None) -> str:
+def get_data_info(data_path: str, vars_list: Optional[List[str]] = None, encoding: str = 'utf-8') -> str:
     """
     Analyze the data file and return descriptive statistics. Supports various file formats,
     including Stata data files (.dta), CSV files (.csv), and Excel files (.xlsx, .xls).
@@ -193,6 +193,7 @@ def get_data_info(data_path: str, vars_list: Optional[List[str]] = None) -> str:
         data_path: Path to the data file, supporting .dta, .csv, .xlsx, and .xls formats.
         vars_list: Optional list of variables. If provided, returns statistics only for these variables.
                   If None, returns statistics for all variables.
+        encoding: The data file encoding method, supporting "utf-8", "gbk" and so on.
 
     Returns:
         str: A string containing descriptive statistics of the data, including:
@@ -236,7 +237,7 @@ def get_data_info(data_path: str, vars_list: Optional[List[str]] = None) -> str:
     if file_extension == '.dta':
         try:
             # Try to read Stata file
-            df = pd.read_stata(data_path)
+            df = pd.read_stata(data_path, encoding=encoding)
             file_type = "Stata data file (.dta)"
         except ImportError:
             raise ImportError("Missing package required to read Stata files. Please install pandas: pip install pandas")
@@ -244,7 +245,7 @@ def get_data_info(data_path: str, vars_list: Optional[List[str]] = None) -> str:
         try:
             # Try to read CSV file, handle potential encoding issues
             try:
-                df = pd.read_csv(data_path)
+                df = pd.read_csv(data_path, encoding=encoding)
             except UnicodeDecodeError:
                 # Try different encoding
                 df = pd.read_csv(data_path, encoding='latin1')
