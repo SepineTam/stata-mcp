@@ -14,7 +14,7 @@
 
 > Let LLM help you achieve your regression analysis with Stata.
 > 
-> Now Stata-MCP has been supported to find Stata CLI **automatically**.
+> Version 2.x.x coming soon~ which will be more powerful and more extension.
 
 ---
 
