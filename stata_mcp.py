@@ -7,7 +7,6 @@ import platform
 from datetime import datetime
 
 import pandas as pd
-import numpy as np
 
 import dotenv
 from mcp.server.fastmcp import FastMCP
@@ -15,7 +14,6 @@ from mcp.server.fastmcp import FastMCP
 from utils import StataFinder
 from utils.Prompt import pmp
 
-# from config import *
 
 dotenv.load_dotenv()
 mcp = FastMCP(name='stata-mcp')
@@ -193,7 +191,7 @@ def get_data_info(data_path: str, vars_list: Optional[List[str]] = None, encodin
         data_path: Path to the data file, supporting .dta, .csv, .xlsx, and .xls formats.
         vars_list: Optional list of variables. If provided, returns statistics only for these variables.
                   If None, returns statistics for all variables.
-        encoding: The data file encoding method, supporting "utf-8", "gbk" and so on.
+        encoding: The data file encoding method, supporting "utf-8", "gbk" and so on. (Only works when the data is csv)
 
     Returns:
         str: A string containing descriptive statistics of the data, including:
@@ -237,7 +235,7 @@ def get_data_info(data_path: str, vars_list: Optional[List[str]] = None, encodin
     if file_extension == '.dta':
         try:
             # Try to read Stata file
-            df = pd.read_stata(data_path, encoding=encoding)
+            df = pd.read_stata(data_path)
             file_type = "Stata data file (.dta)"
         except ImportError:
             raise ImportError("Missing package required to read Stata files. Please install pandas: pip install pandas")
