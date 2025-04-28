@@ -36,7 +36,7 @@ that support the MCP (Model Context Protocol) protocol, such as Claude client an
 
 2. Commercial Use Limitations:
    a) Academic and Research Priority: This software is primarily designed and intended for academic and research purposes. Use by individual scholars, academic institutions, and research organizations for non-commercial purposes is fully permitted under this license.
-   b) Commercial Utilization Restriction: Commercial utilization of this software for direct profit-making activities is strongly discouraged and is not the intended purpose of this software.
+   b) Commercial Utilization Restriction: Commercial utilization of this software for direct profit-making activities is strongly discouraged and is not the intended purpose of this software. If you are using it for commercial purposes, please adhere to the sub-clauses of this section.
    c) Profit Sharing Obligation: In the event that commercial profit is derived from the use of this software, the user is ethically obligated to contribute 20% of such profits to support economic research and development in China. This contribution should be made to recognized academic institutions, research foundations, or economic development organizations in China dedicated to advancing economic research.
    d) Commercial Reporting: Commercial users who derive profit from this software are requested to report such use and resulting contributions to the author for record-keeping purposes, though this reporting is voluntary.
 
@@ -57,6 +57,13 @@ that support the MCP (Model Context Protocol) protocol, such as Claude client an
    d) Costs and Fees: In any legal proceeding, the prevailing party shall be entitled to recover its reasonable legal costs, attorney fees, and other related expenses.
    e) Severability: If any part of these terms is found to be unenforceable, the remaining portions shall continue to be valid. Failure of the author to enforce any right under these terms shall not be deemed a waiver of such right or any other right.
 
+6. Supplementary Terms for Academic Institutions:
+    a) Academic institutions in this license refer only to universities and economic research institutes (such as Chinese Academy of Social Sciences, NBER, etc.).
+    b) Other academic institutions (such as research institutes, think tanks, etc.) are not covered by these terms.
+    c) The above-mentioned academic institutions should inform and obtain the author's consent by email before use. (sepinetam@gmail.com)
+    d) When deploying privately, academic institutions should make a one-time donation of no less than 1 USD to public welfare organizations or to the author personally as a development fund, with the specific amount to be determined through mutual agreement between the institution and the author.
+    e) Any academic institution must open source their code when creating derivative works, and acknowledge the original author's name and email address in the code. Ref GPL (GNU General Public License) License.
+
 追加协议
 这部分是在MIT LICENSE的基础上扩展而来，以英语和中文双语进行陈述，如有冲突以中文为准。
 
@@ -70,7 +77,7 @@ that support the MCP (Model Context Protocol) protocol, such as Claude client an
 
 2. 商业使用限制：
    a) 学术和研究优先：本软件主要为学术和研究目的而设计和预期使用。完全允许个人学者、学术机构和研究组织将其用于非商业目的。
-   b) 商业使用限制：强烈不鼓励将本软件用于直接营利活动的商业利用，这并非本软件的预期用途。
+   b) 商业使用限制：强烈不鼓励将本软件用于直接营利活动的商业利用，这并非本软件的预期用途。如需商用请遵循本条款的子条款c。
    c) 利润分享义务：如果从本软件的使用中获得商业利润，使用者在道德上有义务将此类利润的20%用于支持中国的经济研究和发展。这一贡献应当向中国致力于推进经济研究的公认学术机构、研究基金会或经济发展组织进行。
    d) 商业报告：从本软件中获得利润的商业用户被要求向作者报告此类使用和由此产生的贡献，以供记录之用，尽管此类报告是自愿的。
 
@@ -90,3 +97,10 @@ that support the MCP (Model Context Protocol) protocol, such as Claude client an
    c) 调解与仲裁：在提起任何法律诉讼前，争议各方应首先尝试通过友好协商或调解解决争议。如协商或调解未能解决争议，则应通过中国国际经济贸易仲裁委员会按照其届时有效的仲裁规则进行仲裁。
    d) 费用承担：在任何法律程序中，胜诉方有权获得其合理的法律费用、律师费和其他相关开支的补偿。
    e) 弃权声明：如本条款的任何部分被认定为不可执行，其余部分仍应继续有效。作者未能执行本条款中的任何权利不应被视为对该权利或任何其他权利的放弃。
+
+6. 学术机构使用补充条款：
+    a) 本许可证中的学术机构仅指大学和经济研究院（如中国社会科学院、NBER等）。
+    b) 其他学术机构（如研究所、智库等）不在本条款的适用范围内。
+    c) 上述的学术机构在使用前应以邮件形式告知并征得作者的同意。（sepinetam@gmail.com）
+    d) 学术机构进行私有化部署时应向公益机构或作者个人一次性捐赠不少于1美元的发展基金，具体金额由学校与作者共同协商决定。
+    e) 任何学术机构在进行二次创作时应公开二次创作的源代码，并在代码中注明原作者的姓名和邮箱地址。（参考GPL (GNU General Public License) 系列协议）
