@@ -70,7 +70,7 @@ uv run usable.py
 ## ⚠️ Avertissement
 Ce projet est destiné uniquement à des fins de recherche. Je ne suis pas responsable des dommages causés par ce projet. Veuillez vous assurer que vous disposez des licences appropriées pour utiliser Stata.
 
-Pour plus d'informations, consultez la [Déclaration](../../Statement.md).
+Pour plus d'informations, consultez la [Déclaration](../../Rights/Statement.md).
 
 ## 🐛 Signaler des Problèmes
 Si vous rencontrez des bugs ou avez des demandes de fonctionnalités, veuillez [ouvrir un ticket](https://github.com/sepinetam/stata-mcp/issues/new).

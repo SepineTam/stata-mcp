@@ -70,7 +70,7 @@ uv run usable.py
 ## ⚠️ 免责声明
 本项目仅用于研究目的。我对本项目造成的任何损害不承担责任。请确保您拥有使用Stata的适当许可证。
 
-更多信息，请参阅[声明](../../Statement.md)。
+更多信息，请参阅[声明](../../Rights/Statement.md)。
 
 ## 🐛 报告问题
 如果您遇到任何错误或有功能请求，请[提交问题](https://github.com/sepinetam/stata-mcp/issues/new)。
