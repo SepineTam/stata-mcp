@@ -204,24 +204,15 @@ def main():
             all_dirs_ok = False
             print(f"  Warning: Could not create or access {path}")
 
-    # Check if config.py exists
-    config_exists = os.path.exists("config.py")
-    print_status("Configuration file (config.py)", config_exists)
-    if not config_exists:
-        print("  Please copy example.config.py to config.py to complete setup")
-
     # Overall summary
     print("\n===== Summary =====")
-    all_passed = os_supported and python_compatible and mcp_installed and stata_found and stata_works and all_dirs_ok and config_exists
+    all_passed = os_supported and python_compatible and mcp_installed and stata_found and stata_works and all_dirs_ok
 
     if all_passed:
         print("\n✅ Success! Your Stata-MCP setup is ready to use.")
         print("You can now use Stata-MCP with your preferred MCP client (Claude, Cherry Studio, etc.)")
     else:
         print("\n⚠️ Some checks failed. Please address the issues above to use Stata-MCP.")
-        if not config_exists:
-            print("\nQuick fix: Copy the example config file:")
-            print("  cp example.config.py config.py")
         if not stata_found or not stata_works:
             print("\nTo manually specify your Stata path, add this to your MCP configuration:")
             print('  "env": {')
