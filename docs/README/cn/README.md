@@ -2,18 +2,17 @@
   <a href="https://www.statamcp.com"><img src="../../../src/img/logo_with_name.jpg" alt="logo" width="300"></a>
 </h1>
 
+<h1 align="center">Stata-MCP</h1>
+
+<p align="center"> 让大语言模型（LLM）帮助您使用Stata完成回归分析 ✨</p>
+
 [![en](https://img.shields.io/badge/lang-English-red.svg)](../../../README.md)
 [![cn](https://img.shields.io/badge/语言-中文-yellow.svg)](README.md)
 [![fr](https://img.shields.io/badge/langue-Français-blue.svg)](../fr/README.md)
 [![sp](https://img.shields.io/badge/Idioma-Español-green.svg)](../sp/README.md)
 ![Version](https://img.shields.io/badge/version-1.3.2-blue.svg)
-[![smithery badge](https://smithery.ai/badge/@SepineTam/stata-mcp)](https://smithery.ai/server/@SepineTam/stata-mcp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](../../../LICENSE)
 [![Issue](https://img.shields.io/badge/Issue-report-green.svg)](https://github.com/sepinetam/stata-mcp/issues/new)
-
-> 让大语言模型（LLM）帮助您使用Stata完成回归分析。
-> 
-> 现在Stata-MCP已支持自动查找Stata CLI。
 
 ---
 
