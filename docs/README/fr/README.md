@@ -57,6 +57,7 @@ uv run usable.py
 
 ## 💡 Questions
 - [Cherry Studio 32000 wrong](../../Usages/Questions.md#cherry-studio-32000-wrong)
+- [Cherry Studio 32000 error](../../Usages/Questions.md#cherry-studio-32000-error)
 - [Support Windows](../../Usages/Questions.md#windows-supports)
 
 ## 🚀 Feuille de Route

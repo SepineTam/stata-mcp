@@ -12,6 +12,31 @@ it looks like the follow:
 $ whoami  # YOUR_COMPUTER_NAME
 ```
 
+## Cherry Studio 32000 Error
+> (2025-06-04 Solved)
+
+Cherry Studio doesn't support the `--directory` argument. Configure it with the
+full path to `stata_mcp.py` instead:
+
+```json
+{
+  "mcpServers": {
+    "stata-mcp": {
+      "command": "uv",
+      "args": [
+        "run",
+        "/Users/sepinetam/Documents/Github/MCP_Pro/stata-mcp/stata_mcp.py"
+      ]
+    }
+  }
+}
+```
+
+This means running `uv run /the/full/path/of/stata_mcp.py`. Add `True` if you
+need to specify the Stata CLI path.
+
+_Solves [issue #1](https://github.com/sepinetam/stata-mcp/issues/1)._ 
+
 ## Windows Supports
 > (2025-04-11 Added)
 

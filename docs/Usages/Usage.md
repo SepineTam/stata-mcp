@@ -100,10 +100,8 @@ Cherry Studio中推荐使用GUI填写
 name: Stata-MCP
 command: uv
 args:
-  --directory
-  /path/to/the/repo/
   run
-  stata_mcp.py
+  /path/to/the/repo/stata_mcp.py
 ```
 
 如果你要指定Stata CLI的路径，同样地在参数中加入 `True`，并在 `env` 中加入 `stata_cli`
@@ -112,12 +110,12 @@ args:
 ChatWise不仅支持通过剪切板的json导入（这种情况下你可以在修改了repo的路径后直接复制通用配置），
 这里建议可以在命令里直接键入
 ```bash
-uv --directory /path/to/the/repo run stata_mcp.py
+uv run /path/to/the/repo/stata_mcp.py
 ```
 
 同样，如果你要指定Stata CLI的路径，换成如下命令，并在 `env` 中加入 `stata_cli`
 ```bash
-uv --directory /path/to/the/repo run stata_mcp.py True
+uv run /path/to/the/repo/stata_mcp.py True
 ```
 
 ### 更多
@@ -218,10 +216,8 @@ Cherry Studio中推荐使用GUI填写
 name: Stata-MCP
 command: uv
 args:
-  --directory
-  "C:\\path\\to\\the\\repo"
   run
-  stata_mcp.py
+  "C:\\path\\to\\the\\repo\\stata_mcp.py"
 ```
 如果你要指定Stata可执行文件的路径，同样地在参数中加入 `True`，并在 `env` 中加入 `stata_cli`
 
@@ -229,12 +225,12 @@ args:
 ChatWise不仅支持通过剪切板的json导入（这种情况下你可以在修改了repo的路径后直接复制通用配置），
 这里建议可以在命令里直接键入
 ```bash
-uv --directory "C:\\path\\to\\the\\repo" run stata_mcp.py
+uv run "C:\\path\\to\\the\\repo\\stata_mcp.py"
 ```
 
 同样，如果你要指定Stata可执行文件的路径，换成如下命令，并在 `env` 中加入 `stata_cli`
 ```bash
-uv --directory "C:\\path\\to\\the\\repo" run stata_mcp.py True
+uv run "C:\\path\\to\\the\\repo\\stata_mcp.py" True
 ```
 
 ### 更多
@@ -340,10 +336,8 @@ In Cherry Studio, it's recommended to use the GUI to fill in:
 name: Stata-MCP
 command: uv
 args:
-  --directory
-  /path/to/the/repo/
   run
-  stata_mcp.py
+  /path/to/the/repo/stata_mcp.py
 ```
 
 If you need to specify the Stata CLI path, add `True` to the parameters and add `stata_cli` to the `env`.
@@ -352,12 +346,12 @@ If you need to specify the Stata CLI path, add `True` to the parameters and add 
 ChatWise not only supports JSON import via clipboard (in which case you can directly copy the general configuration after modifying the repo path),
 but you can also directly type the command:
 ```bash
-uv --directory /path/to/the/repo run stata_mcp.py
+uv run /path/to/the/repo/stata_mcp.py
 ```
 
 Similarly, if you need to specify the Stata CLI path, use the command below and add `stata_cli` to the `env`:
 ```bash
-uv --directory /path/to/the/repo run stata_mcp.py True
+uv run /path/to/the/repo/stata_mcp.py True
 ```
 
 ### More
@@ -458,10 +452,8 @@ In Cherry Studio, it's recommended to use the GUI to fill in:
 name: Stata-MCP
 command: uv
 args:
-  --directory
-  "C:\\path\\to\\the\\repo"
   run
-  stata_mcp.py
+  "C:\\path\\to\\the\\repo\\stata_mcp.py"
 ```
 If you need to specify the Stata executable path, add `True` to the parameters and add `stata_cli` to the `env`.
 
@@ -469,12 +461,12 @@ If you need to specify the Stata executable path, add `True` to the parameters a
 ChatWise not only supports JSON import via clipboard (in which case you can directly copy the general configuration after modifying the repo path),
 but you can also directly type the command:
 ```bash
-uv --directory "C:\\path\\to\\the\\repo" run stata_mcp.py
+uv run "C:\\path\\to\\the\\repo\\stata_mcp.py"
 ```
 
 Similarly, if you need to specify the Stata executable path, use the command below and add `stata_cli` to the `env`:
 ```bash
-uv --directory "C:\\path\\to\\the\\repo" run stata_mcp.py True
+uv run "C:\\path\\to\\the\\repo\\stata_mcp.py" True
 ```
 
 ### More
