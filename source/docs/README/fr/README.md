@@ -1,17 +1,17 @@
 <h1 align="center">
-  <a href="https://www.statamcp.com"><img src="../../../src/img/logo_with_name.jpg" alt="logo" width="300"/></a>
+  <a href="https://www.statamcp.com"><img src="../../../img/logo_with_name.jpg" alt="logo" width="300"/></a>
 </h1>
 
 <h1 align="center">Stata-MCP</h1>
 
 <p align="center"> Laissez les modèles de langage (LLM) vous aider à réaliser vos analyses de régression avec Stata. ✨</p>
 
-[![en](https://img.shields.io/badge/lang-English-red.svg)](../../../README.md)
+[![en](https://img.shields.io/badge/lang-English-red.svg)](../../../../README.md)
 [![cn](https://img.shields.io/badge/语言-中文-yellow.svg)](../cn/README.md)
 [![fr](https://img.shields.io/badge/langue-Français-blue.svg)](README.md)
 [![sp](https://img.shields.io/badge/Idioma-Español-green.svg)](../sp/README.md)
 ![Version](https://img.shields.io/badge/version-1.3.2-blue.svg)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](../../../LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](../../../../LICENSE)
 [![Issue](https://img.shields.io/badge/Issue-report-green.svg)](https://github.com/sepinetam/stata-mcp/issues/new)
 
 ---
@@ -75,7 +75,7 @@ Pour plus d'informations, consultez la [Déclaration](../../Rights/Statement.md)
 Si vous rencontrez des bugs ou avez des demandes de fonctionnalités, veuillez [ouvrir un ticket](https://github.com/sepinetam/stata-mcp/issues/new).
 
 ## 📄 Licence
-[Licence MIT](../../../LICENSE) et extensions
+[Licence MIT](../../../../LICENSE) et extensions
 
 ## 📚 Citation
 Si vous utilisez Stata-MCP dans vos recherches, veuillez citer ce référentiel en utilisant l'un des formats suivants:

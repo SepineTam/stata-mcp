@@ -25,7 +25,7 @@ full path to `stata_mcp.py` instead:
       "command": "uv",
       "args": [
         "run",
-        "/Users/sepinetam/Documents/Github/MCP_Pro/stata-mcp/stata_mcp.py"
+        "/Users/sepinetam/Documents/Github/MCP_Pro/stata-mcp/__init__.py"
       ]
     }
   }

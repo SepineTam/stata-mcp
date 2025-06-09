@@ -1,17 +1,17 @@
 <h1 align="center">
-  <a href="https://www.statamcp.com"><img src="../../../src/img/logo_with_name.jpg" alt="logo" width="300"></a>
+  <a href="https://www.statamcp.com"><img src="../../../img/logo_with_name.jpg" alt="logo" width="300"></a>
 </h1>
 
 <h1 align="center">Stata-MCP</h1>
 
 <p align="center"> 让大语言模型（LLM）帮助您使用Stata完成回归分析 ✨</p>
 
-[![en](https://img.shields.io/badge/lang-English-red.svg)](../../../README.md)
+[![en](https://img.shields.io/badge/lang-English-red.svg)](../../../../README.md)
 [![cn](https://img.shields.io/badge/语言-中文-yellow.svg)](README.md)
 [![fr](https://img.shields.io/badge/langue-Français-blue.svg)](../fr/README.md)
 [![sp](https://img.shields.io/badge/Idioma-Español-green.svg)](../sp/README.md)
 ![Version](https://img.shields.io/badge/version-1.3.2-blue.svg)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](../../../LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](../../../../LICENSE)
 [![Issue](https://img.shields.io/badge/Issue-report-green.svg)](https://github.com/sepinetam/stata-mcp/issues/new)
 
 ---
@@ -76,7 +76,7 @@ uv run usable.py
 如果您遇到任何错误或有功能请求，请[提交问题](https://github.com/sepinetam/stata-mcp/issues/new)。
 
 ## 📄 许可证
-[MIT许可证](../../../LICENSE)和扩展
+[MIT许可证](../../../../LICENSE)和扩展
 
 ## 📚 引用
 如果您在研究中使用 Stata-MCP，请使用以下格式之一引用此存储库：

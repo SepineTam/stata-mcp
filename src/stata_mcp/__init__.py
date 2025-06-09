@@ -11,8 +11,8 @@ import pandas as pd
 import dotenv
 from mcp.server.fastmcp import FastMCP
 
-from utils import StataFinder
-from utils.Prompt import pmp
+from .utils import StataFinder
+from .utils.Prompt import pmp
 
 
 dotenv.load_dotenv()

@@ -20,7 +20,7 @@ from pathlib import Path
 import time
 from typing import Dict, List, Optional, Tuple
 
-from utils import StataFinder
+from .utils import StataFinder
 
 
 def print_status(message: str, status: bool) -> None:
