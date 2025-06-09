@@ -11,3 +11,14 @@ dependencies = [
     "numpy>=2.2.4",
     "pandas>=2.2.3",
 ]
+
+[project.scripts]
+stata_mcp = "stata_mcp:main"
+
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["stata_mcp", "gen_stata_code_MCP", "usable"]
+packages = ["utils"]
