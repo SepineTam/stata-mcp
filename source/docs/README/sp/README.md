@@ -10,7 +10,7 @@
 [![cn](https://img.shields.io/badge/语言-中文-yellow.svg)](../cn/README.md)
 [![fr](https://img.shields.io/badge/langue-Français-blue.svg)](../fr/README.md)
 [![sp](https://img.shields.io/badge/Idioma-Español-green.svg)](README.md)
-![Version](https://img.shields.io/badge/version-1.3.5-blue.svg)
+[![PyPI version](https://img.shields.io/pypi/v/stata-mcp.svg)](https://pypi.org/project/stata-mcp/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](../../../../LICENSE)
 [![Issue](https://img.shields.io/badge/Issue-report-green.svg)](https://github.com/sepinetam/stata-mcp/issues/new)
 

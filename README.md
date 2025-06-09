@@ -7,10 +7,10 @@
 <p align="center"> Let LLM help you achieve your regression analysis with Stata ✨</p>
 
 [![en](https://img.shields.io/badge/lang-English-red.svg)](README.md)
-[![cn](https://img.shields.io/badge/语言-中文-yellow.svg)](docs/README/cn/README.md)
-[![fr](https://img.shields.io/badge/langue-Français-blue.svg)](docs/README/fr/README.md)
-[![sp](https://img.shields.io/badge/Idioma-Español-green.svg)](docs/README/sp/README.md)
-![Version](https://img.shields.io/badge/version-1.3.5-blue.svg)
+[![cn](https://img.shields.io/badge/语言-中文-yellow.svg)](source/docs/README/cn/README.md)
+[![fr](https://img.shields.io/badge/langue-Français-blue.svg)](source/docs/README/fr/README.md)
+[![sp](https://img.shields.io/badge/Idioma-Español-green.svg)](source/docs/README/sp/README.md)
+[![PyPI version](https://img.shields.io/pypi/v/stata-mcp.svg)](https://pypi.org/project/stata-mcp/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Issue](https://img.shields.io/badge/Issue-report-green.svg)](https://github.com/sepinetam/stata-mcp/issues/new)
 
@@ -18,15 +18,15 @@
 
 > Looking for other Stata integrations or others?
 >
-> - A VScode or Cursor integrated [here](https://github.com/hanlulong/stata-mcp). Confused it? 💡 [Difference](docs/Difference.md)
+> - A VScode or Cursor integrated [here](https://github.com/hanlulong/stata-mcp). Confused it? 💡 [Difference](source/docs/Difference.md)
 > - Jupyter Lab Usage (Important: Stata 17+) [here](https://github.com/sepinetam/Jupyter-Stata)
 > - [NBER-MCP](https://github.com/sepinetam/NBER-MCP) 🔧 under construction
 > - [AER-MCP](https://github.com/sepinetam/AER-MCP)
 
 ## 💡 Quick Start
-For more detailed usage information, visit the [Usage guide](docs/Usages/Usage.md). 
+For more detailed usage information, visit the [Usage guide](source/docs/Usages/Usage.md). 
 
-And some advanced usage, visit the [Advanced guide](docs/Usages/Advanced.md)
+And some advanced usage, visit the [Advanced guide](source/docs/Usages/Advanced.md)
 
 ### Prerequisites
 - [uv](https://github.com/astral-sh/uv) - Package installer and virtual environment manager
@@ -51,14 +51,14 @@ uv run usable.py
 
 ## 📝 Documentation
 - For more detailed usage information, visit the [Usage guide](docs/Usages/Usage.md).
-- Advanced Usage, visit the [Advanced](docs/Usages/Advanced.md)
-- Some questions, visit the [Questions](docs/Usages/Questions.md)
-- Difference with [Stata-MCP@hanlulong](https://github.com/hanlulong/stata-mcp), visit the [Difference](docs/Difference.md)
+- Advanced Usage, visit the [Advanced](source/docs/Usages/Advanced.md)
+- Some questions, visit the [Questions](source/docs/Usages/Questions.md)
+- Difference with [Stata-MCP@hanlulong](https://github.com/hanlulong/stata-mcp), visit the [Difference](source/docs/Difference.md)
 
 ## 💡 Questions
-- [Cherry Studio 32000 wrong](docs/Usages/Questions.md#cherry-studio-32000-wrong)
-- [Cherry Studio 32000 error](docs/Usages/Questions.md#cherry-studio-32000-error)
-- [Windows Support](docs/Usages/Questions.md#windows-supports)
+- [Cherry Studio 32000 wrong](source/docs/Usages/Questions.md#cherry-studio-32000-wrong)
+- [Cherry Studio 32000 error](source/docs/Usages/Questions.md#cherry-studio-32000-error)
+- [Windows Support](source/docs/Usages/Questions.md#windows-supports)
 
 ## 🚀 Roadmap
 - [x] macOS support
@@ -69,7 +69,7 @@ uv run usable.py
 ## ⚠️ Disclaimer
 This project is for research purposes only. I am not responsible for any damage caused by this project. Please ensure you have proper licensing to use Stata.
 
-For more information, refer to the [Statement](docs/Rights/Statement.md).
+For more information, refer to the [Statement](source/docs/Rights/Statement.md).
 
 ## 🐛 Report Issues
 If you encounter any bugs or have feature requests, please [open an issue](https://github.com/sepinetam/stata-mcp/issues/new).

@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "stata-mcp": {
+      "command": "uvx",
+      "args": [
+        "stata-mcp"
+      ],
+      "env": {
+        "stata_cli": "stata-mp"
+      }
+    }
+  }
+}
