@@ -179,7 +179,7 @@ def read_log(log_path: str) -> str:
         log = file.read()
     return log
 
-@mcp.tool(name="get_data_info", description="Get descriptive statistics for the data file")
+# @mcp.tool(name="get_data_info", description="Get descriptive statistics for the data file")
 def get_data_info(data_path: str, vars_list: Optional[List[str]] = None, encoding: str = 'utf-8') -> str:
     """
     Analyze the data file and return descriptive statistics. Supports various file formats,
@@ -436,7 +436,7 @@ def get_data_info(data_path: str, vars_list: Optional[List[str]] = None, encodin
     # Return formatted output
     return "\n".join(output)
 
-@mcp.tool(name="results_doc_path", description="Storage path for Stata `outreg2` and other command return files (for convenient result management)")
+# @mcp.tool(name="results_doc_path", description="Storage path for Stata `outreg2` and other command return files (for convenient result management)")
 def results_doc_path() -> str:
     """
     Generate and return a result document storage path based on the current timestamp.
