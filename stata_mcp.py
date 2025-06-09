@@ -605,5 +605,10 @@ def stata_do(dofile_path: str) -> str:
     return log_file
 
 
-if __name__ == "__main__":
+def main() -> None:
+    """Entry point for the command line interface."""
     mcp.run(transport="stdio")
+
+
+if __name__ == "__main__":
+    main()
