@@ -14,7 +14,7 @@ import dotenv
 import platform
 from typing import Dict, Callable, Any
 
-from utils import windows
+from .windows import *
 
 dotenv.load_dotenv()
 
@@ -80,8 +80,6 @@ def _find_stata_macos(is_env: bool = False) -> str:
     return _stata_cli
 
 def __default_stata_cli_path_windows() -> Any | None:
-    from utils.windows import get_available_drives
-
     drives: list = get_available_drives()
     stata_cli_path_list: list = []
     for drive in drives:
@@ -92,7 +90,7 @@ def __default_stata_cli_path_windows() -> Any | None:
         return stata_cli_path_list[0]
     else:
         for path in stata_cli_path_list:
-            if windows.windows_stata_match(path):
+            if windows_stata_match(path):
                 return path
             else:
                 pass

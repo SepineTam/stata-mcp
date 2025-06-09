@@ -7,8 +7,7 @@
 # @Email  : sepinetam@gmail.com
 # @File   : __init__.py
 
-from utils.Prompt.string import frame
-
+from .string import frame
 
 class Prompt:
     def __init__(self):
