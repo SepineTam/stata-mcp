@@ -50,4 +50,12 @@ More information you can visit the [Usage doc for Windows](Usages/Usage_Windows.
 
 If you encounter connection failures or downloads hanging when running `uv run` or communicating with the LLM service, this is usually caused by an unstable network. Please check your internet connection or switch to a more reliable network and try again.
 
-_Solves [issue #6](https://github.com/sepinetam/stata-mcp/issues/6)._ 
+_Solves [issue #6](https://github.com/sepinetam/stata-mcp/issues/6)._
+
+## Version Conflict in Documentation
+> (2025-06-11 Solved)
+
+Some documents mistakenly used the version number `3.1.9` while the actual release is `1.3.9`.
+Update all occurrences in the README files to `1.3.9` to keep them consistent.
+
+_Solves [issue #8](https://github.com/sepinetam/stata-mcp/issues/8)._
