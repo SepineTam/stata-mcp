@@ -27,7 +27,7 @@ if sys_os == "Darwin" or sys_os == "Linux":
     documents_path = os.getenv("documents_path", os.path.expanduser("~/Documents"))
 elif sys_os == "Windows":
     documents_path = os.getenv("documents_path", os.path.join(os.environ["USERPROFILE"], "Documents"))
-output_base_path = os.path.join(documents_path, "stata-mcp-folder/")
+output_base_path = os.path.join(documents_path, "stata-mcp-folder")
 os.makedirs(output_base_path, exist_ok=True)
 
 # stata_cli
@@ -554,12 +554,13 @@ def stata_do(dofile_path: str) -> str:
 
 def main() -> None:
     """Entry point for the command line interface."""
-    if sys.argv[1] == "--usable":
-        usable()
-    elif sys.argv[1] == "--version":
-        print("Stata-MCP version==1.3.9")
-    else:
+    if len(sys.argv) == 1:
         mcp.run(transport="stdio")
+    else:
+        if sys.argv[1] == "--usable":
+            usable()
+        elif sys.argv[1] == "--version":
+            print("Stata-MCP version==1.3.10")
 
 
 if __name__ == "__main__":
