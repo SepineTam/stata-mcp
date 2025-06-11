@@ -554,10 +554,10 @@ def stata_do(dofile_path: str) -> str:
 
 def main() -> None:
     """Entry point for the command line interface."""
-    if "--usable" in sys.argv[1:]:
+    if sys.argv[1] == "--usable":
         usable()
-    elif "--version" in sys.argv[1:]:
-        print("Stata-MCP version==1.3.8")
+    elif sys.argv[1] == "--version":
+        print("Stata-MCP version==1.3.9")
     else:
         mcp.run(transport="stdio")
 

@@ -24,6 +24,22 @@
 > - [AER-MCP](https://github.com/sepinetam/AER-MCP)
 
 ## 💡 Quick Start
+> Standard config requires: please make sure the stata is installed at the default path, and the stata cli (for macOS and Linux) exists.
+
+The standard config json as follows, you can DIY your config via add envs.
+```json
+{
+  "mcpServers": {
+    "stata-mcp": {
+      "command": "uvx",
+      "args": [
+        "stata-mcp"
+      ]
+    }
+  }
+}
+```
+
 For more detailed usage information, visit the [Usage guide](source/docs/Usages/Usage.md). 
 
 And some advanced usage, visit the [Advanced guide](source/docs/Usages/Advanced.md)
@@ -35,22 +51,35 @@ And some advanced usage, visit the [Advanced guide](source/docs/Usages/Advanced.
 - Your API-KEY from LLM
 
 ### Installation
+For the new version, you don't need to install the `stata-mcp` package again, you can just use the following command to check whether your computer can use stata-mcp.
 ```bash
-# Clone the repository
+uvx stata-mcp --usable
+uvx stata-mcp --version
+```
+
+If you want to use it locally, you can install it via pip or download the source code.
+
+**Download via pip**
+```bash
+pip install stata-mcp
+```
+
+**Download source code and compile**
+```bash
 git clone https://github.com/sepinetam/stata-mcp.git
 cd stata-mcp
 
-# Using uv (recommended) to test usable
-uv run usable.py
+uv build
+```
+Then you can find the compiled `stata-mcp` binary in the `dist` directory. You can use it directly or add it to your PATH.
 
-# Alternative setup with pip
-# python3.11 -m venv .venv
-# source .venv/bin/activate
-# pip install -r requirements.txt
+For example:
+```bash
+uvx /path/to/your/whl/stata_mcp-3.1.9-py3-non-any.whl  # here is the wheel file name, you can change it to your version
 ```
 
 ## 📝 Documentation
-- For more detailed usage information, visit the [Usage guide](docs/Usages/Usage.md).
+- For more detailed usage information, visit the [Usage guide](source/docs/Usages/Usage.md).
 - Advanced Usage, visit the [Advanced](source/docs/Usages/Advanced.md)
 - Some questions, visit the [Questions](source/docs/Usages/Questions.md)
 - Difference with [Stata-MCP@hanlulong](https://github.com/hanlulong/stata-mcp), visit the [Difference](source/docs/Difference.md)
@@ -88,18 +117,18 @@ If you use Stata-MCP in your research, please cite this repository using one of 
   title = {Stata-MCP: Let LLM help you achieve your regression analysis with Stata},
   year = {2025},
   url = {https://github.com/sepinetam/stata-mcp},
-  version = {1.3.8}
+  version = {3.1.9}
 }
 ```
 
 ### APA
 ```
-Song Tan. (2025). Stata-MCP: Let LLM help you achieve your regression analysis with Stata (Version 1.3.8) [Computer software]. https://github.com/sepinetam/stata-mcp
+Song Tan. (2025). Stata-MCP: Let LLM help you achieve your regression analysis with Stata (Version 3.1.9) [Computer software]. https://github.com/sepinetam/stata-mcp
 ```
 
 ### Chicago
 ```
-Song Tan. 2025. "Stata-MCP: Let LLM help you achieve your regression analysis with Stata." Version 1.3.8. https://github.com/sepinetam/stata-mcp.
+Song Tan. 2025. "Stata-MCP: Let LLM help you achieve your regression analysis with Stata." Version 3.1.9. https://github.com/sepinetam/stata-mcp.
 ```
 
 ## 📬 Contact

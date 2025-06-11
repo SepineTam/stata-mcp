@@ -9,232 +9,217 @@
 # 使用指南（中文）
 ## macOS
 ### 视频演示
-- [YouTube]()
-- [bilibili]()
-- [Official Website]()
+
+* YouTube
+* bilibili
+* 官方网站
 
 ### 准备工作
 #### 必需品
-- Stata 17+
-- python 3.11+（相对较低的版本或许可行，但是本项目并没有在低版本下进行测试）
-- uv（推荐使用uv进行配置以避免在配置上不必要的麻烦）
-- 任一支持MCP的客户端，如Claude桌面版、Cursor、Cherry Studio等
+
+* **Stata 17+**
+* **Python 3.11+**（低版本可能可行，但本项目未经过测试）
+* **uv** 和 **uvx**（推荐使用，以避免不必要的配置问题）
+* 任意支持 MCP 的客户端，如 Claude 桌面版、Cursor、Cherry Studio 等
 
 #### 获取项目
+
 ```bash
 git clone https://www.github.com/sepinetam/stata-mcp.git
 cd stata-mcp
 ```
 
 #### 环境配置
-1. 请确保你的计算机已经安装 Stata 软件（并具有有效的 Stata 许可证，如您使用非正版授权的 Stata 请务必阅读本项目的[开源许可](../../../LICENSE)）
-2. 安装Stata终端工具，具体流程为：在Stata的菜单栏中点击Stata，选择"安装终端工具..."（如下图所示）
 
-![](../../img/usage_01.png)
+1. 确保已安装 Stata 软件，并具有有效许可证；如使用非官方授权，请阅读本项目的[开源许可](../../../LICENSE)。
+2. 在项目目录下运行：
 
-3. 验证 Stata cli 的安装，在该项目目录下运行 `uv run usable.py` ，如未抛出异常则代表可用性通过。
-4. 或者你可以在终端中使用 `/usr/local/bin/stata-se` 直接判断是否可用（其中se换成你的stata版本），你将会看到下面的这样的返回
+```bash
+uvx stata-mcp --usable
+```
 
-![](../../img/usage_02.png)
+* 若所有检查通过，则可使用默认配置。
+* 若 `stata_cli` 项显示 **FAILED**，则需在配置中指定 Stata 可执行文件路径。
+
+3. （可选）可直接通过以下命令确认：
+
+```bash
+/usr/local/bin/stata-se  # 或者 stata-mp、stata-ci 等，视安装版本而定
+```
 
 ### Stata-MCP 配置
+
 #### 通用配置
-> 目前，Stata-MCP已支持自动去寻找Stata的路径，不需要用户提供版本号，如下的配置即可快速使用。
+
+> Stata-MCP 支持自动查找本地 Stata 路径，无需手动指定版本号。
+
 ```json
 {
   "mcpServers": {
     "stata-mcp": {
-      "command": "uv",
-      "args": [
-        "--directory",
-        "/path/to/the/repo/",
-        "run",
-        "__init__.py"
-      ]
+      "command": "uvx",
+      "args": ["stata-mcp"]
     }
   }
 }
 ```
 
-> 如果你想要指定Stata可执行文件的路径，按照如下配置：
+> 若需指定 Stata 可执行文件路径或自定义文档保存目录，可添加 `env`：
+
 ```json
 {
   "mcpServers": {
     "stata-mcp": {
-      "command": "uv",
-      "args": [
-        "--directory",
-        "/path/to/the/repo/",
-        "run",
-        "__init__.py",
-        "True"
-      ],
+      "command": "uvx",
+      "args": ["stata-mcp"],
       "env": {
-        "stata_cli": "/usr/local/bin/stata-se"
+        "stata_cli": "/usr/local/bin/stata-se",
+        "documents_path": "~/Documents/stata-mcp"
       }
     }
   }
 }
 ```
-#### Claude
-与通用配置相同，如要指定Stata CLI的路径在 `args` 中添加 `True` 并添加 `stata_cli` 在 `env` 中。
-```json
-{
-  "mcpServers": {
-    "stata-mcp": {
-      "command": "uv",
-      "args": [
-        "--directory",
-        "/path/to/the/repo/",
-        "run",
-        "__init__.py"
-      ]
-    }
-  }
-}
-```
 
-#### Cherry Studio配置
-Cherry Studio中推荐使用GUI填写
+#### Claude 配置
+
+同通用配置。若需指定 Stata CLI 路径，只需在 `env` 中添加 `stata_cli`（可选：`documents_path`）。
+
+#### Cherry Studio 配置
+
+通过 GUI 填写：
+
 ```text
 name: Stata-MCP
-command: uv
+command: uvx
 args:
-  run
-  /path/to/the/repo/stata_mcp.py
+  - stata-mcp
+envs:
+  stata_cli="/usr/local/bin/stata-se"
+  documents_path="~/Documents/stata-mcp"
 ```
-
-如果你要指定Stata CLI的路径，同样地在参数中加入 `True`，并在 `env` 中加入 `stata_cli`
 
 #### ChatWise 配置
-ChatWise不仅支持通过剪切板的json导入（这种情况下你可以在修改了repo的路径后直接复制通用配置），
-这里建议可以在命令里直接键入
+
+支持剪贴板 JSON 导入，或直接输入：
+
 ```bash
-uv run /path/to/the/repo/__init__.py
+uvx stata-mcp
 ```
 
-同样，如果你要指定Stata CLI的路径，换成如下命令，并在 `env` 中加入 `stata_cli`
+如需指定 CLI 路径：
+
 ```bash
-uv run /path/to/the/repo/__init__.py True
+uvx stata-mcp --env stata_cli="/usr/local/bin/stata-se"
 ```
 
-### 更多
-参考[Advanced](Advanced.md#高级功能)
-
+---
 
 ## Windows
-> ~~作者的瞎逼逼：如果可以，这边建议您更换一台macOS的电脑~~
 
 ### 视频演示
-- [YouTube]()
-- [bilibili]()
-- [Official Website]()
+
+* YouTube
+* bilibili
+* 官方网站
 
 ### 准备工作
+
 #### 必需品
-- Stata 17+
-- python 3.11+（相对较低的版本或许可行，但是本项目并没有在低版本下进行测试）
-- uv（推荐使用uv进行配置以避免在配置上不必要的麻烦）
-- 任一支持MCP的客户端，如Claude桌面版、Cursor、Cherry Studio等
+
+* **Stata 17+**
+* **Python 3.11+**（低版本可能可行，但本项目未经过测试）
+* **uv** 和 **uvx**（推荐使用，以避免不必要的配置问题）
+* 任意支持 MCP 的客户端，如 Claude 桌面版、Cursor、Cherry Studio 等
 
 #### 获取项目
+
 ```bash
 git clone https://www.github.com/sepinetam/stata-mcp.git
 cd stata-mcp
 ```
 
 #### 环境配置
-1. 确保你的Windows电脑上有 Stata 软件（并具有有效的 Stata 许可证，如果您使用非正版 Stata 许可，请务必阅读本项目的[开源许可](../../../LICENSE)）
-2. Windows和macOS不同，不需要安装终端工具，而只需要确保你可以在终端或者Power Shell里确保能通过命令行打开Stata即可。
-3. 你可以运行 `uv run usable.py`，如果打开了Stata则代表测试通过。如果未能正确打开，请手动寻找Stata.exe文件（或StataMP.exe、StataSE.exe等，这是依据你的版本而定的）
 
-### Stata-MCP配置
+1. 安装 Stata，并确保可通过命令行（CMD 或 PowerShell）启动（如 `Stata.exe`、`StataMP.exe`、`StataSE.exe`）。
+2. 在项目目录下运行：
+
+```bash
+uvx stata-mcp --usable
+```
+
+* 全部检查通过后，可使用默认配置。
+* 若 `stata_cli` 显示 **FAILED**，请记录 Stata 可执行文件的完整路径，并在配置中指定。
+
+### Stata-MCP 配置
+
 #### 通用配置
-> 如果你的Stata安装在**默认路径**或者是在默认路径下只改变了盘符，请直接按照默认配置以避免不必要的麻烦
-> 
-> Windows 系统下请注意避免在路径中出现中文和空格，同时请注意`/` 和 `\\`的使用
+
+> 若 Stata 安装在默认位置（仅盘符不同），可使用以下简单配置：
 
 ```json
 {
   "mcpServers": {
     "stata-mcp": {
-      "command": "uv",
-      "args": [
-        "--directory",
-        "C:\\path\\to\\the\\repo",
-        "run",
-        "__init__.py"
-      ]
+      "command": "uvx",
+      "args": ["stata-mcp"]
     }
   }
 }
 ```
 
-> 如果你是自定义的Stata安装路径，请按照如下配置：
+> 若需指定自定义 Stata 路径或文档目录，添加 `env`：
+
 ```json
 {
   "mcpServers": {
     "stata-mcp": {
-      "command": "uv",
-      "args": [
-        "--directory",
-        "C:\\path\\to\\the\\repo",
-        "run",
-        "__init__.py",
-        "True"
-      ],
+      "command": "uvx",
+      "args": ["stata-mcp"],
       "env": {
-        "stata_cli": "C:\\Program Files\\Stata18\\StataSE.exe"
+        "stata_cli": "C:\\Program Files\\Stata18\\StataSE.exe",
+        "documents_path": "C:\\Users\\YourUser\\Documents\\stata-mcp"
       }
     }
   }
 }
 ```
-其中stata_cli为你的Stata可执行文件(`.exe`文件)的绝对路径。如果你有任何疑问请提交[PR](https://github.com/sepinetam/stata-mcp/pulls)
 
-#### Claude
-与通用配置相同，如要指定Stata可执行文件路径，在 `args` 中添加 `True` 并添加 `stata_cli` 在 `env` 中。
-```json
-{
-  "mcpServers": {
-    "stata-mcp": {
-      "command": "uv",
-      "args": [
-        "--directory",
-        "C:\\path\\to\\the\\repo",
-        "run",
-        "__init__.py"
-      ]
-    }
-  }
-}
-```
+#### Claude 配置
 
-#### Cherry Studio配置
-Cherry Studio中推荐使用GUI填写
+同通用配置，将 `stata_cli`（及可选的 `documents_path`）添加至 `env`。
+
+#### Cherry Studio 配置
+
+在 GUI 中填写：
+
 ```text
 name: Stata-MCP
-command: uv
+command: uvx
 args:
-  run
-  "C:\\path\\to\\the\\repo\\stata_mcp.py"
+  - stata-mcp
+envs:
+  stata_cli="C:\\Program Files\\Stata18\\StataSE.exe"
+  documents_path="C:\\Users\\YourUser\\Documents\\stata-mcp"
 ```
-如果你要指定Stata可执行文件的路径，同样地在参数中加入 `True`，并在 `env` 中加入 `stata_cli`
 
 #### ChatWise 配置
-ChatWise不仅支持通过剪切板的json导入（这种情况下你可以在修改了repo的路径后直接复制通用配置），
-这里建议可以在命令里直接键入
+
+可粘贴 JSON 或直接在命令行输入：
+
 ```bash
-uv run "C:\\path\\to\\the\\repo\\stata_mcp.py"
+uvx stata-mcp
 ```
 
-同样，如果你要指定Stata可执行文件的路径，换成如下命令，并在 `env` 中加入 `stata_cli`
+指定 CLI 路径：
+
 ```bash
-uv run "C:\\path\\to\\the\\repo\\stata_mcp.py" True
+uvx stata-mcp --env stata_cli="C:\\Program Files\\Stata18\\StataSE.exe"
 ```
 
-### 更多
-参考[Advanced](Advanced.md#高级功能)
+---
+
+更多信息请参阅 [Advanced](Advanced.md#高级功能)。
 
 
 # Usage Guide (English)
@@ -248,14 +233,14 @@ uv run "C:\\path\\to\\the\\repo\\stata_mcp.py" True
 #### Requirements
 - Stata 17+
 - Python 3.11+ (lower versions might work, but this project has not been tested with lower versions)
-- uv (recommended for setup to avoid unnecessary configuration issues)
+- uv and uvx(recommended for setup to avoid unnecessary configuration issues)
 - Any client that supports MCP, such as Claude desktop app, Cursor, Cherry Studio, etc.
 
-#### Getting the Project
+#### Check your environments
 ```bash
-git clone https://www.github.com/sepinetam/stata-mcp.git
-cd stata-mcp
+uvx stata-mcp --usable
 ```
+If all of them are PASSED, it means you can use it directory with the default config, if you find the stata_cli FAILED, you can config your env-variable in your shell, or you can config it in your MCP client later.
 
 #### Environment Setup
 1. Ensure that you have Stata software installed on your computer (with a valid Stata license. If you're using a non-official Stata license, please make sure to read the [open source license](../../../LICENSE) of this project)
@@ -279,52 +264,51 @@ Then,
 {
   "mcpServers": {
     "stata-mcp": {
-      "command": "uv",
+      "command": "uvx",
       "args": [
-        "--directory",
-        "/path/to/the/repo/",
-        "run",
-        "__init__.py"
+        "stata-mcp"
       ]
     }
   }
 }
 ```
 
-> If you want to specify the path to the Stata executable, use the following configuration:
+> If you want to specify the path to the Stata executable, or you want to make the certain file saving path, use the following configuration:
 ```json
 {
   "mcpServers": {
     "stata-mcp": {
-      "command": "uv",
+      "command": "uvx",
       "args": [
-        "--directory",
-        "/path/to/the/repo/",
-        "run",
-        "__init__.py",
-        "True"
+        "stata-mcp"
       ],
       "env": {
-        "stata_cli": "/usr/local/bin/stata-se"
+        "stata_cli": "/path/to/your/stata-cli",
+        "documents_path": "~/Documents/stata-mcp"
       }
     }
   }
 }
 ```
 
+> Notes: <br>
+> for Windows, you should find the exe file if you want to use the certain version of your Stata if there are lots of different version on your computer;<br>
+> for macOS, you could not use the two different `stata-mp` because it is a cli tool, but if you have a StataSE 17 and a StataMP 19, you can use both of them. 
+
 #### Claude Configuration
-Same as the general configuration. To specify the Stata CLI path, add `True` to the `args` and add `stata_cli` to the `env`.
+Same as the general configuration. To specify the Stata CLI path, and add `stata_cli` to the `env`.
 ```json
 {
   "mcpServers": {
     "stata-mcp": {
-      "command": "uv",
+      "command": "uvx",
       "args": [
-        "--directory",
-        "/path/to/the/repo/",
-        "run",
-        "__init__.py"
-      ]
+        "stata-mcp"
+      ],
+      "env": {
+        "stata_cli": "/path/to/your/stata-cli",
+        "documents_path": "~/Documents/stata-mcp"
+      }
     }
   }
 }
@@ -334,140 +318,156 @@ Same as the general configuration. To specify the Stata CLI path, add `True` to 
 In Cherry Studio, it's recommended to use the GUI to fill in:
 ```text
 name: Stata-MCP
-command: uv
+command: uvx
 args:
-  run
-  /path/to/the/repo/stata_mcp.py
+  stata-mcp
+envs:
+  stata_cli="/path/to/your/stata-cli"
+  documents_path=~/Documents/stata-mcp
 ```
 
-If you need to specify the Stata CLI path, add `True` to the parameters and add `stata_cli` to the `env`.
+If you need to specify the Stata CLI path, add `stata_cli` to the `env`.
+
+> Notes:<br>
+> Maybe there is something wrong on CherryStudio, here is an alternative method to config it:
+> you can con down the source code and use it or download it via pip
+```bash
+# for first download it
+pip install stata-mcp
+
+# for upgrade it
+pip install --upgrade stata-mcp
+```
+Then you can config it like this:
+```text
+name: Stata-MCP
+command: stata-mcp
+(no args)
+envs:
+  stata_cli="/path/to/your/stata-cli"
+  documents_path=~/Documents/stata-mcp
+```
 
 #### ChatWise Configuration
 ChatWise not only supports JSON import via clipboard (in which case you can directly copy the general configuration after modifying the repo path),
 but you can also directly type the command:
 ```bash
-uv run /path/to/the/repo/__init__.py
+uvx stata-mcp
 ```
 
-Similarly, if you need to specify the Stata CLI path, use the command below and add `stata_cli` to the `env`:
-```bash
-uv run /path/to/the/repo/__init__.py True
-```
+Similarly, if you need to specify the Stata CLI path, add `stata_cli` to the `env`:
 
 ### More
 Refer to [Advanced](Advanced.md#advanced)
 
 
 ## Windows
-> ~~Author's note: If possible, we recommend using a macOS computer instead~~
+## Windows
 
 ### Video Demonstration
-- [YouTube]()
-- [bilibili]()
-- [Official Website]()
+
+* [YouTube]()
+* [bilibili]()
+* [Official Website]()
 
 ### Prerequisites
-#### Requirements
-- Stata 17+
-- Python 3.11+ (lower versions might work, but this project has not been tested with lower versions)
-- uv (recommended for setup to avoid unnecessary configuration issues)
-- Any client that supports MCP, such as Claude desktop app, Cursor, Cherry Studio, etc.
 
-#### Getting the Project
+#### Requirements
+
+* **Stata 17+**
+* **Python 3.11+** (lower versions might work, but this project has not been tested with them)
+* **uv and uvx** (recommended for setup to avoid unnecessary configuration issues)
+* Any MCP-compatible client (e.g., Claude desktop app, Cursor, Cherry Studio)
+
+### Check Your Environment
+
 ```bash
-git clone https://www.github.com/sepinetam/stata-mcp.git
-cd stata-mcp
+uvx stata-mcp --usable
 ```
 
-#### Environment Setup
-1. Ensure that you have Stata software installed on your Windows computer (with a valid Stata license. If you're using a non-official Stata license, please make sure to read the [open source license](../../../LICENSE) of this project)
-2. Unlike macOS, Windows doesn't require installing terminal tools. You only need to ensure that you can open Stata via command line in Terminal or PowerShell.
-3. You can run `uv run usable.py` - if Stata opens, the test has passed. If it doesn't open correctly, manually look for the Stata.exe file (or StataMP.exe, StataSE.exe, etc., depending on your version)
+If all checks pass, you can proceed with the default configuration. If `stata_cli` shows **FAILED**, you’ll need to specify its path in your config (see below).
+
+### Environment Setup
+
+1. **Install Stata** on your Windows machine (ensure you have a valid license; if using an unofficial license, please review this project’s [open-source license](../../../LICENSE)).
+2. **No terminal tools** are required on Windows—just verify you can launch Stata from Command Prompt or PowerShell.
+3. If `uvx stata-mcp --usable` does not open Stata, locate your Stata executable (`Stata.exe`, `StataMP.exe`, or `StataSE.exe`) and note its full path for the configuration step.
+
+---
 
 ### Stata-MCP Configuration
+
 #### General Configuration
-> If Stata is installed in the **default path** or if you only changed the drive letter in the default path, please use the default configuration to avoid unnecessary issues.
-> 
-> On Windows, please avoid using Chinese characters and spaces in paths, and pay attention to the use of `/` and `\\`.
+
+> If Stata is installed in the **default location** (e.g., only the drive letter differs), use the simple setup below.
+> On Windows, avoid Chinese characters and spaces in paths; be mindful of `\\` vs `/`.
 
 ```json
 {
   "mcpServers": {
     "stata-mcp": {
-      "command": "uv",
+      "command": "uvx",
       "args": [
-        "--directory",
-        "C:\\path\\to\\the\\repo",
-        "run",
-        "__init__.py"
+        "stata-mcp"
       ]
     }
   }
 }
 ```
 
-> If you have a custom Stata installation path, use the following configuration:
+> To specify a **custom Stata path** or set a **documents directory**, add an `env` section:
+
 ```json
 {
   "mcpServers": {
     "stata-mcp": {
-      "command": "uv",
+      "command": "uvx",
       "args": [
-        "--directory",
-        "C:\\path\\to\\the\\repo",
-        "run",
-        "__init__.py",
-        "True"
+        "stata-mcp"
       ],
       "env": {
-        "stata_cli": "C:\\Program Files\\Stata18\\StataSE.exe"
+        "stata_cli": "C:\\Program Files\\Stata18\\StataSE.exe",
+        "documents_path": "C:\\Users\\YourUser\\Documents\\stata-mcp"
       }
     }
   }
 }
 ```
-Where `stata_cli` is the absolute path to your Stata executable (`.exe` file). If you have any questions, please submit a [PR](https://github.com/sepinetam/stata-mcp/pulls).
 
 #### Claude Configuration
-Same as the general configuration. To specify the Stata executable path, add `True` to the `args` and add `stata_cli` to the `env`.
-```json
-{
-  "mcpServers": {
-    "stata-mcp": {
-      "command": "uv",
-      "args": [
-        "--directory",
-        "C:\\path\\to\\the\\repo",
-        "run",
-        "__init__.py"
-      ]
-    }
-  }
-}
-```
+
+Same as General Configuration. To override the Stata executable path, include the `stata_cli` (and optionally `documents_path`) in the `env`.
 
 #### Cherry Studio Configuration
-In Cherry Studio, it's recommended to use the GUI to fill in:
+
+Use the GUI in Cherry Studio:
+
 ```text
 name: Stata-MCP
-command: uv
+command: uvx
 args:
-  run
-  "C:\\path\\to\\the\\repo\\stata_mcp.py"
+  - stata-mcp
+envs:
+  stata_cli="C:\\Program Files\\Stata18\\StataSE.exe"
+  documents_path="C:\\Users\\YourUser\\Documents\\stata-mcp"
 ```
-If you need to specify the Stata executable path, add `True` to the parameters and add `stata_cli` to the `env`.
 
 #### ChatWise Configuration
-ChatWise not only supports JSON import via clipboard (in which case you can directly copy the general configuration after modifying the repo path),
-but you can also directly type the command:
+
+You can import JSON via clipboard or type the command directly:
+
 ```bash
-uv run "C:\\path\\to\\the\\repo\\stata_mcp.py"
+uvx stata-mcp
 ```
 
-Similarly, if you need to specify the Stata executable path, use the command below and add `stata_cli` to the `env`:
+To specify the Stata path:
+
 ```bash
-uv run "C:\\path\\to\\the\\repo\\stata_mcp.py" True
+uvx stata-mcp --env stata_cli="C:\\Program Files\\Stata18\\StataSE.exe"
 ```
+
+---
 
 ### More
-Refer to [Advanced](Advanced.md#advanced)
+
+Refer to [Advanced](Advanced.md#advanced) for additional features and customization.
