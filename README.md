@@ -75,7 +75,7 @@ Then you can find the compiled `stata-mcp` binary in the `dist` directory. You c
 
 For example:
 ```bash
-uvx /path/to/your/whl/stata_mcp-3.1.9-py3-non-any.whl  # here is the wheel file name, you can change it to your version
+uvx /path/to/your/whl/stata_mcp-1.3.9-py3-non-any.whl  # here is the wheel file name, you can change it to your version
 ```
 
 ## 📝 Documentation
@@ -117,18 +117,18 @@ If you use Stata-MCP in your research, please cite this repository using one of 
   title = {Stata-MCP: Let LLM help you achieve your regression analysis with Stata},
   year = {2025},
   url = {https://github.com/sepinetam/stata-mcp},
-  version = {3.1.9}
+  version = {1.3.9}
 }
 ```
 
 ### APA
 ```
-Song Tan. (2025). Stata-MCP: Let LLM help you achieve your regression analysis with Stata (Version 3.1.9) [Computer software]. https://github.com/sepinetam/stata-mcp
+Song Tan. (2025). Stata-MCP: Let LLM help you achieve your regression analysis with Stata (Version 1.3.9) [Computer software]. https://github.com/sepinetam/stata-mcp
 ```
 
 ### Chicago
 ```
-Song Tan. 2025. "Stata-MCP: Let LLM help you achieve your regression analysis with Stata." Version 3.1.9. https://github.com/sepinetam/stata-mcp.
+Song Tan. 2025. "Stata-MCP: Let LLM help you achieve your regression analysis with Stata." Version 1.3.9. https://github.com/sepinetam/stata-mcp.
 ```
 
 ## 📬 Contact
