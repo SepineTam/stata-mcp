@@ -24,6 +24,22 @@
 > - [AER-MCP](https://github.com/sepinetam/AER-MCP)
 
 ## 💡 Démarrage Rapide
+> La configuration standard nécessite que Stata soit installé sur le chemin par défaut et que l'interface en ligne de commande de Stata (pour macOS et Linux) soit disponible.
+
+Le fichier json de configuration standard est le suivant, vous pouvez personnaliser votre configuration en ajoutant des variables d'environnement.
+```json
+{
+  "mcpServers": {
+    "stata-mcp": {
+      "command": "uvx",
+      "args": [
+        "stata-mcp"
+      ]
+    }
+  }
+}
+```
+
 Pour des informations d'utilisation plus détaillées, consultez le [guide d'utilisation](../../Usages/Usage.md).
 
 Et pour une utilisation avancée, visitez le [Guide avancé](../../Usages/Advanced.md)
@@ -35,18 +51,31 @@ Et pour une utilisation avancée, visitez le [Guide avancé](../../Usages/Advanc
 - Votre clé API pour le service LLM
 
 ### Installation
+Pour la nouvelle version, il n'est plus nécessaire d'installer le paquet `stata-mcp`. Utilisez simplement les commandes suivantes pour vérifier que votre ordinateur peut l'exécuter :
 ```bash
-# Cloner le dépôt
+uvx stata-mcp --usable
+uvx stata-mcp --version
+```
+
+Si vous souhaitez l'utiliser localement, vous pouvez l'installer via pip ou télécharger le code source puis le compiler.
+
+**Installation via pip**
+```bash
+pip install stata-mcp
+```
+
+**Télécharger le code source et compiler**
+```bash
 git clone https://github.com/sepinetam/stata-mcp.git
 cd stata-mcp
 
-# Utilisation avec uv (recommandé) pour tester la disponibilité
-uv run usable.py
+uv build
+```
+Vous trouverez ensuite le binaire `stata-mcp` compilé dans le répertoire `dist`. Vous pouvez l'utiliser directement ou l'ajouter à votre PATH.
 
-# Configuration alternative avec pip
-# python3.11 -m venv .venv
-# source .venv/bin/activate
-# pip install -r requirements.txt
+Par exemple :
+```bash
+uvx /path/to/your/whl/stata_mcp-3.1.9-py3-non-any.whl  # modifiez le nom du fichier selon votre version
 ```
 
 ## 📝 Documentation
