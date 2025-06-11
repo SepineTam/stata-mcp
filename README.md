@@ -1,5 +1,5 @@
 <h1 align="center">
-  <a href="https://www.statamcp.com"><img src="src/img/logo_with_name.jpg" alt="logo" width="300"/></a>
+  <a href="https://www.statamcp.com"><img src="source/img/logo_with_name.jpg" alt="logo" width="300"/></a>
 </h1>
 
 <h1 align="center">Stata-MCP</h1>
@@ -88,18 +88,18 @@ If you use Stata-MCP in your research, please cite this repository using one of 
   title = {Stata-MCP: Let LLM help you achieve your regression analysis with Stata},
   year = {2025},
   url = {https://github.com/sepinetam/stata-mcp},
-  version = {1.3.7}
+  version = {1.3.8}
 }
 ```
 
 ### APA
 ```
-Song Tan. (2025). Stata-MCP: Let LLM help you achieve your regression analysis with Stata (Version 1.3.7) [Computer software]. https://github.com/sepinetam/stata-mcp
+Song Tan. (2025). Stata-MCP: Let LLM help you achieve your regression analysis with Stata (Version 1.3.8) [Computer software]. https://github.com/sepinetam/stata-mcp
 ```
 
 ### Chicago
 ```
-Song Tan. 2025. "Stata-MCP: Let LLM help you achieve your regression analysis with Stata." Version 1.3.7. https://github.com/sepinetam/stata-mcp.
+Song Tan. 2025. "Stata-MCP: Let LLM help you achieve your regression analysis with Stata." Version 1.3.8. https://github.com/sepinetam/stata-mcp.
 ```
 
 ## 📬 Contact

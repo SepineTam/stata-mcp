@@ -22,7 +22,11 @@ mcp = FastMCP(name='stata-mcp')
 # Initialize optional parameters
 sys_os = platform.system()
 
-documents_path = os.getenv("documents_path", os.path.expanduser("~/Documents"))
+# Set the base output path for Stata files
+if sys_os == "Darwin" or sys_os == "Linux":
+    documents_path = os.getenv("documents_path", os.path.expanduser("~/Documents"))
+elif sys_os == "Windows":
+    documents_path = os.getenv("documents_path", os.path.join(os.environ["USERPROFILE"], "Documents"))
 output_base_path = os.path.join(documents_path, "stata-mcp-folder/")
 os.makedirs(output_base_path, exist_ok=True)
 
@@ -42,7 +46,10 @@ os.makedirs(dofile_base_path, exist_ok=True)
 result_doc_path = os.path.join(output_base_path, "stata-mcp-result")
 os.makedirs(result_doc_path, exist_ok=True)
 
-pmp.set_lang(os.getenv("lang", "en"))
+lang = os.getenv("lang", "en")
+if lang not in ["en", "cn"]:
+    lang = "en"  # Default to English if not set or invalid
+pmp.set_lang(lang)
 
 
 @mcp.prompt()
@@ -549,6 +556,8 @@ def main() -> None:
     """Entry point for the command line interface."""
     if "--usable" in sys.argv[1:]:
         usable()
+    elif "--version" in sys.argv[1:]:
+        print("Stata-MCP version==1.3.8")
     else:
         mcp.run(transport="stdio")
 
