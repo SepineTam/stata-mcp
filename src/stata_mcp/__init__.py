@@ -14,6 +14,7 @@ from mcp.server.fastmcp import FastMCP
 from .utils import StataFinder
 from .utils.Prompt import pmp
 
+from .usable import main as usable
 
 dotenv.load_dotenv()
 mcp = FastMCP(name='stata-mcp')
@@ -607,7 +608,10 @@ def stata_do(dofile_path: str) -> str:
 
 def main() -> None:
     """Entry point for the command line interface."""
-    mcp.run(transport="stdio")
+    if "--usable" in sys.argv[1:]:
+        usable()
+    else:
+        mcp.run(transport="stdio")
 
 
 if __name__ == "__main__":
