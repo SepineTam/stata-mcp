@@ -19,69 +19,20 @@ from .usable import main as usable
 dotenv.load_dotenv()
 mcp = FastMCP(name='stata-mcp')
 
-# Initialize optional parameters (defaults to None)
-stata_cli_path = None
-
-output_base_path = None
-
-log_file_path = None
-dofile_base_path = None
-result_doc_path = None
-
+# Initialize optional parameters
 sys_os = platform.system()
-is_env_stata_cli: bool = True
 
-if sys_os == "Darwin" or sys_os == "Windows" or sys_os == "Linux":
-    args = sys.argv[1:]
-    if len(args) == 0:
-        is_env_stata_cli = True
-    else:
-        if args[0].lower() == "true":
-            is_env_stata_cli = True
-        elif args[0].lower() == "false":
-            is_env_stata_cli = False
-        else:
-            is_env_stata_cli = True
-else:
-    sys.exit("Unknown OS")
-try:
-    for arg in args[1:]:
-        if arg.startswith("stata_cli_path="):
-            stata_cli_path = arg.split("=", 1)[1]  # Extract the path part
-        elif arg.startswith("output_base_path="):
-            output_base_path = arg.split("=", 1)[1]
-        else:
-            print(f"Warning: Unknown arg `{arg}`")
-except Exception as e:
-    print(e)
-
-if output_base_path is None:
-    documents_path = os.path.expanduser("~/Documents")
-    output_base_path = os.path.join(documents_path, "stata-mcp-folder/")
+documents_path = os.getenv("documents_path", os.path.expanduser("~/Documents"))
+output_base_path = os.path.join(documents_path, "stata-mcp-folder/")
 os.makedirs(output_base_path, exist_ok=True)
 
-if sys_os == "Darwin":
-    if stata_cli_path is None:
-        stata_cli_path = StataFinder.find_stata(is_env=is_env_stata_cli)
-    # check the output base path
-elif sys_os == "Windows":
-    if stata_cli_path is None:
-        stata_cli_path = StataFinder.find_stata(is_env=is_env_stata_cli)
-        if stata_cli_path is None:
-            exit_msg = ('Missing Stata.exe, you could config your Stata.exe abspath in your env\n'
-                        r'e.g. stata_cli="C:\\Program Files\\Stata19\StataMP.exe"')
-            sys.exit(exit_msg)
-    # not sure whether windows could use `documents_path = os.path.expanduser("~/Documents")`
-    # if output_base_path is None:  # need to be tested
-    #     # there is something wrong on cherry studio, so you should config the env as `USERPROFILE=YOU_RNAME`
-    #     _user_name = os.getenv("USERPROFILE").split("\\")[-1]
-    #     output_base_path = f"C:\\Users\\{_user_name}\\Documents\\stata-mcp-folder"
-    #     os.makedirs(output_base_path, exist_ok=True)
-elif sys_os == "Linux":
-    if stata_cli_path is None:
-        stata_cli_path = StataFinder.find_stata()
-else:
-    sys.exit("Unknown OS")
+# stata_cli
+stata_cli = os.getenv('stata_cli', StataFinder.find_stata())
+if stata_cli is None:
+    exit_msg = ('Missing Stata.exe, you could config your Stata.exe abspath in your env\ne.g\n'
+                r'stata_cli="C:\\Program Files\\Stata19\StataMP.exe"'
+                r'/usr/local/bin/stata-mp')
+    sys.exit(exit_msg)
 
 # Create a series of folder
 log_file_path = os.path.join(output_base_path, "stata-mcp-log")
@@ -90,18 +41,6 @@ dofile_base_path = os.path.join(output_base_path, "stata-mcp-dofile")
 os.makedirs(dofile_base_path, exist_ok=True)
 result_doc_path = os.path.join(output_base_path, "stata-mcp-result")
 os.makedirs(result_doc_path, exist_ok=True)
-
-# output_base_path/README file
-readme_path = os.path.join(output_base_path, "README.md")
-metadata = os.path.join(output_base_path, "metadata")
-
-# # Check and make README file and metadata future it would be used.
-# if not os.path.exists(readme_path):
-#     with open(readme_path, 'w', encoding='utf-8') as f:
-#         f.write(readme_content)
-# if not os.path.exists(metadata):
-#     with open(metadata, 'w', encoding='utf-8') as f:
-#         f.write("Using Log Serve...")
 
 pmp.set_lang(os.getenv("lang", "en"))
 
@@ -568,7 +507,7 @@ def stata_do(dofile_path: str) -> str:
     if sys_os == "Darwin" or sys_os == "Linux":
         # macOS/Linux 方式
         proc = subprocess.Popen(
-            [stata_cli_path],  # 启动 Stata 命令行
+            [stata_cli],  # 启动 Stata 命令行
             stdin=subprocess.PIPE,  # 准备输入命令
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -597,7 +536,7 @@ def stata_do(dofile_path: str) -> str:
 
         # 在Windows上执行Stata，使用/e参数运行批处理文件
         # 使用双引号处理路径中的空格
-        cmd = f'"{stata_cli_path}" /e do "{batch_file}"'
+        cmd = f'"{stata_cli}" /e do "{batch_file}"'
         subprocess.run(cmd, shell=True)
 
     else:
