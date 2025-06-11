@@ -44,3 +44,10 @@ The windows is supported at 2025-04-11 (and it is my birthday). Thanks each of w
 
 More information you can visit the [Usage doc for Windows](Usages/Usage_Windows.md).
 
+
+## Network Errors When Running Stata-MCP
+> (2025-06-11 Solved)
+
+If you encounter connection failures or downloads hanging when running `uv run` or communicating with the LLM service, this is usually caused by an unstable network. Please check your internet connection or switch to a more reliable network and try again.
+
+_Solves [issue #6](https://github.com/sepinetam/stata-mcp/issues/6)._ 

@@ -59,6 +59,7 @@ uv run usable.py
 - [Cherry Studio 32000 wrong](source/docs/Usages/Questions.md#cherry-studio-32000-wrong)
 - [Cherry Studio 32000 error](source/docs/Usages/Questions.md#cherry-studio-32000-error)
 - [Windows Support](source/docs/Usages/Questions.md#windows-supports)
+- [Network Errors When Running Stata-MCP](source/docs/Usages/Questions.md#network-errors-when-running-stata-mcp)
 
 ## 🚀 Roadmap
 - [x] macOS support
