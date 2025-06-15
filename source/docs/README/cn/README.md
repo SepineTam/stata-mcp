@@ -22,6 +22,7 @@
 > - Jupyter Lab 使用方法（重要提示：Stata 17+）[此处](https://github.com/sepinetam/Jupyter-Stata)
 > - [NBER-MCP](https://github.com/sepinetam/NBER-MCP) 🔧 建造之下
 > - [AER-MCP](https://github.com/sepinetam/AER-MCP)
+> - [Econometrics-Agent](https://github.com/FromCSUZhou/Econometrics-Agent)
 
 
 ## 💡 快速开始

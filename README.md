@@ -22,6 +22,7 @@
 > - Jupyter Lab Usage (Important: Stata 17+) [here](https://github.com/sepinetam/Jupyter-Stata)
 > - [NBER-MCP](https://github.com/sepinetam/NBER-MCP) 🔧 under construction
 > - [AER-MCP](https://github.com/sepinetam/AER-MCP)
+> - [Econometrics-Agent](https://github.com/FromCSUZhou/Econometrics-Agent)
 
 ## 💡 Quick Start
 > Standard config requires: please make sure the stata is installed at the default path, and the stata cli (for macOS and Linux) exists.
