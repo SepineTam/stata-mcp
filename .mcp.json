@@ -4,7 +4,7 @@
       "command": "npx",
       "args": [
         "-y",
-        "@upstash/context7-mcp",
+        "@upstash/context7-mcp@3.2.4",
         "--api-key",
         "${CONTEXT7_API_KEY}"
       ]
@@ -20,7 +20,7 @@
       "type": "stdio",
       "command": "uvx",
       "args": [
-        "mineru-open-mcp"
+        "mineru-open-mcp==1.0.21"
       ]
     },
     "codex-mcp": {
