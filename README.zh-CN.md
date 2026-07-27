@@ -357,4 +357,10 @@ Stata 是 [StataCorp LLC](https://www.stata.com/company/) 的注册商标。本�
 
 ## ✨ Star 历史
 
-[![Star History Chart](https://api.star-history.com/svg?repos=sepinetam/stata-mcp&type=Date)](https://www.star-history.com/#sepinetam/stata-mcp&Date)
+<a href="https://www.star-history.com/?repos=SepineTam%2Fmcp-for-stata&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=SepineTam/mcp-for-stata&type=date&theme=dark&legend=top-left&sealed_token=nYCu5QjXcKdZrEVmXv4bsTVSp16aISZqxYqX11MjgiIOSfWrbZuVYfr92wnr_cFQ2lio82awqmvKH8JPW_WAYipcwcsMotB8SkudroBuXpLoph2Z6dh2lo-M9RlU9O9zLMBtM_88rCnB-viD-e-7M2_QGAa2TEZzOyzz5JufSt0kh0EfYnHfdwLgPlcd" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=SepineTam/mcp-for-stata&type=date&legend=top-left&sealed_token=nYCu5QjXcKdZrEVmXv4bsTVSp16aISZqxYqX11MjgiIOSfWrbZuVYfr92wnr_cFQ2lio82awqmvKH8JPW_WAYipcwcsMotB8SkudroBuXpLoph2Z6dh2lo-M9RlU9O9zLMBtM_88rCnB-viD-e-7M2_QGAa2TEZzOyzz5JufSt0kh0EfYnHfdwLgPlcd" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=SepineTam/mcp-for-stata&type=date&legend=top-left&sealed_token=nYCu5QjXcKdZrEVmXv4bsTVSp16aISZqxYqX11MjgiIOSfWrbZuVYfr92wnr_cFQ2lio82awqmvKH8JPW_WAYipcwcsMotB8SkudroBuXpLoph2Z6dh2lo-M9RlU9O9zLMBtM_88rCnB-viD-e-7M2_QGAa2TEZzOyzz5JufSt0kh0EfYnHfdwLgPlcd" />
+ </picture>
+</a>
