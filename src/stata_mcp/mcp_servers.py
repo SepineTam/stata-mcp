@@ -830,6 +830,13 @@ _TOOL_REGISTRY: Dict[str, Dict[str, Any]] = {
         "func": get_data_info,
         "config_name": "DATA_INFO",
         "profiles": {"core", "all"},
+        # BETA gate for Windows only. get_data_info works via the CLI on Windows
+        # but the MCP wrapper has a Windows-only bug that has resisted debugging
+        # for over a month, so it is hidden from the MCP tool list on Windows
+        # unless config.ENABLE_WINDOWS_DATA_INFO (BETA.enable_windows_data_info)
+        # is turned on. See the gate in register_tools below.
+        # TO REVERT once the bug is fixed: remove this key and the matching gate.
+        "windows_beta_only": True,
     },
     "help": {
         "description": (
@@ -884,6 +891,17 @@ def register_tools(server: FastMCP, profile: str = "all") -> None:
 
     for name, meta in _TOOL_REGISTRY.items():
         if meta.get("unix_only") and not config.IS_UNIX:
+            continue
+        # BETA gate: hide Windows-only-buggy tools unless the beta flag is on.
+        # get_data_info's MCP wrapper is broken on Windows (see registry note),
+        # so on Windows it registers only when ENABLE_WINDOWS_DATA_INFO is set.
+        # TO REVERT once fixed: delete this block and the "windows_beta_only"
+        # registry key so the tool always registers on Windows again.
+        if (
+            meta.get("windows_beta_only")
+            and not config.IS_UNIX
+            and not config.ENABLE_WINDOWS_DATA_INFO
+        ):
             continue
         eligible_profiles = {"all", "unsafe"} if profile == "unsafe" else {profile}
         if not eligible_profiles.intersection(meta["profiles"]):

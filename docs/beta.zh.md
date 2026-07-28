@@ -11,6 +11,7 @@ MAX_ASYNC_DO = 3
 enable_data_info_url_guard = false
 data_info_allowed_url_domains = []
 enable_structured_log = false
+enable_windows_data_info = false
 ```
 
 ## 参数表
@@ -22,6 +23,7 @@ enable_structured_log = false
 | `enable_data_info_url_guard` | Boolean | `false` | 无 | 对传给 `get_data_info` 的 URL 数据源启用 URL 校验和域名白名单检查。 |
 | `data_info_allowed_url_domains` | List[str] | `[]` | 无 | URL guard 启用后允许访问的主机名列表。 |
 | `enable_structured_log` | Boolean | `false` | 无 | 为 `read_log` 工具和 API 启用结构化日志解析。 |
+| `enable_windows_data_info` | Boolean | `false` | `STATA_MCP__ENABLE_WINDOWS_DATA_INFO` | 仅限 Windows。在 Windows 上重新启用 `get_data_info` MCP 工具；该工具因 MCP 封装层存在已知的 Windows 专属 bug，默认在 Windows 上被隐藏。 |
 
 
 ## `IS_ASYNC_DO`
@@ -89,5 +91,31 @@ enable_structured_log = true
 ```
 
 当该开关为 `false` 时，`read_log` 返回原始文件内容。当该开关为 `true` 时，支持的日志会通过 `StataLog` 解析为结构化格式（`full`、`core` 或 `dict`）。MCP、CLI 和 API 调用都使用同一个开关和相同的处理逻辑。
+
+Boolean 字符串值必须是 `true` 或 `false`。`on`、`off` 等值不会被接受，会回退到默认值。
+
+## `enable_windows_data_info`
+
+`enable_windows_data_info` 用于在 Windows 上重新启用 `get_data_info` MCP 工具。
+
+```toml
+[BETA]
+enable_windows_data_info = true
+```
+
+也可以通过环境变量启用：
+
+```bash
+export STATA_MCP__ENABLE_WINDOWS_DATA_INFO=true
+```
+
+**为什么需要这个开关。** `get_data_info` 在 Windows 上通过 CLI 和 API 都能正常工作，
+但 MCP 层的执行路径存在一个 Windows 专属的 bug，调试了一个多月仍未找到根因。为了避免
+对外暴露一个有问题的工具，MCP server 默认在 Windows 上将 `get_data_info` 从工具列表中
+隐藏。这个开关是给了解风险、仍希望在 Windows 上暴露该工具的用户使用的显式选项。
+
+该开关对 macOS 和 Linux 无任何影响——在这些平台上 `get_data_info` 始终注册。它只控制
+MCP 工具的注册，不影响任何平台上的 CLI/API 执行路径。一旦底层的 Windows MCP bug 被修复，
+这个门禁会被移除，`get_data_info` 将重新无条件注册。
 
 Boolean 字符串值必须是 `true` 或 `false`。`on`、`off` 等值不会被接受，会回退到默认值。

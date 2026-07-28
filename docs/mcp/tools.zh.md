@@ -1,9 +1,15 @@
 # MCP.Tools
 
-工具在 `_TOOL_REGISTRY` 中按三种 profile 划分。`stata-mcp server --core` 只注册 `stata_do`、`get_data_info`、`help`；`stata-mcp server --all`（默认）注册标准工具，但不包含高风险第三方安装；`stata-mcp server --unsafe` 会额外注册 `ado_package_install`。`help` 在 Windows 上会被过滤。`write_dofile` 已不再注册为 MCP 工具。
+工具在 `_TOOL_REGISTRY` 中按三种 profile 划分。`stata-mcp server --core` 只注册 `stata_do`、`get_data_info`、`help`；`stata-mcp server --all`（默认）注册标准工具，但不包含高风险第三方安装；`stata-mcp server --unsafe` 会额外注册 `ado_package_install`。`help` 在 Windows 上会被过滤。`get_data_info` 同样默认在 Windows 上被隐藏（因为其 MCP 封装层存在已知的 Windows 专属 bug），可通过 `[BETA] enable_windows_data_info=true` 在 Windows 上重新启用。`write_dofile` 已不再注册为 MCP 工具。
 
 ---
 ## get_data_info
+> 默认在 Windows 上隐藏；可通过 `[BETA] enable_windows_data_info=true` 重新启用
+
+在 Windows 上，`get_data_info` MCP 工具默认不注册，因为其 MCP 封装层存在一个已知的
+Windows 专属 bug（CLI 和 API 路径不受影响）。设置 `[BETA] enable_windows_data_info=true`
+可在 Windows 上强制暴露该工具。macOS 和 Linux 始终注册该工具。详见 [Beta 配置](../beta.md)。
+
 ```python
 def get_data_info(data_path: str | Path,
                   vars_list: List[str] | None = None,

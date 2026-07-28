@@ -1,9 +1,16 @@
 # MCP.Tools
 
-Tools are partitioned into three profiles inside `_TOOL_REGISTRY`. `stata-mcp server --core` registers only `stata_do`, `get_data_info`, and `help`. `stata-mcp server --all` (the default) registers standard tools but excludes high-risk third-party installation. `stata-mcp server --unsafe` adds `ado_package_install`. The `help` tool is filtered out on Windows. `write_dofile` is no longer registered as an MCP tool.
+Tools are partitioned into three profiles inside `_TOOL_REGISTRY`. `stata-mcp server --core` registers only `stata_do`, `get_data_info`, and `help`. `stata-mcp server --all` (the default) registers standard tools but excludes high-risk third-party installation. `stata-mcp server --unsafe` adds `ado_package_install`. The `help` tool is filtered out on Windows. `get_data_info` is also hidden on Windows by default because its MCP wrapper has a known Windows-only bug; re-enable it there with `[BETA] enable_windows_data_info=true`. `write_dofile` is no longer registered as an MCP tool.
 
 ---
 ## get_data_info
+> Hidden on Windows by default; re-enable with `[BETA] enable_windows_data_info=true`
+
+On Windows the `get_data_info` MCP tool is not registered by default because its
+MCP wrapper has a known Windows-only bug (the CLI and API paths are unaffected).
+Set `[BETA] enable_windows_data_info=true` to expose it on Windows anyway. macOS
+and Linux always register the tool. See [Beta Configuration](../beta.md).
+
 ```python
 def get_data_info(data_path: str | Path,
                   vars_list: List[str] | None = None,
