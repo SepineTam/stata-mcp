@@ -11,6 +11,7 @@ MAX_ASYNC_DO = 3
 enable_data_info_url_guard = false
 data_info_allowed_url_domains = []
 enable_structured_log = false
+enable_windows_data_info = false
 ```
 
 ## Parameters
@@ -22,6 +23,7 @@ enable_structured_log = false
 | `enable_data_info_url_guard` | Boolean | `false` | None | Enables URL validation and domain allowlist checks for URL data sources passed to `get_data_info`. |
 | `data_info_allowed_url_domains` | List[str] | `[]` | None | Allowed hostnames when the `get_data_info` URL guard is enabled. |
 | `enable_structured_log` | Boolean | `false` | None | Enables structured log parsing for the `read_log` tool and API. |
+| `enable_windows_data_info` | Boolean | `false` | `STATA_MCP__ENABLE_WINDOWS_DATA_INFO` | Windows only. Re-enables the `get_data_info` MCP tool on Windows, where it is hidden by default because its MCP wrapper has a known Windows-only bug. |
 
 
 ## `IS_ASYNC_DO`
@@ -89,5 +91,34 @@ enable_structured_log = true
 ```
 
 When this switch is `false`, `read_log` returns raw file content. When it is `true`, supported logs are parsed into structured formats (`full`, `core`, or `dict`) via `StataLog`. MCP, CLI, and API calls all use this same switch and behavior.
+
+Boolean string values must be `true` or `false`. Values such as `on` and `off` are not accepted and fall back to the default.
+
+## `enable_windows_data_info`
+
+`enable_windows_data_info` re-enables the `get_data_info` MCP tool on Windows.
+
+```toml
+[BETA]
+enable_windows_data_info = true
+```
+
+or:
+
+```bash
+export STATA_MCP__ENABLE_WINDOWS_DATA_INFO=true
+```
+
+**Why this switch exists.** The `get_data_info` MCP wrapper works correctly
+through the CLI and API on Windows, but the MCP-layer path has a Windows-only
+bug that has resisted debugging for over a month. Rather than advertise a broken
+tool, the MCP server hides `get_data_info` from the tool list on Windows by
+default. This switch is the opt-in for users who understand the risk and still
+want the tool exposed on Windows.
+
+This switch has no effect on macOS or Linux, where `get_data_info` is always
+registered. It only controls MCP tool registration; the CLI/API code paths are
+unaffected on every platform. Once the underlying Windows MCP bug is fixed this
+gate will be removed and `get_data_info` will register unconditionally again.
 
 Boolean string values must be `true` or `false`. Values such as `on` and `off` are not accepted and fall back to the default.

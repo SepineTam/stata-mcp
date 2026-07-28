@@ -77,6 +77,7 @@ MAX_ASYNC_DO = 3
 enable_data_info_url_guard = false
 data_info_allowed_url_domains = []
 enable_structured_log = false
+enable_windows_data_info = false
 
 [HELP]
 IS_CACHE = true
@@ -407,7 +408,7 @@ Maximum RAM limit in megabytes.
 
 ### BETA Section
 
-Beta and experimental options live in the `[BETA]` section. This includes async `stata_do`, the optional `get_data_info` URL domain guard, and structured log parsing for `read_log`. See [Beta Configuration](beta.md) for the complete list, recommended defaults, and behavior notes.
+Beta and experimental options live in the `[BETA]` section. This includes async `stata_do`, the optional `get_data_info` URL domain guard, structured log parsing for `read_log`, and the Windows-only `enable_windows_data_info` switch that re-enables `get_data_info` on Windows. See [Beta Configuration](beta.md) for the complete list, recommended defaults, and behavior notes.
 
 ### STATA Section
 
