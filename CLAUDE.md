@@ -60,8 +60,11 @@ that lightweight import behavior.
 | `all` (default) | all `core` tools plus `read_log` |
 | `unsafe` | all standard tools plus `ado_package_install` |
 
-`help` is filtered out on Windows. A process cannot switch profiles after tools
-have been registered; start a new process instead.
+`help` is filtered out on Windows. `get_data_info` is also hidden on Windows by
+default (a known Windows-only MCP-wrapper bug); `[BETA] enable_windows_data_info`
+re-enables it there via the `windows_beta_only` gate in `register_tools`. A
+process cannot switch profiles after tools have been registered; start a new
+process instead.
 
 `write_dofile` remains a direct Python API helper but is not registered as an MCP
 tool. Do not add it back to `_TOOL_REGISTRY` without an explicit security review.

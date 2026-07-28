@@ -64,6 +64,7 @@ MAX_ASYNC_DO = 3
 enable_data_info_url_guard = false
 data_info_allowed_url_domains = []
 enable_structured_log = false
+enable_windows_data_info = false
 
 [HELP]
 IS_CACHE = true
@@ -389,7 +390,7 @@ Python API 不要求调用方确认。CLI 未传入 `-y` 或 `--yes` 时会进�
 
 ### BETA 分区
 
-Beta 和实验性选项位于 `[BETA]` 分区，包括异步 `stata_do`、可选的 `get_data_info` URL 域名白名单，以及 `read_log` 的结构化日志解析。完整参数、推荐默认值和行为说明见 [Beta 配置](beta.md)。
+Beta 和实验性选项位于 `[BETA]` 分区，包括异步 `stata_do`、可选的 `get_data_info` URL 域名白名单、`read_log` 的结构化日志解析，以及仅限 Windows、用于在 Windows 上重新启用 `get_data_info` 的 `enable_windows_data_info` 开关。完整参数、推荐默认值和行为说明见 [Beta 配置](beta.md)。
 
 ### STATA 分区
 
