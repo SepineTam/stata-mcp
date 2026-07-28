@@ -107,10 +107,16 @@ def _set_registry(
     mcp_servers,
     *,
     unix: bool,
+    enable_windows_data_info: bool = True,
 ) -> None:
     registry = {
         "stata_do": {"description": "d", "func": lambda: None, "profiles": {"core", "all"}},
-        "get_data_info": {"description": "d", "func": lambda: None, "profiles": {"core", "all"}},
+        "get_data_info": {
+            "description": "d",
+            "func": lambda: None,
+            "profiles": {"core", "all"},
+            "windows_beta_only": True,
+        },
         "help": {"description": "d", "func": lambda: None, "profiles": {"core", "all"}, "unix_only": True},
         "read_log": {"description": "d", "func": lambda: None, "profiles": {"all"}},
         "ado_package_install": {
@@ -127,6 +133,7 @@ def _set_registry(
         "config",
         SimpleNamespace(
             IS_UNIX=unix,
+            ENABLE_WINDOWS_DATA_INFO=enable_windows_data_info,
         ),
         raising=False,
     )
@@ -221,13 +228,44 @@ def test_register_tools_all_applies_platform_and_deprecated_filters(
     loaded_modules,
 ):
     mcp_servers, _ = loaded_modules
-    _set_registry(monkeypatch, mcp_servers, unix=False)
+    # Windows with the beta flag on keeps get_data_info available.
+    _set_registry(monkeypatch, mcp_servers, unix=False, enable_windows_data_info=True)
     server = _DummyServer()
 
     mcp_servers.register_tools(server, profile="all")
 
     assert set(server.tools) == {"stata_do", "get_data_info", "read_log"}
     assert server.resources == []
+
+
+def test_register_tools_hides_get_data_info_on_windows_without_beta(
+    monkeypatch: pytest.MonkeyPatch,
+    loaded_modules,
+):
+    # get_data_info's MCP wrapper is broken on Windows, so it must be hidden
+    # from the tool list unless the beta flag is explicitly enabled.
+    mcp_servers, _ = loaded_modules
+    _set_registry(monkeypatch, mcp_servers, unix=False, enable_windows_data_info=False)
+    server = _DummyServer()
+
+    mcp_servers.register_tools(server, profile="all")
+
+    assert "get_data_info" not in server.tools
+    assert set(server.tools) == {"stata_do", "read_log"}
+
+
+def test_register_tools_keeps_get_data_info_on_unix_regardless_of_beta(
+    monkeypatch: pytest.MonkeyPatch,
+    loaded_modules,
+):
+    # The Windows-only gate must never affect Unix platforms.
+    mcp_servers, _ = loaded_modules
+    _set_registry(monkeypatch, mcp_servers, unix=True, enable_windows_data_info=False)
+    server = _DummyServer()
+
+    mcp_servers.register_tools(server, profile="all")
+
+    assert "get_data_info" in server.tools
 
 
 def test_register_tools_applies_config_switch_after_profile_filter(

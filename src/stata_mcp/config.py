@@ -935,6 +935,28 @@ class Config:
             validator=lambda x: isinstance(x, bool),
         )
 
+    @cached_property
+    def ENABLE_WINDOWS_DATA_INFO(self) -> bool:
+        # BETA gate for the get_data_info MCP tool on Windows.
+        #
+        # WHY: get_data_info works fine through the CLI on Windows, but the MCP
+        # wrapper has a Windows-only bug that has resisted debugging for over a
+        # month. To avoid shipping a broken tool, the MCP layer hides
+        # get_data_info on Windows unless this beta flag is explicitly enabled.
+        # Non-Windows platforms are unaffected and never consult this flag.
+        #
+        # HOW TO REVERT (once the Windows MCP bug is fixed): delete this property,
+        # remove the "windows_beta_only" gate in mcp_servers.register_tools, and
+        # drop the "windows_beta_only": True entry from the get_data_info registry
+        # entry. That restores get_data_info on Windows unconditionally.
+        return self._get_config_value(
+            config_keys=["BETA", "enable_windows_data_info"],
+            env_var="STATA_MCP__ENABLE_WINDOWS_DATA_INFO",
+            default=False,
+            converter=self._to_bool,
+            validator=lambda x: isinstance(x, bool),
+        )
+
     @property
     def STATA_MCP_DIRECTORY(self) -> Path:
         base_dir = Path.home() / ".statamcp"
