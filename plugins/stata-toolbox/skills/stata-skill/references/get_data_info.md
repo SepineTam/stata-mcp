@@ -65,7 +65,7 @@ JSON string containing:
 
 Results are cached using content-addressable storage (MD5 hash of file content). Repeated queries on the same file return instantly from cache. The cache file path is returned in `saved_path`.
 
-Cache files use a versioned JSON Schema envelope containing source metadata, output-affecting settings, and the summary. Unsupported schema versions and mismatched metadata are ignored and regenerated. This envelope affects only the cache file; the tool continues to return the unwrapped summary shown above.
+Cache files retain the result structure shown above and add only top-level `$schema` and `schema_version` fields. Missing or unsupported schema versions are ignored and regenerated. These cache-only fields are removed before the tool returns a cached result, and validation is performed locally without fetching the schema URL.
 
 ## Configurable Metrics
 

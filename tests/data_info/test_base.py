@@ -261,43 +261,85 @@ class TestRuntimeSettings:
         assert second_result["info_config"]["decimal_places"] == 4
         assert len(list(cache_dir.glob("*.json"))) == 2
 
-    def test_cache_file_uses_versioned_schema_envelope(self, tmp_path):
+    def test_cache_file_adds_only_schema_metadata(self, monkeypatch, tmp_path):
         from stata_mcp.data_info.csv import CsvDataInfo
 
+        def fail_network_request(*args, **kwargs):
+            raise AssertionError("Cache processing must not make network requests")
+
+        monkeypatch.setattr("requests.get", fail_network_request)
         data_path = tmp_path / "sample.csv"
         cache_dir = tmp_path / "cache"
         data_path.write_text("value,label\n1,alpha\n2,beta\n", encoding="utf-8")
         data_info = CsvDataInfo(data_path, cache_dir=cache_dir)
 
-        expected_summary = data_info.info
+        expected_summary = data_info.summary()
         cache_document = json.loads(data_info.cached_file.read_text(encoding="utf-8"))
 
         assert cache_document["$schema"] == DataInfoBase.CACHE_SCHEMA_URI
         assert cache_document["schema_version"] == DataInfoBase.CACHE_SCHEMA_VERSION
-        assert cache_document["cache_kind"] == DataInfoBase.CACHE_KIND
-        assert cache_document["source"] == {
-            "content_hash": expected_summary["overview"]["hash"],
-            "format": "csv",
+        assert "summary" not in cache_document
+        assert set(cache_document) == {
+            "$schema",
+            "schema_version",
+            "overview",
+            "info_config",
+            "vars_detail",
+            "saved_path",
         }
-        assert cache_document["settings"] == data_info.cache_settings
-        assert cache_document["summary"]["overview"] == expected_summary["overview"]
-        assert cache_document["summary"]["info_config"] == expected_summary["info_config"]
-        assert cache_document["summary"]["saved_path"] == expected_summary["saved_path"]
-        assert cache_document["summary"]["vars_detail"]["value"]["summary"][
-            "kurtosis"
-        ] is None
+        assert all(
+            key in cache_document
+            for key in ("overview", "info_config", "vars_detail", "saved_path")
+        )
+        cached_data = {
+            key: value
+            for key, value in cache_document.items()
+            if key not in {"$schema", "schema_version"}
+        }
+        assert cached_data == expected_summary
+        assert cache_document["vars_detail"]["value"]["summary"]["kurtosis"] is None
 
-    def test_cache_with_unsupported_schema_version_is_ignored(self, tmp_path):
+        cached_result = CsvDataInfo(data_path, cache_dir=cache_dir).summary()
+
+        assert cached_result == expected_summary
+        assert "$schema" not in cached_result
+        assert "schema_version" not in cached_result
+
+    @pytest.mark.parametrize(
+        "invalid_field,invalid_value",
+        [
+            ("$schema", None),
+            ("schema_version", None),
+            ("schema_version", 2),
+            ("overview.hash", "0" * 32),
+        ],
+    )
+    def test_incompatible_cache_is_ignored(
+        self,
+        monkeypatch,
+        tmp_path,
+        invalid_field,
+        invalid_value,
+    ):
         from stata_mcp.data_info.csv import CsvDataInfo
 
+        def fail_network_request(*args, **kwargs):
+            raise AssertionError("Cache processing must not make network requests")
+
+        monkeypatch.setattr("requests.get", fail_network_request)
         data_path = tmp_path / "sample.csv"
         cache_dir = tmp_path / "cache"
         data_path.write_text("value\n1\n2\n", encoding="utf-8")
         data_info = CsvDataInfo(data_path, cache_dir=cache_dir)
         original_summary = data_info.info
         cache_document = json.loads(data_info.cached_file.read_text(encoding="utf-8"))
-        cache_document["schema_version"] = DataInfoBase.CACHE_SCHEMA_VERSION + 1
-        cache_document["summary"]["overview"]["obs"] = 999
+        if invalid_field == "overview.hash":
+            cache_document["overview"]["hash"] = invalid_value
+        elif invalid_value is None:
+            cache_document.pop(invalid_field)
+        else:
+            cache_document[invalid_field] = invalid_value
+        cache_document["overview"]["obs"] = 999
         data_info.cached_file.write_text(json.dumps(cache_document), encoding="utf-8")
 
         refreshed_summary = CsvDataInfo(data_path, cache_dir=cache_dir).info
