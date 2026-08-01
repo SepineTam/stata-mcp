@@ -23,7 +23,7 @@
         "source": { "type": "string", "minLength": 1 },
         "obs": { "type": "integer", "minimum": 0 },
         "var_numbers": { "type": "integer", "minimum": 0 },
-        "var_list": { "type": "array", "items": { "type": "string" } },
+        "var_list": { "type": "array", "items": { "type": ["string", "number"] } },
         "hash": { "type": "string", "pattern": "^[a-f0-9]{32}$" }
       }
     },
