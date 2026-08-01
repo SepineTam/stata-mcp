@@ -11,7 +11,9 @@ import copy
 import hashlib
 import json
 import logging
+import math
 import time
+from datetime import datetime, timezone
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from functools import cached_property
@@ -142,7 +144,13 @@ class DataInfoBase(ABC):
 
     # Registry of supported file extensions (to be overridden by subclasses)
     supported_extensions: List[str] = []
-    CACHE_SCHEMA_VERSION = 2
+    CACHE_SCHEMA_VERSION = 1
+    CACHE_SCHEMA_URI = (
+        "https://raw.githubusercontent.com/sepinetam/mcp-for-stata/"
+        "master/schemas/get-data-info-cache.schema.json"
+    )
+    CACHE_KIND = "stata-mcp/get-data-info"
+    CACHE_KEY_VERSION = 3
     CACHE_SETTINGS_HASH_LENGTH = 16
 
     DEFAULT_METRICS: List[str] = list(DEFAULT_DATA_INFO_METRICS)
@@ -358,19 +366,9 @@ class DataInfoBase(ABC):
     @cached_property
     def cache_settings_hash(self) -> str:
         """Return a stable identity for settings that can change cached output."""
-        source_identity = (
-            str(self.data_path) if self.is_url else self.data_path.resolve().as_posix()
-        )
         cache_settings = {
-            "schema_version": self.CACHE_SCHEMA_VERSION,
-            "handler": f"{type(self).__module__}.{type(self).__qualname__}",
-            "source": source_identity,
-            "encoding": self.encoding,
-            "read_options": self._cache_read_options,
-            "metrics": self.metrics,
-            "string_keep_number": self.string_keep_number,
-            "decimal_places": self.decimal_places,
-            "hash_length": self.HASH_LENGTH,
+            "cache_key_version": self.CACHE_KEY_VERSION,
+            **self.cache_settings,
         }
         serialized_settings = json.dumps(
             cache_settings,
@@ -381,6 +379,23 @@ class DataInfoBase(ABC):
         return hashlib.sha256(serialized_settings.encode("utf-8")).hexdigest()[
             : self.CACHE_SETTINGS_HASH_LENGTH
         ]
+
+    @cached_property
+    def cache_settings(self) -> Dict[str, Any]:
+        """Return the normalized settings recorded in the cache envelope."""
+        source_identity = (
+            str(self.data_path) if self.is_url else self.data_path.resolve().as_posix()
+        )
+        return {
+            "handler": f"{type(self).__module__}.{type(self).__qualname__}",
+            "source": source_identity,
+            "encoding": self.encoding,
+            "read_options": self._cache_read_options,
+            "metrics": self.metrics,
+            "string_keep_number": self.string_keep_number,
+            "decimal_places": self.decimal_places,
+            "hash_length": self.HASH_LENGTH,
+        }
 
     @property
     def metrics(self) -> List[str]:
@@ -722,6 +737,7 @@ class DataInfoBase(ABC):
             "vars_detail": vars_detail,
             "saved_path": self.cached_file.as_posix() if self.is_cache else "Result is not saved."
         }
+        summary_result = self._normalize_json_values(summary_result)
 
         if self.is_cache:
             self.save_to_json(summary_result)
@@ -747,7 +763,24 @@ class DataInfoBase(ABC):
             cache_ref=source_reference(saved_path),
         )
         try:
-            serialized_summary = json.dumps(summary, ensure_ascii=False, indent=4)
+            cache_document = {
+                "$schema": self.CACHE_SCHEMA_URI,
+                "schema_version": self.CACHE_SCHEMA_VERSION,
+                "cache_kind": self.CACHE_KIND,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "source": {
+                    "content_hash": summary.get("overview", {}).get("hash"),
+                    "format": self.suffix.lower(),
+                },
+                "settings": self.cache_settings,
+                "summary": summary,
+            }
+            serialized_summary = json.dumps(
+                cache_document,
+                ensure_ascii=False,
+                indent=4,
+                allow_nan=False,
+            )
             with open(saved_path, "w", encoding="utf-8") as f:
                 f.write(serialized_summary)
             log_event(
@@ -803,7 +836,7 @@ class DataInfoBase(ABC):
 
         try:
             with open(cache_path, "r", encoding="utf-8") as f:
-                cached_summary = json.load(f)
+                cache_document = json.load(f)
         except (OSError, json.JSONDecodeError) as e:
             log_event(
                 logger,
@@ -816,7 +849,19 @@ class DataInfoBase(ABC):
             )
             return None
 
-        cached_hash = cached_summary.get("overview", {}).get("hash")
+        if not self._is_supported_cache_document(cache_document):
+            log_event(
+                logger,
+                logging.DEBUG,
+                "get_data_info.cache_lookup.completed",
+                self.request_id,
+                cache_ref=cache_ref,
+                duration_ms=elapsed_ms(started_at),
+                outcome="miss_schema_mismatch",
+            )
+            return None
+
+        cached_hash = cache_document["source"]["content_hash"]
         if cached_hash != self.hash:
             log_event(
                 logger,
@@ -838,7 +883,44 @@ class DataInfoBase(ABC):
             duration_ms=elapsed_ms(started_at),
             outcome="hit",
         )
-        return cached_summary
+        return cache_document["summary"]
+
+    def _is_supported_cache_document(self, document: Any) -> bool:
+        """Check the versioned cache envelope before consuming its summary."""
+        if not isinstance(document, dict):
+            return False
+        if (
+            document.get("$schema") != self.CACHE_SCHEMA_URI
+            or document.get("schema_version") != self.CACHE_SCHEMA_VERSION
+            or document.get("cache_kind") != self.CACHE_KIND
+            or document.get("settings") != self.cache_settings
+        ):
+            return False
+        source = document.get("source")
+        summary = document.get("summary")
+        return (
+            isinstance(document.get("created_at"), str)
+            and isinstance(source, dict)
+            and isinstance(source.get("content_hash"), str)
+            and source.get("format") == self.suffix.lower()
+            and isinstance(summary, dict)
+            and isinstance(summary.get("overview"), dict)
+            and summary["overview"].get("hash") == source.get("content_hash")
+            and isinstance(summary.get("info_config"), dict)
+            and isinstance(summary.get("vars_detail"), dict)
+            and isinstance(summary.get("saved_path"), str)
+        )
+
+    @classmethod
+    def _normalize_json_values(cls, value: Any) -> Any:
+        """Replace non-finite floats so persisted documents are valid JSON."""
+        if isinstance(value, float) and not math.isfinite(value):
+            return None
+        if isinstance(value, dict):
+            return {key: cls._normalize_json_values(item) for key, item in value.items()}
+        if isinstance(value, list):
+            return [cls._normalize_json_values(item) for item in value]
+        return value
 
     # Private helper methods
     def _filter(self, summary: Dict[str, Any]) -> Dict[str, Any]:

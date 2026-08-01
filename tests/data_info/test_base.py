@@ -6,6 +6,8 @@
 测试基类的核心功能，不依赖具体文件格式。
 """
 
+import json
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -258,6 +260,50 @@ class TestRuntimeSettings:
         ]
         assert second_result["info_config"]["decimal_places"] == 4
         assert len(list(cache_dir.glob("*.json"))) == 2
+
+    def test_cache_file_uses_versioned_schema_envelope(self, tmp_path):
+        from stata_mcp.data_info.csv import CsvDataInfo
+
+        data_path = tmp_path / "sample.csv"
+        cache_dir = tmp_path / "cache"
+        data_path.write_text("value,label\n1,alpha\n2,beta\n", encoding="utf-8")
+        data_info = CsvDataInfo(data_path, cache_dir=cache_dir)
+
+        expected_summary = data_info.info
+        cache_document = json.loads(data_info.cached_file.read_text(encoding="utf-8"))
+
+        assert cache_document["$schema"] == DataInfoBase.CACHE_SCHEMA_URI
+        assert cache_document["schema_version"] == DataInfoBase.CACHE_SCHEMA_VERSION
+        assert cache_document["cache_kind"] == DataInfoBase.CACHE_KIND
+        assert cache_document["source"] == {
+            "content_hash": expected_summary["overview"]["hash"],
+            "format": "csv",
+        }
+        assert cache_document["settings"] == data_info.cache_settings
+        assert cache_document["summary"]["overview"] == expected_summary["overview"]
+        assert cache_document["summary"]["info_config"] == expected_summary["info_config"]
+        assert cache_document["summary"]["saved_path"] == expected_summary["saved_path"]
+        assert cache_document["summary"]["vars_detail"]["value"]["summary"][
+            "kurtosis"
+        ] is None
+
+    def test_cache_with_unsupported_schema_version_is_ignored(self, tmp_path):
+        from stata_mcp.data_info.csv import CsvDataInfo
+
+        data_path = tmp_path / "sample.csv"
+        cache_dir = tmp_path / "cache"
+        data_path.write_text("value\n1\n2\n", encoding="utf-8")
+        data_info = CsvDataInfo(data_path, cache_dir=cache_dir)
+        original_summary = data_info.info
+        cache_document = json.loads(data_info.cached_file.read_text(encoding="utf-8"))
+        cache_document["schema_version"] = DataInfoBase.CACHE_SCHEMA_VERSION + 1
+        cache_document["summary"]["overview"]["obs"] = 999
+        data_info.cached_file.write_text(json.dumps(cache_document), encoding="utf-8")
+
+        refreshed_summary = CsvDataInfo(data_path, cache_dir=cache_dir).info
+
+        assert original_summary["overview"]["obs"] == 2
+        assert refreshed_summary["overview"]["obs"] == 2
 
 
 class TestDetermineVariableType:

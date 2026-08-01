@@ -64,7 +64,9 @@ The tool operates through a multi-layered abstraction cascade. At the foundation
 
 Statistical computation leverages pandas DataFrame operations with NumPy backend. The metrics system implements a configurable computation pipeline where default metrics (`obs`, `mean`, `stderr`, `min`, `max`) can be extended through configuration to include quartiles (`q1`, `q3`) and distribution shape measures (`skewness`, `kurtosis`). Type dispatch separates string variables (observation counting with unique value sampling under `max_display` threshold) from numeric variables (central tendency, dispersion, and distribution shape computation with `decimal_places` precision rounding).
 
-Caching strategy employs content-addressable storage where hash computation determines cache file naming: `data_info__<name>_<ext>__hash_<suffix>.json`. Cache resolution occurs at invocation time, with automatic regeneration on content hash divergence. The cache directory defaults to `~/.statamcp/.cache/` but can be overridden to project-specific `stata-mcp-tmp/` locations through the `cache_dir` parameter.
+Caching strategy employs content-addressable storage where hash computation determines cache file naming: `data_info__<name>_<ext>__hash_<suffix>__settings_<suffix>.json`. Cache resolution occurs at invocation time, with automatic regeneration on content hash divergence. The cache directory defaults to `~/.statamcp/.cache/` but can be overridden to project-specific `stata-mcp-tmp/` locations through the `cache_dir` parameter.
+
+Each cache file follows the versioned [get_data_info cache JSON Schema](../../schemas/get-data-info-cache.schema.json). The top-level envelope records `$schema`, `schema_version`, `cache_kind`, creation time, source identity, output-affecting settings, and the cached `summary`. Readers reject unknown versions or envelopes whose source and settings do not match the current request, then regenerate the cache. The envelope is an internal persistence format; the `get_data_info` return value remains the unwrapped summary for API compatibility.
 
 ---
 

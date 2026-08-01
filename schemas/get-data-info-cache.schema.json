@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/sepinetam/mcp-for-stata/master/schemas/get-data-info-cache.schema.json",
+  "title": "MCP for Stata get_data_info cache document",
+  "description": "Version 1 envelope for a cached get_data_info summary.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schema_version",
+    "cache_kind",
+    "created_at",
+    "source",
+    "settings",
+    "summary"
+  ],
+  "properties": {
+    "$schema": { "const": "https://raw.githubusercontent.com/sepinetam/mcp-for-stata/master/schemas/get-data-info-cache.schema.json" },
+    "schema_version": { "const": 1 },
+    "cache_kind": { "const": "stata-mcp/get-data-info" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["content_hash", "format"],
+      "properties": {
+        "content_hash": { "type": "string", "pattern": "^[a-f0-9]{32}$" },
+        "format": { "type": "string", "minLength": 1 }
+      }
+    },
+    "settings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["handler", "source", "encoding", "read_options", "metrics", "string_keep_number", "decimal_places", "hash_length"],
+      "properties": {
+        "handler": { "type": "string", "minLength": 1 },
+        "source": { "type": "string", "minLength": 1 },
+        "encoding": { "type": "string", "minLength": 1 },
+        "read_options": { "type": "string" },
+        "metrics": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "string_keep_number": { "type": "integer", "minimum": 0 },
+        "decimal_places": { "type": "integer", "minimum": 0 },
+        "hash_length": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["overview", "info_config", "vars_detail", "saved_path"],
+      "properties": {
+        "overview": { "type": "object" },
+        "info_config": { "type": "object" },
+        "vars_detail": { "type": "object" },
+        "saved_path": { "type": "string" }
+      }
+    }
+  }
+}
