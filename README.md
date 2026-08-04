@@ -1,3 +1,5 @@
+[![MCP Toplist](https://mcptoplist.com/badge/io.github.SepineTam%2Fstata-mcp.svg)](https://mcptoplist.com/server/io.github.SepineTam%2Fstata-mcp)
+
 <div align="center">
   <a href="https://aidea-labs.com/mcp-for-stata">
     <img src="https://example-data.statamcp.com/logo_with_name.jpg" alt="MCP-for-Stata: Integrate Stata into your agent" width="300"/>
