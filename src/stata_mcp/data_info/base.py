@@ -11,6 +11,7 @@ import copy
 import hashlib
 import json
 import logging
+import math
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
@@ -142,7 +143,11 @@ class DataInfoBase(ABC):
 
     # Registry of supported file extensions (to be overridden by subclasses)
     supported_extensions: List[str] = []
-    CACHE_SCHEMA_VERSION = 2
+    CACHE_SCHEMA_VERSION = 1
+    CACHE_SCHEMA_URI = (
+        "https://raw.githubusercontent.com/sepinetam/mcp-for-stata/"
+        "master/schemas/get-data-info-cache.schema.json"
+    )
     CACHE_SETTINGS_HASH_LENGTH = 16
 
     DEFAULT_METRICS: List[str] = list(DEFAULT_DATA_INFO_METRICS)
@@ -722,6 +727,7 @@ class DataInfoBase(ABC):
             "vars_detail": vars_detail,
             "saved_path": self.cached_file.as_posix() if self.is_cache else "Result is not saved."
         }
+        summary_result = self._normalize_json_values(summary_result)
 
         if self.is_cache:
             self.save_to_json(summary_result)
@@ -747,7 +753,18 @@ class DataInfoBase(ABC):
             cache_ref=source_reference(saved_path),
         )
         try:
-            serialized_summary = json.dumps(summary, ensure_ascii=False, indent=4)
+            cache_document = {
+                "$schema": self.CACHE_SCHEMA_URI,
+                "schema_version": self.CACHE_SCHEMA_VERSION,
+                **copy.deepcopy(summary),
+            }
+            cache_document = self._normalize_json_values(cache_document)
+            serialized_summary = json.dumps(
+                cache_document,
+                ensure_ascii=False,
+                indent=4,
+                allow_nan=False,
+            )
             with open(saved_path, "w", encoding="utf-8") as f:
                 f.write(serialized_summary)
             log_event(
@@ -803,7 +820,7 @@ class DataInfoBase(ABC):
 
         try:
             with open(cache_path, "r", encoding="utf-8") as f:
-                cached_summary = json.load(f)
+                cache_document = json.load(f)
         except (OSError, json.JSONDecodeError) as e:
             log_event(
                 logger,
@@ -816,7 +833,19 @@ class DataInfoBase(ABC):
             )
             return None
 
-        cached_hash = cached_summary.get("overview", {}).get("hash")
+        if not self._is_supported_cache_document(cache_document):
+            log_event(
+                logger,
+                logging.DEBUG,
+                "get_data_info.cache_lookup.completed",
+                self.request_id,
+                cache_ref=cache_ref,
+                duration_ms=elapsed_ms(started_at),
+                outcome="miss_schema_mismatch",
+            )
+            return None
+
+        cached_hash = cache_document["overview"]["hash"]
         if cached_hash != self.hash:
             log_event(
                 logger,
@@ -838,7 +867,39 @@ class DataInfoBase(ABC):
             duration_ms=elapsed_ms(started_at),
             outcome="hit",
         )
+        cached_summary = copy.deepcopy(cache_document)
+        cached_summary.pop("$schema")
+        cached_summary.pop("schema_version")
         return cached_summary
+
+    def _is_supported_cache_document(self, document: Any) -> bool:
+        """Check the flat versioned cache document before consuming its summary."""
+        if not isinstance(document, dict):
+            return False
+        if (
+            document.get("$schema") != self.CACHE_SCHEMA_URI
+            or document.get("schema_version") != self.CACHE_SCHEMA_VERSION
+        ):
+            return False
+        overview = document.get("overview")
+        return (
+            isinstance(overview, dict)
+            and isinstance(overview.get("hash"), str)
+            and isinstance(document.get("info_config"), dict)
+            and isinstance(document.get("vars_detail"), dict)
+            and isinstance(document.get("saved_path"), str)
+        )
+
+    @classmethod
+    def _normalize_json_values(cls, value: Any) -> Any:
+        """Replace non-finite floats so persisted documents are valid JSON."""
+        if isinstance(value, float) and not math.isfinite(value):
+            return None
+        if isinstance(value, dict):
+            return {key: cls._normalize_json_values(item) for key, item in value.items()}
+        if isinstance(value, list):
+            return [cls._normalize_json_values(item) for item in value]
+        return value
 
     # Private helper methods
     def _filter(self, summary: Dict[str, Any]) -> Dict[str, Any]:

@@ -6,6 +6,11 @@
 测试 Excel 文件读取功能。
 """
 
+import json
+from pathlib import Path
+
+import pytest
+
 from stata_mcp.data_info.xlsx import ExcelDataInfo
 
 
@@ -50,6 +55,31 @@ class TestXlsxSummary:
         assert "vars_detail" in summary
         assert "make" in summary["vars_detail"]
         assert "price" in summary["vars_detail"]
+
+    def test_cache_schema_accepts_numeric_column_names(self, tmp_path):
+        """A generated cache with numeric Excel headers must validate."""
+        pd = pytest.importorskip("pandas")
+        jsonschema = pytest.importorskip("jsonschema")
+        xlsx_path = tmp_path / "numeric_headers.xlsx"
+        pd.DataFrame([[1, 2], [3, 4]], columns=[2020, 2021]).to_excel(
+            xlsx_path,
+            index=False,
+            engine="openpyxl",
+        )
+        data_info = ExcelDataInfo(xlsx_path, cache_dir=tmp_path / "cache")
+
+        data_info.info
+
+        cache_document = json.loads(data_info.cached_file.read_text(encoding="utf-8"))
+        schema_path = (
+            Path(__file__).resolve().parents[2]
+            / "schemas"
+            / "get-data-info-cache.schema.json"
+        )
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
+        jsonschema.Draft202012Validator.check_schema(schema)
+        jsonschema.Draft202012Validator(schema).validate(cache_document)
+        assert cache_document["overview"]["var_list"] == [2020, 2021]
 
 
 class TestXlsxStringNumericColumn:

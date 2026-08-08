@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/sepinetam/mcp-for-stata/master/schemas/get-data-info-cache.schema.json",
+  "title": "MCP for Stata get_data_info cache document",
+  "description": "Version 1 format for a cached get_data_info result.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schema_version",
+    "overview",
+    "info_config",
+    "vars_detail",
+    "saved_path"
+  ],
+  "properties": {
+    "$schema": { "const": "https://raw.githubusercontent.com/sepinetam/mcp-for-stata/master/schemas/get-data-info-cache.schema.json" },
+    "schema_version": { "const": 1 },
+    "overview": {
+      "type": "object",
+      "required": ["source", "obs", "var_numbers", "var_list", "hash"],
+      "properties": {
+        "source": { "type": "string", "minLength": 1 },
+        "obs": { "type": "integer", "minimum": 0 },
+        "var_numbers": { "type": "integer", "minimum": 0 },
+        "var_list": { "type": "array", "items": { "type": ["string", "number"] } },
+        "hash": { "type": "string", "pattern": "^[a-f0-9]{32}$" }
+      }
+    },
+    "info_config": { "type": "object" },
+    "vars_detail": { "type": "object" },
+    "saved_path": { "type": "string" }
+  }
+}

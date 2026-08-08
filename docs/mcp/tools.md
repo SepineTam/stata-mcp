@@ -64,7 +64,9 @@ The tool operates through a multi-layered abstraction cascade. At the foundation
 
 Statistical computation leverages pandas DataFrame operations with NumPy backend. The metrics system implements a configurable computation pipeline where default metrics (`obs`, `mean`, `stderr`, `min`, `max`) can be extended through configuration to include quartiles (`q1`, `q3`) and distribution shape measures (`skewness`, `kurtosis`). Type dispatch separates string variables (observation counting with unique value sampling under `max_display` threshold) from numeric variables (central tendency, dispersion, and distribution shape computation with `decimal_places` precision rounding).
 
-Caching strategy employs content-addressable storage where hash computation determines cache file naming: `data_info__<name>_<ext>__hash_<suffix>.json`. Cache resolution occurs at invocation time, with automatic regeneration on content hash divergence. The cache directory defaults to `~/.statamcp/.cache/` but can be overridden to project-specific `stata-mcp-tmp/` locations through the `cache_dir` parameter.
+Caching strategy employs content-addressable storage where hash computation determines cache file naming: `data_info__<name>_<ext>__hash_<suffix>__settings_<suffix>.json`. Cache resolution occurs at invocation time, with automatic regeneration on content hash divergence. The cache directory defaults to `~/.statamcp/.cache/` but can be overridden to project-specific `stata-mcp-tmp/` locations through the `cache_dir` parameter.
+
+Each cache file follows the versioned [get_data_info cache JSON Schema](https://raw.githubusercontent.com/sepinetam/mcp-for-stata/master/schemas/get-data-info-cache.schema.json). The cache retains the tool result's flat structure and adds only `$schema` and `schema_version` at the top level. Readers check these local metadata fields and the content hash, then regenerate caches with missing or unsupported versions. Schema validation never requires a network request, and the two cache-only metadata fields are removed before returning a cached result.
 
 ---
 
