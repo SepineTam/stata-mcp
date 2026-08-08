@@ -35,6 +35,7 @@ from ._diagnostic_logging import (
     utf8_size,
 )
 from .config import Config
+from .utils.update import get_current_version, get_latest_version
 
 # Init project config
 config = Config()
@@ -91,31 +92,51 @@ else:
 
 logging.info("Working directory configured.")
 
-# Initialize MCP Server, avoiding FastMCP server timeout caused by Icon src fetch
-instructions = (
-    "Stata-MCP provides a set of tools to operate Stata locally. "
-    "Typically, it writes code to do-file and executes them. "
-    "The minimum operation unit should be the do-file; there is no session config."
+# version prompt
+_current_version = get_current_version()
+
+_latest_version, _latest_version_error = get_latest_version()
+_version_hint = (
+    (
+        f"\nA newer version is available: {_latest_version} "
+        f"(you are running {_current_version}). "
+    )
+    if _latest_version and _latest_version != _current_version
+    else ""
 )
-try:
-    stata_mcp = FastMCP(
-        name="stata-mcp",
-        instructions=instructions,
-        website_url="https://www.statamcp.com",
-        icons=[
-            Icon(
-                src="https://r2.statamcp.com/android-chrome-512x512.png",
-                mimeType="image/png",
-                sizes=["512x512"],
-            )
-        ],
+
+# Stata-MCP system instructions
+instructions = (
+    "Stata-MCP provides a set of tools to operate Stata locally, "
+    "including execute do-files, read-logs for all users, "
+    "and get data information, get help docs of command for macOS and Linux users, "
+    "even more it also provides install ado-package as an `unsafe` mode "
+    "with `uvx stata-mcp server --unsafe` as mcp server booter. \n"
+    "Typically, it writes code to do-file and executes them. "
+    "The minimum operation unit should be the do-file; there is no session config. \n"
+    "If there is any bug on Stata-MCP, you could submit an issue on "
+    "[GitHub](https://github.com/SepineTam/mcp-for-stata/issues). "
+    f"{_version_hint}"
+    "More information you could visit on "
+    "[Official website](https://www.statamcp.com) and "
+    "[Documents](https://sepinetam.github.io/mcp-for-stata/)"
+)
+
+_icons = [
+    Icon(
+        src="https://r2.statamcp.com/android-chrome-512x512.png",
+        mimeType="image/png",
+        sizes=["512x512"],
     )
-except Exception:
-    stata_mcp = FastMCP(
-        name="stata-mcp",
-        instructions=instructions,
-        website_url="https://www.statamcp.com",
-    )
+]
+
+# Initialize MCP Server
+stata_mcp = FastMCP(
+    name="stata-mcp",
+    instructions=instructions,
+    website_url="https://www.statamcp.com",
+    icons=_icons,
+)
 
 # =============================================================================
 # STATA_MCP.TOOLS: Stata Core Tools
