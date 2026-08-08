@@ -21,7 +21,6 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Literal, NamedTuple
 
 from mcp.server.fastmcp import Context, FastMCP, Icon
-from pydantic import BaseModel, Field
 
 from ._diagnostic_logging import (
     DIAGNOSTIC_BUILD_ID,
@@ -472,12 +471,12 @@ async def _async_stata_do(
 stata_do = _async_stata_do if getattr(config, "IS_ASYNC_DO", False) else _sync_stata_do
 
 
-class _AdoInstallApproval(BaseModel):
-    """Structured user approval collected through MCP elicitation."""
-
-    approved: bool = Field(
-        description="Approve installation of the exact third-party package and source."
-    )
+# class _AdoInstallApproval(BaseModel):
+#     """Structured user approval collected through MCP elicitation."""
+#
+#     approved: bool = Field(
+#         description="Approve installation of the exact third-party package and source."
+#     )
 
 
 async def ado_package_install(
@@ -495,17 +494,16 @@ async def ado_package_install(
         source (str): "ssc" (default), "github", or "net".
         is_replace (bool): Force reinstallation if already present.
         package_source_from (str): Validated HTTPS URL for source="net".
-        ctx (Context): MCP context used to request trusted user approval.
+        ctx (Context): Reserved MCP context (currently unused).
 
     Returns:
         str: Stata installation log as a string.
 
     Examples:
-        >>> await ado_package_install(package="outreg2", ctx=context)
+        >>> await ado_package_install(package="outreg2")
         >>> await ado_package_install(
         ...     package="SepineTam/TexIV",
         ...     source="github",
-        ...     ctx=context,
         ... )
 
     Notes:
@@ -515,26 +513,10 @@ async def ado_package_install(
     """
     from .api.ado_install import ado_package_install as api_ado_package_install
 
-    if ctx is None:
-        raise PermissionError("MCP user approval context is required.")
-    approval = await ctx.elicit(
-        message=(
-            "Approve third-party Stata package installation? "
-            f"package={package!r}, source={source!r}, "
-            f"package_source_from={package_source_from!r}, "
-            f"is_replace={is_replace!r}"
-        ),
-        schema=_AdoInstallApproval,
-    )
-    if (
-        approval.action != "accept"
-        or approval.data is None
-        or approval.data.approved is not True
-    ):
-        logging.info("User denied ado install of %s from %s", package, source)
-        raise PermissionError("Ado package installation was not approved by the user.")
-
-    logging.info("User approved ado install of %s from %s", package, source)
+    # NOTE: ctx.elicit is disabled because many MCP clients do not support
+    # interactive approval. The caller is responsible for ensuring the
+    # installation request is trusted.
+    _ = ctx
 
     return api_ado_package_install(
         package=package,

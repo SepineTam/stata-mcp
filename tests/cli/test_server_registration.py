@@ -454,7 +454,6 @@ def test_mcp_ado_install_delegates_to_api(
         mcp_servers.ado_package_install(
             "reghdfe",
             is_replace=True,
-            ctx=context,
         )
     )
 
@@ -466,28 +465,39 @@ def test_mcp_ado_install_delegates_to_api(
         package_source_from=None,
         config_file="/tmp/config.toml",
     )
-    context.elicit.assert_awaited_once()
 
 
-def test_mcp_ado_install_fails_closed_without_user_approval(
+def test_mcp_ado_install_ignores_ctx_elicit(
     monkeypatch: pytest.MonkeyPatch,
     loaded_modules,
 ):
     mcp_servers, _ = loaded_modules
-    api_install = Mock()
+    api_install = Mock(return_value="Installation State: True")
     fake_api_module = ModuleType("stata_mcp.api.ado_install")
     fake_api_module.ado_package_install = api_install
     monkeypatch.setitem(sys.modules, "stata_mcp.api.ado_install", fake_api_module)
+    monkeypatch.setattr(
+        mcp_servers,
+        "config",
+        SimpleNamespace(config_file="/tmp/config.toml"),
+    )
+
     context = SimpleNamespace(
         elicit=AsyncMock(
             return_value=SimpleNamespace(
-                action="decline",
-                data=None,
+                action="accept",
+                data=SimpleNamespace(approved=True),
             )
         )
     )
 
-    with pytest.raises(PermissionError, match="not approved"):
-        asyncio.run(mcp_servers.ado_package_install("reghdfe", ctx=context))
+    result = asyncio.run(
+        mcp_servers.ado_package_install(
+            "reghdfe",
+            is_replace=True,
+            ctx=context,
+        )
+    )
 
-    api_install.assert_not_called()
+    assert result == "Installation State: True"
+    context.elicit.assert_not_awaited()
