@@ -358,7 +358,7 @@ def add_install_parser(subparsers: argparse._SubParsersAction) -> argparse.Argum
         "-c",
         "--client",
         choices=["claude", "cc", "claude-code", "gemini", "cursor", "cline", "codex",
-                 "opencode", "openclaw", "hermes", "hermes-agent"],
+                 "opencode", "openclaw", "hermes", "hermes-agent", "dsh", "deepseek-harness"],
         default=None,
         help="Target client. Omit -c (and --json-file) to install to all clients.",
     )

@@ -242,8 +242,15 @@ def handle_install(args: Namespace) -> int:
         print("[ERROR]\t--json-index must be used together with --json-file", file=sys.stderr)
         return 1
 
-    # 4. opencode / codex / hermes have client-specific schemas; ignore custom path
-    if client in {"opencode", "codex", "hermes", "hermes-agent"}:
+    # 4. These clients have client-specific schemas; ignore custom JSON paths.
+    if client in {
+        "opencode",
+        "codex",
+        "hermes",
+        "hermes-agent",
+        "dsh",
+        "deepseek-harness",
+    }:
         logging.info("CLI installing MCP config for client %s", client)
         with colored_stdout():
             if json_file or json_index:

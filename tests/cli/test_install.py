@@ -51,6 +51,14 @@ def test_install_rejects_invalid_client():
         parser.parse_args(["install", "-c", "nonexistent"])
 
 
+@pytest.mark.parametrize("client", ["dsh", "deepseek-harness"])
+def test_install_accepts_deepseek_harness_aliases(client):
+    parser = _build_parser()
+    args = parser.parse_args(["install", "-c", client])
+
+    assert args.client == client
+
+
 # ---------- _parse_json_index ----------
 
 def test_parse_json_index_single_segment():
@@ -136,6 +144,20 @@ def test_codex_with_json_index_warns_and_uses_default(installer_stub, capsys):
     rc = handle_install(args)
     assert rc == 0
     installer_stub.install.assert_called_once_with("codex")
+    installer_stub.install_to_json_config.assert_not_called()
+    assert "[WARN]\t" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("client", ["dsh", "deepseek-harness"])
+def test_deepseek_harness_uses_client_specific_installer(
+    client, installer_stub, capsys
+):
+    args = _make_args(client=client, json_file="/tmp/x.yml")
+
+    rc = handle_install(args)
+
+    assert rc == 0
+    installer_stub.install.assert_called_once_with(client)
     installer_stub.install_to_json_config.assert_not_called()
     assert "[WARN]\t" in capsys.readouterr().out
 

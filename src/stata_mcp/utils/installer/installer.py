@@ -24,6 +24,10 @@ logger = logging.getLogger(__name__)
 
 
 class Installer:
+    CLIENT_ALIASES = {
+        "deepseek-harness": "dsh",
+    }
+
     def __init__(self, sys_os: str = None, is_env: bool = True):
         self.sys_os = sys_os or sys.platform
         self.is_env = is_env
@@ -63,6 +67,7 @@ class Installer:
             "openclaw": self.install_to_openclaw,
             "hermes": self.install_to_hermes_agent,
             "hermes-agent": self.install_to_hermes_agent,
+            "dsh": self.install_to_deepseek_harness,
         }
 
     # Default JSON key path each generic-JSON client expects.
@@ -84,7 +89,8 @@ class Installer:
             func()
 
     def install(self, to: str):
-        install_func = self.client_function_mapping.get(to, None)
+        client = self.CLIENT_ALIASES.get(to, to)
+        install_func = self.client_function_mapping.get(client, None)
         if install_func:
             install_func()
         else:
@@ -517,3 +523,87 @@ class Installer:
             return
         config_file = Path.home() / ".hermes" / "config.yaml"
         self.install_to_yaml_config(config_file, key="mcp_servers")
+
+    def install_to_deepseek_harness(self):
+        """Install Stata-MCP into the DeepSeek Harness web profile."""
+        dsh_home = Path(os.getenv("DSH_HOME", Path.home() / ".dsh")).expanduser()
+        config_file = dsh_home / "profiles" / "web" / "cordis.patch.yml"
+        self.install_to_deepseek_harness_config(config_file)
+
+    def install_to_deepseek_harness_config(self, config_path: Path):
+        """Append the DSH MCP bridge entry without rewriting other YAML."""
+        config_path = Path(config_path)
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+
+        existing = ""
+        if config_path.exists():
+            existing = config_path.read_text(encoding="utf-8")
+            if not self._is_deepseek_harness_patch_sequence(existing):
+                print(
+                    f"[ERROR]\t{config_path} must contain a top-level YAML list; "
+                    "the file was not changed."
+                )
+                sys.exit(1)
+            if self._has_deepseek_harness_stata_entry(existing):
+                print(f"[DONE]\tstata-mcp is already installed in {config_path}.")
+                return
+
+        try:
+            self._backup_before_write(config_path)
+        except OSError as exc:
+            print(f"[ERROR]\tFailed to backup {config_path}: {exc}")
+            sys.exit(1)
+
+        entry = self._deepseek_harness_config_entry()
+        separator = "\n\n" if existing.strip() else ""
+        content = existing.rstrip("\n") + separator + entry
+        config_path.write_text(content, encoding="utf-8")
+
+        logger.info("Wrote DeepSeek Harness MCP config to %s", config_path)
+        print(f"✅ Successfully installed stata-mcp to: {config_path}")
+
+    @staticmethod
+    def _has_deepseek_harness_stata_entry(content: str) -> bool:
+        """Return whether the canonical Stata MCP entry id is present."""
+        for line in content.splitlines():
+            stripped = line.strip()
+            if stripped.startswith("- id:"):
+                entry_id = stripped.split(":", 1)[1].strip().strip("'\"")
+                if entry_id == "stata-mcp":
+                    return True
+        return False
+
+    @staticmethod
+    def _is_deepseek_harness_patch_sequence(content: str) -> bool:
+        """Conservatively check that existing DSH YAML has a top-level list."""
+        for line in content.splitlines():
+            stripped = line.strip()
+            if not stripped or stripped.startswith("#"):
+                continue
+            if stripped in {"---", "..."} or stripped.startswith("%"):
+                continue
+            return line.startswith("-")
+        return True
+
+    @staticmethod
+    def _deepseek_harness_config_entry() -> str:
+        """Build the DSH patch entry requested for Stata-MCP."""
+        lines = [
+            '# If there is any error on Stata-MCP, visit it on GitHub and submit an issue. '
+            "# Stata MCP server (https://github.com/SepineTam/mcp-for-stata) wired into",
+            "# DSH via the built-in MCP client bridge. Tools appear as mcp__stata__*.",
+            "- insert:",
+            "    - id: stata-mcp",
+            "      name: '@deepseek-ai/dsh-mcp-client'",
+            "      config:",
+            "        serverName: stata-mcp",
+            "        transport: stdio",
+            "        command: uvx",
+            "        args: ['stata-mcp', 'server']",
+            "        # Stata 跑大回归可能超 60s 默认值，设置成 20 分钟",
+            "        toolCallTimeoutMs: 1200000",
+            "        reconnect:",
+            "          maxAttempts: 5",
+            "",
+        ]
+        return "\n".join(lines)
