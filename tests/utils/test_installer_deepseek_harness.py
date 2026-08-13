@@ -40,6 +40,8 @@ def test_installs_to_dsh_home_web_profile(installer, monkeypatch, tmp_path):
     assert "        transport: stdio" in content
     assert "        command: uvx" in content
     assert "        args: ['stata-mcp', 'server']" in content
+    assert "Tools appear as mcp__stata-mcp__*." in content
+    assert "mcp__stata__*" not in content
     assert "cwd:" not in content
     assert "        toolCallTimeoutMs: 1200000" in content
     assert "          maxAttempts: 5" in content

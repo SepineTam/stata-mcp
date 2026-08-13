@@ -589,9 +589,9 @@ class Installer:
     def _deepseek_harness_config_entry() -> str:
         """Build the DSH patch entry requested for Stata-MCP."""
         lines = [
-            '# If there is any error on Stata-MCP, visit it on GitHub and submit an issue. '
+            "# If there is an error in Stata-MCP, open an issue on GitHub.",
             "# Stata MCP server (https://github.com/SepineTam/mcp-for-stata) wired into",
-            "# DSH via the built-in MCP client bridge. Tools appear as mcp__stata__*.",
+            "# DSH via the built-in MCP client bridge. Tools appear as mcp__stata-mcp__*.",
             "- insert:",
             "    - id: stata-mcp",
             "      name: '@deepseek-ai/dsh-mcp-client'",
