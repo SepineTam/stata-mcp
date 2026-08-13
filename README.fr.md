@@ -24,6 +24,7 @@ Permettez a Claude Code, Codex, OpenClaw et autres agents IA d'appeler Stata loc
 
 ---
 ## 🆕 Actualites
+- 🚀 **Support Day 0 de DeepSeek Harness** : Installez MCP-for-Stata dans DeepSeek Harness avec `uvx stata-mcp install -c dsh`. Consultez le [guide DeepSeek Harness](https://sepinetam.github.io/mcp-for-stata/agents/deepseek_harness/).
 - 🧪 **Support Claude Science** : MCP-for-Stata fonctionne desormais dans Claude Science avec une liste d'autorisations de sandbox. Consultez le [guide Claude Science](https://sepinetam.github.io/mcp-for-stata/agents/claude_science).
 - Retrouvez-nous sur WeChat : [Why I made it?](https://mp.weixin.qq.com/s/VYkykdDgfPMa5KN0_1BeFQ), et [8 figures find out Stata-MCP](https://mp.weixin.qq.com/s/RKPKA4OWAM5SeZmGtbMRew)
 - 🦞 **Support OpenClaw** : Outils CLI autonomes pour l'integration OpenClaw (`stata-mcp tool`), consultez le [guide OpenClaw](https://sepinetam.github.io/mcp-for-stata/agents/openclaw.md)
@@ -329,18 +330,18 @@ Si vous utilisez MCP-for-Stata dans votre recherche et qu'il vous aide vraiment,
   title = {MCP-for-Stata: Integrate Stata into your agent},
   year = {2025},
   url = {https://github.com/sepinetam/mcp-for-stata},
-  version = {1.21.0}
+  version = {1.22.0}
 }
 ```
 
 ### APA
 ```
-Song Tan. (2025). MCP-for-Stata: Integrate Stata into your agent (Version 1.21.0) [Computer software]. https://github.com/sepinetam/mcp-for-stata
+Song Tan. (2025). MCP-for-Stata: Integrate Stata into your agent (Version 1.22.0) [Computer software]. https://github.com/sepinetam/mcp-for-stata
 ```
 
 ### Chicago
 ```
-Song Tan. 2025. "MCP-for-Stata: Integrate Stata into your agent." Version 1.21.0. https://github.com/sepinetam/mcp-for-stata.
+Song Tan. 2025. "MCP-for-Stata: Integrate Stata into your agent." Version 1.22.0. https://github.com/sepinetam/mcp-for-stata.
 ```
 
 ## 📬 Contact

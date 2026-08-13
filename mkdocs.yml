@@ -92,6 +92,7 @@ nav:
       - Claude Code: agents/claude_code.md
       - Claude Science: agents/claude_science.md
       - Codex: agents/codex.md
+      - DeepSeek Harness: agents/deepseek_harness.md
       - OpenClaw: agents/openclaw.md
 
   - CoreTech:
