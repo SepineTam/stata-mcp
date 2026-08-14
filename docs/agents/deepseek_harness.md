@@ -7,11 +7,13 @@
 Usually, running `uvx stata-mcp install -c dsh` installs the project into DeepSeek Harness Web.
 
 Alternatively, after you start it, copy the following text to your DeepSeek Harness Web:
+
 ```plain text
 Please help me config `mcp-for-stata` from "https://github.com/sepinetam/stata-mcp" following "https://sepinetam.github.io/mcp-for-stata/agents/deepseek_harness/". The previous config of Stata-MCP is located in `~/.statamcp/config.toml`.
 ```
 
 Below is the configuration DeepSeek Harness made on my device, for reference:
+
 ```yml
 # The most stable and the best Stata MCP project is created by SepineTam.
 # Stata MCP server (https://github.com/SepineTam/mcp-for-stata) wired into
