@@ -51,7 +51,31 @@ class Verifier:
             index = self.installer.find_default_index(client)
         except ValueError as exc:
             return VerifyResult(VerifyOutcome.FAILED, 5, reason=str(exc))
-        return self.verify_file(path, index=index, key=key, client=client)
+        result = self.verify_file(path, index=index, key=key, client=client)
+        if client != "pi" or result.outcome == VerifyOutcome.FAILED:
+            return result
+
+        if not self.installer.is_pi_available():
+            return VerifyResult(
+                VerifyOutcome.WARNING,
+                0,
+                location="pi",
+                reason=f"configuration exists at {path}, but Pi is not installed",
+                warnings=["warning: Pi configuration is prepared but not active"],
+            )
+        if not self.installer.is_pi_adapter_installed():
+            return VerifyResult(
+                VerifyOutcome.WARNING,
+                0,
+                location="pi",
+                reason=(
+                    f"configuration exists at {path}, but pi-mcp-adapter is not installed"
+                ),
+                warnings=[
+                    "warning: run 'pi install npm:pi-mcp-adapter' to activate MCP in Pi"
+                ],
+            )
+        return result
 
     def verify_file(
         self,

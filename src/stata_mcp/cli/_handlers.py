@@ -250,6 +250,7 @@ def handle_install(args: Namespace) -> int:
         "hermes-agent",
         "dsh",
         "deepseek-harness",
+        "pi",
     }:
         logging.info("CLI installing MCP config for client %s", client)
         with colored_stdout():
@@ -259,7 +260,8 @@ def handle_install(args: Namespace) -> int:
                     "using the default config path."
                 )
             installer.install(client)
-            print(f"[DONE]\tStata-MCP has been installed to {client}.")
+            if client != "pi":
+                print(f"[DONE]\tStata-MCP has been installed to {client}.")
         return 0
 
     # 5. -c CLIENT (generic-JSON clients)
@@ -332,6 +334,9 @@ def handle_verify(args: Namespace) -> int:
     if result.outcome == VerifyOutcome.WARNING:
         for w in result.warnings:
             print(paint_yellow(w))
+        if result.reason:
+            print(paint_yellow(f"Prepared: {result.reason}."))
+            return 0
         print(paint_green(f"Verified: stata-mcp is installed at {result.location}."))
         return 0
     print(paint_red(f"Failed: {result.reason}."))

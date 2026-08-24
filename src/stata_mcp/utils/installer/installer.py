@@ -24,6 +24,10 @@ logger = logging.getLogger(__name__)
 
 
 class Installer:
+    PI_MCP_ADAPTER = "pi-mcp-adapter"
+    PI_MCP_ADAPTER_SOURCE = "npm:pi-mcp-adapter"
+    INSTALL_ALL_EXCLUDED_CLIENTS = frozenset({"pi"})
+
     CLIENT_ALIASES = {
         "deepseek-harness": "dsh",
         "wb": "workbuddy",
@@ -70,6 +74,7 @@ class Installer:
             "hermes-agent": self.install_to_hermes_agent,
             "dsh": self.install_to_deepseek_harness,
             "workbuddy": self.install_to_workbuddy,
+            "pi": self.install_to_pi,
         }
 
     # Default JSON key path each generic-JSON client expects.
@@ -85,11 +90,13 @@ class Installer:
         "openclaw": ["mcp", "servers"],
         "workbuddy": "mcpServers",
         "wb": "mcpServers",
+        "pi": "mcpServers",
     }
 
     def install_all(self):
-        func = self.client_function_mapping.values()
-        for func in func:
+        for client, func in self.client_function_mapping.items():
+            if client in self.INSTALL_ALL_EXCLUDED_CLIENTS:
+                continue
             func()
 
     def install(self, to: str):
@@ -106,8 +113,9 @@ class Installer:
         self,
         config_path: Path,
         key: "str | list[str]" = "mcpServers",
-        custom_config: dict = None
-    ):
+        custom_config: dict = None,
+        exit_if_exists: bool = True,
+    ) -> bool:
         config_path = Path(config_path)
         config_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -141,12 +149,15 @@ class Installer:
 
         if "stata-mcp" in servers:
             print(f"[DONE]\tstata-mcp is already installed in {config_path}.")
-            sys.exit(0)
+            if exit_if_exists:
+                sys.exit(0)
+            return False
 
         servers.update(custom_config or self.STATA_MCP_COMMON_CONFIG)
         with open(config_path, "w", encoding="utf-8") as f:
             json.dump(config, f, ensure_ascii=False, indent=2)
         logger.info("Wrote MCP config to %s", config_path)
+        return True
 
     def install_to_toml_config(self, config_path: Path, key: str = "mcpServers"):
         config_path = Path(config_path)
@@ -379,6 +390,9 @@ class Installer:
         if client == "workbuddy":
             return Path.home() / ".workbuddy" / "mcp.json"
 
+        if client == "pi":
+            return Path.home() / ".pi" / "agent" / "mcp.json"
+
         if client in {"hermes", "hermes-agent"}:
             return Path.home() / ".hermes" / "config.yaml"
 
@@ -527,6 +541,87 @@ class Installer:
         """Install Stata-MCP into WorkBuddy's user MCP configuration."""
         config_file = Path.home() / ".workbuddy" / "mcp.json"
         self.install_to_json_config(config_file)
+
+    def install_to_pi(self):
+        """Install the Pi MCP adapter when available and prepare its config."""
+        pi_available = self.is_pi_available()
+        adapter_ready = self.install_pi_adapter() if pi_available else False
+        config_file = Path.home() / ".pi" / "agent" / "mcp.json"
+        self.install_to_json_config(config_file, exit_if_exists=False)
+
+        if adapter_ready:
+            print("[DONE]\tPi MCP adapter and Stata-MCP configuration are ready.")
+            return
+
+        if pi_available:
+            print(
+                "[WARN]\tPi was found, but pi-mcp-adapter could not be installed. "
+                f"The Stata-MCP configuration was prepared at {config_file}."
+            )
+        else:
+            print(
+                "[WARN]\tPi is not installed. "
+                f"The Stata-MCP configuration was prepared at {config_file}, "
+                "but it is not active yet."
+            )
+        print(
+            f"[NOTE]\tAfter Pi is available, run: pi install {self.PI_MCP_ADAPTER_SOURCE}"
+        )
+
+    @staticmethod
+    def is_pi_available() -> bool:
+        """Return whether the Pi CLI is available on PATH."""
+        return shutil.which("pi") is not None
+
+    def install_pi_adapter(self) -> bool:
+        """Install Pi's third-party MCP adapter through the Pi package manager."""
+        pi_bin = shutil.which("pi")
+        if not pi_bin:
+            return False
+
+        command = [pi_bin, "install", self.PI_MCP_ADAPTER_SOURCE]
+        logger.info("Installing Pi MCP adapter: %s", " ".join(command))
+        print(f"$ pi install {self.PI_MCP_ADAPTER_SOURCE}")
+        try:
+            result = subprocess.run(
+                command,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+        except subprocess.CalledProcessError as exc:
+            if exc.stdout:
+                print(">", exc.stdout)
+            if exc.stderr:
+                print(">", exc.stderr)
+            combined = f"{exc.stdout or ''}\n{exc.stderr or ''}".lower()
+            if "already installed" in combined or "already exists" in combined:
+                return True
+            print("[WARN]\tFailed to install pi-mcp-adapter through Pi.")
+            return False
+
+        if result.stdout:
+            print(result.stdout)
+        print("[DONE]\tSuccessfully installed pi-mcp-adapter through Pi.")
+        return True
+
+    def is_pi_adapter_installed(self) -> bool:
+        """Check Pi's installed package list for the MCP adapter."""
+        pi_bin = shutil.which("pi")
+        if not pi_bin:
+            return False
+        try:
+            result = subprocess.run(
+                [pi_bin, "list"],
+                check=False,
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            return False
+        output = f"{result.stdout}\n{result.stderr}".lower()
+        return result.returncode == 0 and self.PI_MCP_ADAPTER in output
 
     def install_to_hermes_agent(self):
         if self.install_from_cli(

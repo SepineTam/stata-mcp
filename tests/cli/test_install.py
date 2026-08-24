@@ -67,6 +67,13 @@ def test_install_accepts_workbuddy_aliases(client):
     assert args.client == client
 
 
+def test_install_accepts_pi_client():
+    parser = _build_parser()
+    args = parser.parse_args(["install", "-c", "pi"])
+
+    assert args.client == "pi"
+
+
 # ---------- _parse_json_index ----------
 
 def test_parse_json_index_single_segment():
@@ -168,6 +175,19 @@ def test_deepseek_harness_uses_client_specific_installer(
     installer_stub.install.assert_called_once_with(client)
     installer_stub.install_to_json_config.assert_not_called()
     assert "[WARN]\t" in capsys.readouterr().out
+
+
+def test_pi_uses_client_specific_installer(installer_stub, capsys):
+    args = _make_args(client="pi", json_file="/tmp/pi.json")
+
+    rc = handle_install(args)
+
+    assert rc == 0
+    installer_stub.install.assert_called_once_with("pi")
+    installer_stub.install_to_json_config.assert_not_called()
+    output = capsys.readouterr().out
+    assert "[WARN]\t" in output
+    assert "Stata-MCP has been installed to pi" not in output
 
 
 def test_openclaw_with_json_file_uses_nested_key(installer_stub):
