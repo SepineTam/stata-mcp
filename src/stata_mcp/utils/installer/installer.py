@@ -68,6 +68,7 @@ class Installer:
             "cursor": self.install_to_cursor,
             "cline": self.install_to_cline,
             "codex": self.install_to_codex,
+            "copilot": self.install_to_copilot,
             "opencode": self.install_to_opencode,
             "openclaw": self.install_to_openclaw,
             "hermes": self.install_to_hermes_agent,
@@ -91,6 +92,7 @@ class Installer:
         "workbuddy": "mcpServers",
         "wb": "mcpServers",
         "pi": "mcpServers",
+        "copilot": "mcpServers",
     }
 
     def install_all(self):
@@ -384,6 +386,9 @@ class Installer:
         if client == "codex":
             return Path.home() / ".codex" / "config.toml"
 
+        if client == "copilot":
+            return Path.home() / ".copilot" / "mcp-config.json"
+
         if client == "openclaw":
             return Path.home() / ".openclaw" / "openclaw.json"
 
@@ -524,6 +529,38 @@ class Installer:
             return
         config_file = Path.home() / ".codex" / "config.toml"
         self.install_to_toml_config(config_file, key="mcp_servers")
+
+    def install_to_copilot(self):
+        """Install Stata-MCP into GitHub Copilot CLI."""
+        if self.install_from_cli(
+            cli_bin="copilot",
+            command=[
+                "mcp",
+                "add",
+                "stata-mcp",
+                "--env",
+                f"STATA_CLI={self.STATA_CLI}",
+                "--",
+                self.command,
+                *self.args,
+            ],
+        ):
+            return
+
+        config_file = Path.home() / ".copilot" / "mcp-config.json"
+        copilot_config = {
+            "stata-mcp": {
+                "type": "local",
+                "command": self.command,
+                "args": self.args,
+                "env": self.env,
+                "tools": ["*"],
+            }
+        }
+        self.install_to_json_config(
+            config_file,
+            custom_config=copilot_config,
+        )
 
     def install_to_openclaw(self):
         _json_config = json.dumps(

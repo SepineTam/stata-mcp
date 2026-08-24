@@ -251,6 +251,7 @@ def handle_install(args: Namespace) -> int:
         "dsh",
         "deepseek-harness",
         "pi",
+        "copilot",
     }:
         logging.info("CLI installing MCP config for client %s", client)
         with colored_stdout():

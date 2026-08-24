@@ -55,6 +55,7 @@ class TestFindConfigPath:
             ("workbuddy", ".workbuddy/mcp.json"),
             ("wb", ".workbuddy/mcp.json"),
             ("pi", ".pi/agent/mcp.json"),
+            ("copilot", ".copilot/mcp-config.json"),
         ],
     )
     def test_returns_expected_path(
@@ -108,6 +109,7 @@ class TestFindDefaultIndex:
             ("workbuddy", "mcpServers"),
             ("wb", "mcpServers"),
             ("pi", "mcpServers"),
+            ("copilot", "mcpServers"),
         ],
     )
     def test_returns_expected_key(self, client, expected):
@@ -376,6 +378,21 @@ class TestHandleVerify:
 
         assert args.client == "pi"
 
+    def test_copilot_client_is_accepted(self):
+        parser = _build_parser()
+        args = parser.parse_args(["verify", "-c", "copilot"])
+
+        assert args.client == "copilot"
+
+    @pytest.mark.parametrize("client", ["github", "github-copilot"])
+    def test_copilot_aliases_are_rejected(self, client):
+        parser = _build_parser()
+
+        with pytest.raises(SystemExit) as exc_info:
+            parser.parse_args(["verify", "-c", client])
+
+        assert exc_info.value.code == 5
+
     def test_successful_verify_prints_verified_line(self, tmp_path, capsys):
         path = _write_json(tmp_path / "config.json", {
             "mcpServers": {"stata-mcp": {"command": "uvx"}},
@@ -462,3 +479,26 @@ class TestHandleVerify:
         assert "Prepared:" in captured.out
         assert "not active" in captured.out
         assert "Verified:" not in captured.out
+
+    def test_copilot_client_routes_via_install_helper(
+        self, monkeypatch, tmp_path, capsys
+    ):
+        monkeypatch.setenv("HOME", tmp_path.as_posix())
+        copilot_path = tmp_path / ".copilot" / "mcp-config.json"
+        copilot_path.parent.mkdir(parents=True)
+        _write_json(copilot_path, {
+            "mcpServers": {
+                "stata-mcp": {
+                    "type": "local",
+                    "command": "uvx",
+                    "args": ["stata-mcp"],
+                    "tools": ["*"],
+                }
+            },
+        })
+
+        rc = handle_verify(_make_args(client="copilot"))
+
+        captured = capsys.readouterr()
+        assert rc == 0
+        assert "Verified: stata-mcp is installed at copilot." in captured.out

@@ -74,6 +74,21 @@ def test_install_accepts_pi_client():
     assert args.client == "pi"
 
 
+def test_install_accepts_only_copilot_name():
+    parser = _build_parser()
+    args = parser.parse_args(["install", "-c", "copilot"])
+
+    assert args.client == "copilot"
+
+
+@pytest.mark.parametrize("client", ["github", "github-copilot"])
+def test_install_rejects_copilot_aliases(client):
+    parser = _build_parser()
+
+    with pytest.raises(SystemExit):
+        parser.parse_args(["install", "-c", client])
+
+
 # ---------- _parse_json_index ----------
 
 def test_parse_json_index_single_segment():
@@ -188,6 +203,19 @@ def test_pi_uses_client_specific_installer(installer_stub, capsys):
     output = capsys.readouterr().out
     assert "[WARN]\t" in output
     assert "Stata-MCP has been installed to pi" not in output
+
+
+def test_copilot_uses_client_specific_installer(installer_stub, capsys):
+    args = _make_args(client="copilot", json_file="/tmp/copilot.json")
+
+    rc = handle_install(args)
+
+    assert rc == 0
+    installer_stub.install.assert_called_once_with("copilot")
+    installer_stub.install_to_json_config.assert_not_called()
+    output = capsys.readouterr().out
+    assert "[WARN]\t" in output
+    assert "Stata-MCP has been installed to copilot" in output
 
 
 def test_openclaw_with_json_file_uses_nested_key(installer_stub):
