@@ -18,7 +18,7 @@ stata-mcp install -c <client> --json-file /path/to/config.json
 stata-mcp install -c <client> --json-file /path/to/config.json --json-index parent.child
 ```
 
-Supported client keys: `claude`, `cc` (alias `claude-code`), `gemini`, `cursor`, `cline`, `codex`, `opencode`, `openclaw`, `hermes` (alias `hermes-agent`), `workbuddy` (alias `wb`), and `pi`.
+Supported client keys: `claude`, `cc` (alias `claude-code`), `gemini`, `cursor`, `cline`, `codex`, `copilot`, `opencode`, `openclaw`, `hermes` (alias `hermes-agent`), `workbuddy` (alias `wb`), and `pi`.
 
 The manual configuration snippets below are useful when the automated installer fails, when a client is not yet supported by the installer (e.g. Cherry Studio), or when full control over the generated config is required.
 
@@ -300,6 +300,17 @@ configuration file but reports that the integration is not active yet.
 Pi is excluded from `stata-mcp install --all` because installing a third-party Pi
 extension requires an explicit client choice.
 
+### GitHub Copilot CLI
+
+**Configuration Method**: Prefers `copilot mcp add`; falls back to writing the
+user-level configuration. The only installer key is `copilot`; ambiguous aliases
+such as `github` and `github-copilot` are intentionally unsupported.
+
+**Configuration File**: `~/.copilot/mcp-config.json`.
+
+**Format**: JSON, top-level key `mcpServers`. Local entries use `type: local` and
+may restrict exposed tools through the `tools` list.
+
 ### Cherry Studio (manual only)
 
 **Configuration Method**: Not covered by `stata-mcp install`; user must edit Cherry Studio's settings manually.
@@ -429,6 +440,7 @@ env.STATA_MCP__LOGGING_CONSOLE_HANDLER_ON = "true"
 | Hermes Agent   | `~/.hermes/config.yaml`                                                                                         | YAML   |
 | WorkBuddy      | `~/.workbuddy/mcp.json`                                                                                         | JSON   |
 | Pi coding agent | `~/.pi/agent/mcp.json`                                                                                         | JSON   |
+| GitHub Copilot CLI | `~/.copilot/mcp-config.json`                                                                                   | JSON   |
 | Cherry Studio  | Cherry Studio settings directory (manual only)                                                                  | JSON   |
 
 ## Troubleshooting

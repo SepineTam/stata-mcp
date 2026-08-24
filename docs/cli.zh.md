@@ -250,6 +250,7 @@ stata-mcp install --json-file /path/to/config.json --json-index mcp.servers
 | `hermes` | Hermes | `hermes-agent` |
 | `workbuddy` | WorkBuddy | `wb` |
 | `pi` | Pi coding agent | 仅显式安装；需要 `pi-mcp-adapter` |
+| `copilot` | GitHub Copilot CLI | 无别名 |
 
 ## 选项
 
