@@ -253,6 +253,7 @@ stata-mcp install --json-file /path/to/config.json --json-index mcp.servers
 | `openclaw` | OpenClaw | |
 | `hermes` | Hermes | `hermes-agent` |
 | `workbuddy` | WorkBuddy | `wb` |
+| `pi` | Pi coding agent | Explicit install only; requires `pi-mcp-adapter` |
 
 ## Options
 
@@ -292,6 +293,11 @@ stata-mcp install --json-file /path/to/config.json --json-index mcp.servers
 | `--all` | `-a` | Install to all supported clients |
 | `--json-file` | | Custom target client config file path |
 | `--json-index` | | Dot-separated nested key path (e.g. `mcp.servers`); only valid together with `--json-file` |
+
+Pi is excluded from `--all` because enabling MCP requires installing the third-party
+`pi-mcp-adapter` package. Run `stata-mcp install -c pi` explicitly. If Pi is not
+installed yet, the command prepares `~/.pi/agent/mcp.json` and prints the remaining
+adapter installation command instead of claiming that the integration is active.
 
 ### Doctor Options
 

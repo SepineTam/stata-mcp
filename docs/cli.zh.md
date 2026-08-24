@@ -249,6 +249,7 @@ stata-mcp install --json-file /path/to/config.json --json-index mcp.servers
 | `openclaw` | OpenClaw | |
 | `hermes` | Hermes | `hermes-agent` |
 | `workbuddy` | WorkBuddy | `wb` |
+| `pi` | Pi coding agent | 仅显式安装；需要 `pi-mcp-adapter` |
 
 ## 选项
 
@@ -288,6 +289,10 @@ stata-mcp install --json-file /path/to/config.json --json-index mcp.servers
 | `--all` | `-a` | 安装到所有支持的客户端 |
 | `--json-file` | | 自定义目标客户端配置文件路径 |
 | `--json-index` | | dot-notation 的嵌套键路径（如 `mcp.servers`），仅在与 `--json-file` 一起使用时有效 |
+
+Pi 不包含在 `--all` 中，因为启用 MCP 需要安装第三方软件包
+`pi-mcp-adapter`。请显式运行 `stata-mcp install -c pi`。如果尚未安装 Pi，
+命令会先准备 `~/.pi/agent/mcp.json`，并提示后续 adapter 安装命令，不会声称集成已经生效。
 
 ### 诊断选项（doctor）
 

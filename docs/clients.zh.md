@@ -18,7 +18,7 @@ stata-mcp install -c <client> --json-file /path/to/config.json
 stata-mcp install -c <client> --json-file /path/to/config.json --json-index parent.child
 ```
 
-支持的 client key：`claude`、`cc`（别名 `claude-code`）、`gemini`、`cursor`、`cline`、`codex`、`opencode`、`openclaw`、`hermes`（别名 `hermes-agent`）、`workbuddy`（别名 `wb`）。
+支持的 client key：`claude`、`cc`（别名 `claude-code`）、`gemini`、`cursor`、`cline`、`codex`、`opencode`、`openclaw`、`hermes`（别名 `hermes-agent`）、`workbuddy`（别名 `wb`）以及 `pi`。
 
 下方手工配置示例仅在自动安装失败、客户端尚未被 installer 支持（例如 Cherry Studio），或者需要完全控制最终配置时使用。
 
@@ -289,6 +289,15 @@ mcp_servers:
 - 本表中唯一的 YAML 目标；installer 采用简化的文本写入而非完整 YAML 解析器。
 - 下划线键 `mcp_servers` 与 Codex 命名风格一致。
 
+### Pi coding agent
+
+Pi 有意通过扩展而不是核心运行时提供 MCP。请显式运行
+`stata-mcp install -c pi`。如果系统中存在 `pi` 命令，installer 会先运行
+`pi install npm:pi-mcp-adapter`，再把 Stata-MCP 合并到
+`~/.pi/agent/mcp.json`。如果尚未安装 Pi，命令仍会准备配置文件，但会明确提示集成尚未生效。
+
+Pi 不包含在 `stata-mcp install --all` 中，因为安装第三方 Pi 扩展需要用户明确选择该客户端。
+
 ### Cherry Studio（仅手动配置）
 
 **配置方式**：`stata-mcp install` 不支持，用户需自行编辑 Cherry Studio 的设置文件。
@@ -417,6 +426,7 @@ env.STATA_MCP__LOGGING_CONSOLE_HANDLER_ON = "true"
 | OpenClaw       | `~/.openclaw/openclaw.json`                                                                                     | JSON |
 | Hermes Agent   | `~/.hermes/config.yaml`                                                                                         | YAML |
 | WorkBuddy      | `~/.workbuddy/mcp.json`                                                                                         | JSON |
+| Pi coding agent | `~/.pi/agent/mcp.json`                                                                                         | JSON |
 | Cherry Studio  | Cherry Studio 设置目录（仅手动）                                                                                | JSON |
 
 ## 故障排除

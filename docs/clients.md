@@ -18,7 +18,7 @@ stata-mcp install -c <client> --json-file /path/to/config.json
 stata-mcp install -c <client> --json-file /path/to/config.json --json-index parent.child
 ```
 
-Supported client keys: `claude`, `cc` (alias `claude-code`), `gemini`, `cursor`, `cline`, `codex`, `opencode`, `openclaw`, `hermes` (alias `hermes-agent`), `workbuddy` (alias `wb`).
+Supported client keys: `claude`, `cc` (alias `claude-code`), `gemini`, `cursor`, `cline`, `codex`, `opencode`, `openclaw`, `hermes` (alias `hermes-agent`), `workbuddy` (alias `wb`), and `pi`.
 
 The manual configuration snippets below are useful when the automated installer fails, when a client is not yet supported by the installer (e.g. Cherry Studio), or when full control over the generated config is required.
 
@@ -289,6 +289,17 @@ mcp_servers:
 - Only YAML target in this list; the installer uses a minimal text-based writer rather than a full YAML parser.
 - Underscore key `mcp_servers` matches the Codex naming convention.
 
+### Pi coding agent
+
+Pi intentionally provides MCP through extensions rather than its core runtime. Run
+`stata-mcp install -c pi` explicitly. When the `pi` command is available, the
+installer runs `pi install npm:pi-mcp-adapter` and then merges Stata-MCP into
+`~/.pi/agent/mcp.json`. When Pi is not installed, the same command prepares the
+configuration file but reports that the integration is not active yet.
+
+Pi is excluded from `stata-mcp install --all` because installing a third-party Pi
+extension requires an explicit client choice.
+
 ### Cherry Studio (manual only)
 
 **Configuration Method**: Not covered by `stata-mcp install`; user must edit Cherry Studio's settings manually.
@@ -417,6 +428,7 @@ env.STATA_MCP__LOGGING_CONSOLE_HANDLER_ON = "true"
 | OpenClaw       | `~/.openclaw/openclaw.json`                                                                                     | JSON   |
 | Hermes Agent   | `~/.hermes/config.yaml`                                                                                         | YAML   |
 | WorkBuddy      | `~/.workbuddy/mcp.json`                                                                                         | JSON   |
+| Pi coding agent | `~/.pi/agent/mcp.json`                                                                                         | JSON   |
 | Cherry Studio  | Cherry Studio settings directory (manual only)                                                                  | JSON   |
 
 ## Troubleshooting
