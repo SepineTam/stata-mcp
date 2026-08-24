@@ -18,7 +18,7 @@ stata-mcp install -c <client> --json-file /path/to/config.json
 stata-mcp install -c <client> --json-file /path/to/config.json --json-index parent.child
 ```
 
-支持的 client key：`claude`、`cc`（别名 `claude-code`）、`gemini`、`cursor`、`cline`、`codex`、`opencode`、`openclaw`、`hermes`（别名 `hermes-agent`）。
+支持的 client key：`claude`、`cc`（别名 `claude-code`）、`gemini`、`cursor`、`cline`、`codex`、`opencode`、`openclaw`、`hermes`（别名 `hermes-agent`）、`workbuddy`（别名 `wb`）。
 
 下方手工配置示例仅在自动安装失败、客户端尚未被 installer 支持（例如 Cherry Studio），或者需要完全控制最终配置时使用。
 
@@ -416,6 +416,7 @@ env.STATA_MCP__LOGGING_CONSOLE_HANDLER_ON = "true"
 | OpenCode       | `~/.config/opencode/opencode.json`                                                                              | JSON |
 | OpenClaw       | `~/.openclaw/openclaw.json`                                                                                     | JSON |
 | Hermes Agent   | `~/.hermes/config.yaml`                                                                                         | YAML |
+| WorkBuddy      | `~/.workbuddy/mcp.json`                                                                                         | JSON |
 | Cherry Studio  | Cherry Studio 设置目录（仅手动）                                                                                | JSON |
 
 ## 故障排除

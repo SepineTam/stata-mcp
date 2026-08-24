@@ -252,6 +252,7 @@ stata-mcp install --json-file /path/to/config.json --json-index mcp.servers
 | `opencode` | OpenCode | |
 | `openclaw` | OpenClaw | |
 | `hermes` | Hermes | `hermes-agent` |
+| `workbuddy` | WorkBuddy | `wb` |
 
 ## Options
 

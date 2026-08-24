@@ -18,7 +18,7 @@ stata-mcp install -c <client> --json-file /path/to/config.json
 stata-mcp install -c <client> --json-file /path/to/config.json --json-index parent.child
 ```
 
-Supported client keys: `claude`, `cc` (alias `claude-code`), `gemini`, `cursor`, `cline`, `codex`, `opencode`, `openclaw`, `hermes` (alias `hermes-agent`).
+Supported client keys: `claude`, `cc` (alias `claude-code`), `gemini`, `cursor`, `cline`, `codex`, `opencode`, `openclaw`, `hermes` (alias `hermes-agent`), `workbuddy` (alias `wb`).
 
 The manual configuration snippets below are useful when the automated installer fails, when a client is not yet supported by the installer (e.g. Cherry Studio), or when full control over the generated config is required.
 
@@ -416,6 +416,7 @@ env.STATA_MCP__LOGGING_CONSOLE_HANDLER_ON = "true"
 | OpenCode       | `~/.config/opencode/opencode.json`                                                                              | JSON   |
 | OpenClaw       | `~/.openclaw/openclaw.json`                                                                                     | JSON   |
 | Hermes Agent   | `~/.hermes/config.yaml`                                                                                         | YAML   |
+| WorkBuddy      | `~/.workbuddy/mcp.json`                                                                                         | JSON   |
 | Cherry Studio  | Cherry Studio settings directory (manual only)                                                                  | JSON   |
 
 ## Troubleshooting
