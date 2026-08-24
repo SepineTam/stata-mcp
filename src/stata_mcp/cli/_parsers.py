@@ -358,7 +358,8 @@ def add_install_parser(subparsers: argparse._SubParsersAction) -> argparse.Argum
         "-c",
         "--client",
         choices=["claude", "cc", "claude-code", "gemini", "cursor", "cline", "codex",
-                 "opencode", "openclaw", "hermes", "hermes-agent", "dsh", "deepseek-harness"],
+                 "opencode", "openclaw", "hermes", "hermes-agent", "dsh", "deepseek-harness",
+                 "workbuddy", "wb"],
         default=None,
         help="Target client. Omit -c (and --json-file) to install to all clients.",
     )
@@ -431,6 +432,7 @@ def add_verify_parser(subparsers: argparse._SubParsersAction) -> argparse.Argume
         choices=[
             "claude", "cc", "claude-code", "gemini", "cursor", "cline",
             "codex", "opencode", "openclaw", "hermes", "hermes-agent",
+            "workbuddy", "wb",
         ],
         default=None,
         help="Target client to check. Omit -c (and -f) to error.",

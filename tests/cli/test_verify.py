@@ -52,6 +52,8 @@ class TestFindConfigPath:
             ("openclaw", ".openclaw/openclaw.json"),
             ("hermes", ".hermes/config.yaml"),
             ("hermes-agent", ".hermes/config.yaml"),
+            ("workbuddy", ".workbuddy/mcp.json"),
+            ("wb", ".workbuddy/mcp.json"),
         ],
     )
     def test_returns_expected_path(
@@ -102,6 +104,8 @@ class TestFindDefaultIndex:
             ("hermes", "mcp_servers"),
             ("hermes-agent", "mcp_servers"),
             ("openclaw", ["mcp", "servers"]),
+            ("workbuddy", "mcpServers"),
+            ("wb", "mcpServers"),
         ],
     )
     def test_returns_expected_key(self, client, expected):
@@ -357,6 +361,13 @@ class TestHandleVerify:
             parser.parse_args(["verify", "-c", "vscode"])
         assert exc_info.value.code == 5
 
+    @pytest.mark.parametrize("client", ["workbuddy", "wb"])
+    def test_workbuddy_client_is_accepted(self, client):
+        parser = _build_parser()
+        args = parser.parse_args(["verify", "-c", client])
+
+        assert args.client == client
+
     def test_successful_verify_prints_verified_line(self, tmp_path, capsys):
         path = _write_json(tmp_path / "config.json", {
             "mcpServers": {"stata-mcp": {"command": "uvx"}},
@@ -407,3 +418,20 @@ class TestHandleVerify:
         captured = capsys.readouterr()
         assert rc == 0
         assert "Verified: stata-mcp is installed at codex." in captured.out
+
+    @pytest.mark.parametrize("client", ["workbuddy", "wb"])
+    def test_workbuddy_client_routes_via_install_helper(
+        self, client, monkeypatch, tmp_path, capsys
+    ):
+        monkeypatch.setenv("HOME", tmp_path.as_posix())
+        workbuddy_path = tmp_path / ".workbuddy" / "mcp.json"
+        workbuddy_path.parent.mkdir(parents=True)
+        _write_json(workbuddy_path, {
+            "mcpServers": {"stata-mcp": {"command": "uvx"}},
+        })
+
+        rc = handle_verify(_make_args(client=client))
+
+        captured = capsys.readouterr()
+        assert rc == 0
+        assert f"Verified: stata-mcp is installed at {client}." in captured.out

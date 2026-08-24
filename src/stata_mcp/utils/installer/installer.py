@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 class Installer:
     CLIENT_ALIASES = {
         "deepseek-harness": "dsh",
+        "wb": "workbuddy",
     }
 
     def __init__(self, sys_os: str = None, is_env: bool = True):
@@ -68,6 +69,7 @@ class Installer:
             "hermes": self.install_to_hermes_agent,
             "hermes-agent": self.install_to_hermes_agent,
             "dsh": self.install_to_deepseek_harness,
+            "workbuddy": self.install_to_workbuddy,
         }
 
     # Default JSON key path each generic-JSON client expects.
@@ -81,6 +83,8 @@ class Installer:
         "cursor": "mcpServers",
         "cline": "mcpServers",
         "openclaw": ["mcp", "servers"],
+        "workbuddy": "mcpServers",
+        "wb": "mcpServers",
     }
 
     def install_all(self):
@@ -303,6 +307,8 @@ class Installer:
         not write any file. The caller is responsible for handling a missing
         file with an appropriate "file not found" error.
         """
+        client = self.CLIENT_ALIASES.get(client, client)
+
         if client in {"claude", "claude-desktop"}:
             if self.sys_os.lower() == "darwin":
                 return Path(os.path.expanduser(
@@ -370,6 +376,9 @@ class Installer:
         if client == "openclaw":
             return Path.home() / ".openclaw" / "openclaw.json"
 
+        if client == "workbuddy":
+            return Path.home() / ".workbuddy" / "mcp.json"
+
         if client in {"hermes", "hermes-agent"}:
             return Path.home() / ".hermes" / "config.yaml"
 
@@ -377,6 +386,7 @@ class Installer:
 
     def find_default_index(self, client: str) -> "str | list[str]":
         """Return the default key path inside the client's config file."""
+        client = self.CLIENT_ALIASES.get(client, client)
         if client in self.CLIENT_DEFAULT_KEY:
             return self.CLIENT_DEFAULT_KEY[client]
         if client == "opencode":
@@ -512,6 +522,11 @@ class Installer:
             return
         config_file = Path.home() / ".openclaw" / "openclaw.json"
         self.install_to_json_config(config_file, key=["mcp", "servers"])
+
+    def install_to_workbuddy(self):
+        """Install Stata-MCP into WorkBuddy's user MCP configuration."""
+        config_file = Path.home() / ".workbuddy" / "mcp.json"
+        self.install_to_json_config(config_file)
 
     def install_to_hermes_agent(self):
         if self.install_from_cli(

@@ -59,6 +59,14 @@ def test_install_accepts_deepseek_harness_aliases(client):
     assert args.client == client
 
 
+@pytest.mark.parametrize("client", ["workbuddy", "wb"])
+def test_install_accepts_workbuddy_aliases(client):
+    parser = _build_parser()
+    args = parser.parse_args(["install", "-c", client])
+
+    assert args.client == client
+
+
 # ---------- _parse_json_index ----------
 
 def test_parse_json_index_single_segment():
@@ -171,6 +179,18 @@ def test_openclaw_with_json_file_uses_nested_key(installer_stub):
     )
 
 
+@pytest.mark.parametrize("client", ["workbuddy", "wb"])
+def test_workbuddy_with_json_file_uses_standard_key(client, installer_stub):
+    args = _make_args(client=client, json_file="/tmp/workbuddy.json")
+
+    rc = handle_install(args)
+
+    assert rc == 0
+    installer_stub.install_to_json_config.assert_called_once_with(
+        "/tmp/workbuddy.json", key="mcpServers"
+    )
+
+
 def test_client_with_json_index_overrides_default_key(installer_stub):
     args = _make_args(
         client="claude", json_file="/tmp/c.json", json_index="custom.path"
@@ -216,6 +236,8 @@ def test_client_default_key_table_excludes_opencode_and_codex():
     assert "codex" not in Installer.CLIENT_DEFAULT_KEY
     assert Installer.CLIENT_DEFAULT_KEY["openclaw"] == ["mcp", "servers"]
     assert Installer.CLIENT_DEFAULT_KEY["claude"] == "mcpServers"
+    assert Installer.CLIENT_DEFAULT_KEY["workbuddy"] == "mcpServers"
+    assert Installer.CLIENT_DEFAULT_KEY["wb"] == "mcpServers"
 
 
 def test_handle_install_colors_tagged_stdout_for_json_file(monkeypatch):
