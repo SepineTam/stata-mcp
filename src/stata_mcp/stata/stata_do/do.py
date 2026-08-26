@@ -220,6 +220,48 @@ class StataDo:
         """
         return f"stata_batch__{uuid4().hex}.do"
 
+    @classmethod
+    def _create_windows_batch_file(
+        cls,
+        dofile_path: Path,
+        log_file: Path,
+        is_replace: bool,
+    ) -> Path:
+        """Atomically create and write a random Windows wrapper do-file."""
+        batch_prefix = Path(cls._generate_batch_file_name()).stem
+        replace_clause = ", replace" if is_replace else ""
+        batch_file: Optional[Path] = None
+
+        try:
+            with tempfile.NamedTemporaryFile(
+                mode="w",
+                encoding="utf-8",
+                prefix=f"{batch_prefix}__",
+                suffix=".do",
+                delete=False,
+                newline="\n",
+            ) as file:
+                batch_file = Path(file.name)
+                file.write("capture log close\n")
+                file.write(f'log using "{log_file}"{replace_clause}\n')
+                file.write(f'do "{dofile_path}"\n')
+                file.write("log close\n")
+                file.write("exit, STATA\n")
+        except Exception:
+            if batch_file is not None:
+                try:
+                    batch_file.unlink(missing_ok=True)
+                except OSError as error:
+                    logging.warning(
+                        "Failed to remove incomplete temporary batch file %s: %s",
+                        batch_file,
+                        error,
+                    )
+            raise
+
+        assert batch_file is not None
+        return batch_file
+
     def _execute_unix_like(
         self,
         dofile_path: Path,
@@ -309,19 +351,12 @@ class StataDo:
             is_replace: Whether replace the log file if exists.
             timeout: Maximum execution time in seconds. None means no timeout.
         """
-        # Windows approach - use the /e flag to run a batch command
-        # Create a temporary batch file in system temp directory
-        batch_file = Path(tempfile.gettempdir()) / self._generate_batch_file_name()
-
-        replace_clause = ", replace" if is_replace else ""
+        batch_file = self._create_windows_batch_file(
+            dofile_path,
+            log_file,
+            is_replace,
+        )
         try:
-            with open(batch_file, "w", encoding="utf-8") as f:
-                f.write("capture log close\n")
-                f.write(f'log using "{log_file}"{replace_clause}\n')
-                f.write(f'do "{dofile_path}"\n')
-                f.write("log close\n")
-                f.write("exit, STATA\n")
-
             # Run Stata on Windows using /e to execute the batch file
             cmd = [self.STATA_CLI, "/e", "do", batch_file.as_posix()]
             result = subprocess.run(
@@ -459,20 +494,14 @@ class StataDo:
         Raises:
             RuntimeError: Stata execution error
         """
-        # Windows approach - use the /e flag to run a batch command
-        # Create a temporary batch file in system temp directory
-        batch_file = Path(tempfile.gettempdir()) / self._generate_batch_file_name()
+        batch_file = self._create_windows_batch_file(
+            dofile_path,
+            log_file,
+            is_replace,
+        )
         proc: Optional[subprocess.Popen] = None
 
-        replace_clause = ", replace" if is_replace else ""
         try:
-            with open(batch_file, "w", encoding="utf-8") as f:
-                f.write("capture log close\n")
-                f.write(f'log using "{log_file}"{replace_clause}\n')
-                f.write(f'do "{dofile_path}"\n')
-                f.write("log close\n")
-                f.write("exit, STATA\n")
-
             # Run Stata on Windows using /e to execute the batch file
             # Use Popen instead of run to enable monitoring
             cmd = [self.STATA_CLI, "/e", "do", str(batch_file)]
