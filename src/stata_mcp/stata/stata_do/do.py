@@ -15,6 +15,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 from typing import Dict, List, Literal, Optional
+from uuid import uuid4
 
 from ...utils import get_nowtime
 
@@ -209,6 +210,16 @@ class StataDo:
             raise ValueError("Invalid log_file_name. Path traversal is not allowed.")
         return log_file
 
+    @staticmethod
+    def _generate_batch_file_name() -> str:
+        """Random batch filename for the Windows launcher.
+
+        The name must never be derived from user-controlled input (e.g. the
+        do-file stem): the batch path is passed to a shell on Windows, so any
+        metacharacter smuggled into the filename would be interpreted there.
+        """
+        return f"stata_batch__{uuid4().hex}.do"
+
     def _execute_unix_like(
         self,
         dofile_path: Path,
@@ -300,7 +311,7 @@ class StataDo:
         """
         # Windows approach - use the /e flag to run a batch command
         # Create a temporary batch file in system temp directory
-        batch_file = Path(tempfile.gettempdir()) / f"stata_batch__{dofile_path.stem}.do"
+        batch_file = Path(tempfile.gettempdir()) / self._generate_batch_file_name()
 
         replace_clause = ", replace" if is_replace else ""
         try:
@@ -450,7 +461,7 @@ class StataDo:
         """
         # Windows approach - use the /e flag to run a batch command
         # Create a temporary batch file in system temp directory
-        batch_file = Path(tempfile.gettempdir()) / f"stata_batch__{dofile_path.stem}.do"
+        batch_file = Path(tempfile.gettempdir()) / self._generate_batch_file_name()
         proc: Optional[subprocess.Popen] = None
 
         replace_clause = ", replace" if is_replace else ""
