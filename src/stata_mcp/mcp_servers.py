@@ -20,7 +20,8 @@ import weakref
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Literal, NamedTuple
 
-from mcp.server.fastmcp import Context, FastMCP, Icon
+from mcp.server import MCPServer
+from mcp.server.mcpserver import Context, Icon
 
 from ._diagnostic_logging import (
     DIAGNOSTIC_BUILD_ID,
@@ -142,7 +143,7 @@ _icons = [
 ]
 
 # Initialize MCP Server
-stata_mcp = FastMCP(
+stata_mcp = MCPServer(
     name="stata-mcp",
     instructions=instructions,
     website_url="https://www.statamcp.com",
@@ -888,7 +889,7 @@ _TOOL_REGISTRY: Dict[str, Dict[str, Any]] = {
 _registered_profile: str | None = None
 
 
-def register_tools(server: FastMCP, profile: str = "all") -> None:
+def register_tools(server: MCPServer, profile: str = "all") -> None:
     """Register tools and resources based on a selected profile."""
     global _registered_profile
 
