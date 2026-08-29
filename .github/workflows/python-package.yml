@@ -1,4 +1,6 @@
-name: Publish to PyPI and MCP Registry
+# .github/workflows/python-package.yml
+# Publish to PyPI and MCP Registry
+name: Publish to PyPI
 
 on:
   release:
