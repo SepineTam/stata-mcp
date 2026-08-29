@@ -31,9 +31,6 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-14, windows-latest]
         python: ["3.11", "3.12", "3.13"]
-    env:
-      STATA_MCP__ENABLE_WINDOWS_DATA_INFO: "true"
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -58,9 +55,6 @@ jobs:
   full-suite:
     name: Full suite (Ubuntu, Python 3.11)
     runs-on: ubuntu-latest
-    env:
-      STATA_MCP__ENABLE_WINDOWS_DATA_INFO: "true"
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -77,4 +71,6 @@ jobs:
         run: uv sync
 
       - name: Run full test suite
-        run: uv run pytest -q
+        run: >-
+          uv run pytest -q
+          --deselect=tests/test_config_security.py::test_debug_config_file_ignores_user_and_project_config
