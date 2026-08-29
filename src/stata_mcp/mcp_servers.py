@@ -105,6 +105,16 @@ _version_hint = (
     else ""
 )
 
+_beta_instructions = (  # To limit how to use stata command for a stable way.
+    "If the user does not specify how charts should be saved and no other "
+    "prompt explains how to export charts from Stata, first check whether "
+    "the user's preferences can be inferred from previous do-files. If not, "
+    "follow these conventions when using Stata-MCP: To save figures suitable "
+    "for use in papers, prefer `graph export filename.png, width(2000) replace`. "
+    "For result output, generally avoid Stata's built-in table commands and "
+    "use `esttab` or `outreg2` to export regression tables.\n"
+)
+
 # Stata-MCP system instructions
 instructions = (
     "Stata-MCP provides a set of tools to operate Stata locally, "
@@ -114,6 +124,7 @@ instructions = (
     "with `uvx stata-mcp server --unsafe` as mcp server booter. \n"
     "Typically, it writes code to do-file and executes them. "
     "The minimum operation unit should be the do-file; there is no session config. \n"
+    f"{_beta_instructions}"
     "If there is any bug on Stata-MCP, you could submit an issue on "
     "[GitHub](https://github.com/SepineTam/mcp-for-stata/issues). "
     f"{_version_hint}"
