@@ -17,6 +17,7 @@ Permettez a Claude Code, Codex, OpenClaw et autres agents IA d'appeler Stata loc
 [![PyPI version](https://img.shields.io/pypi/v/stata-mcp.svg)](https://pypi.org/project/stata-mcp/)
 [![PyPI Downloads](https://static.pepy.tech/badge/stata-mcp)](https://pepy.tech/projects/stata-mcp)
 [![License: AGPL 3.0](https://img.shields.io/badge/License-AGPL%203.0-blue.svg)](LICENSE)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/14255/badge)](https://www.bestpractices.dev/projects/14255)
 [![Issue](https://img.shields.io/badge/Issue-report-green.svg)](https://github.com/sepinetam/mcp-for-stata/issues/new)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/SepineTam/mcp-for-stata)
 
