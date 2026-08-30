@@ -1,4 +1,4 @@
-"""Tests for cross-ledger security audit linkage."""
+"""Tests for cross-ledger security event linkage."""
 
 from __future__ import annotations
 
