@@ -10,7 +10,7 @@ artifact hooks for Stata do-file snapshots.
 
 ```text
 MCP client
-  -> MCPServer OpenTelemetry middleware
+  -> MCPServer
   -> AuditMiddleware
   -> tool handler
   -> StataDo snapshot hook when applicable
@@ -41,3 +41,14 @@ receives the audit failure; existing artifacts remain on disk for diagnosis.
 Client identity is self-reported and never authorizes access. Credential-like
 argument keys are redacted recursively. Audit paths remain under the configured
 project artifact root and are ignored by Git.
+
+## Deferred Work
+
+Audit v1 does not configure or export OpenTelemetry traces. Observability work
+must be designed separately and remain optional. If adopted, trace/span IDs may
+be correlated with the durable `run_id`, but traces must not replace or mutate
+the JSONL audit trail.
+
+Timeout classification, snapshot replay/recovery, and audit retention are also
+deferred. Replay must require an explicit user action, verify the content hash,
+create a new run, and keep the original audit events immutable.

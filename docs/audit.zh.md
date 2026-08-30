@@ -19,7 +19,7 @@ MCP-for-Stata 会为 MCP 工具调用写入本地、只追加的审计记录，�
     └── metadata.jsonl
 ```
 
-JSONL 的每一行都是一条不可修改的事件。一次工具调用通常产生一条 `started`，以及一条 `completed`、`failed`、`timeout` 或 `interrupted` 结束事件，两条记录使用同一个 `run_id`。
+JSONL 的每一行都是一条不可修改的事件。一次工具调用通常产生一条 `started`，以及一条 `completed`、`failed`、`interrupted` 或 `blocked` 结束事件，两条记录使用同一个 `run_id`。`timeout` 状态留作后续开发，当前中间件不会生成该状态。
 
 ## Run ID
 
@@ -53,6 +53,8 @@ Stata 启动前，MCP-for-Stata 会保存真正要执行的完整字节。metada
 
 当本地路径边界拒绝读取配置允许目录之外的日志时，`read_log` 也会使用同样的关联方式。
 
+安全结果以结束事件的 `event` 和 `executed` 字段为准。`output.is_error` 只表示 MCP 返回结果本身是否以错误形式返回。Guard 可能正常返回一条“已阻拦”消息，此时仍然会记录 `event: "blocked"` 和 `executed: false`，但 `output.is_error` 可以是 `false`。安全监控应筛选 `blocked` 事件，不能只筛选 `output.is_error`。
+
 ## 敏感信息
 
 参数中类似 `password`、`secret`、`token`、`authorization`、`api_key` 的字段会被递归替换为 `[REDACTED]`。审计文件仍可能包含本地路径、变量选择、工具名、错误和结果信息，因此应把整个 `.statamcp/` 目录视为潜在敏感内容。
@@ -61,4 +63,13 @@ Stata 启动前，MCP-for-Stata 会保存真正要执行的完整字节。metada
 
 ## Audit 与 OpenTelemetry
 
-JSONL audit 是长期保存的研究证据；OpenTelemetry 是 MCP 2 的调试和性能轨迹。OpenTelemetry 用于解释时间花在哪里，JSONL 用于保存调用了什么以及产生了哪些证据文件。
+JSONL audit 是长期保存的研究证据。OpenTelemetry 是下一阶段用于调试和性能分析的候选方案；当前版本没有配置 collector 或 exporter，也不承诺生成可长期查询的 trace。未来即使加入 OpenTelemetry，它也必须是可选能力，不能替代 JSONL 证据链。
+
+## 暂缓开发事项
+
+下列内容不属于 Audit v1，需要单独讨论设计后再开发：
+
+- 可选的 OpenTelemetry 调试与性能 trace，以及 trace/span ID 与 `run_id` 的安全关联方式。
+- 独立的 timeout 分类和测试。当前未分类的超时异常会记为 `failed`。
+- 基于快照的恢复或重放。未来若实现，必须由用户明确发起、校验快照哈希、生成新的 run ID，并保留原始运行记录不被修改。
+- 审计文件的保留期限、轮转与归档策略。

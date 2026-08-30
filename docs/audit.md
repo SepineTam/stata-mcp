@@ -23,8 +23,9 @@ Audit files live under the configured project artifact directory, which is
 ```
 
 Each JSONL line is one immutable event. A tool call normally produces a
-`started` event and one terminal event such as `completed`, `failed`,
-`timeout`, or `interrupted`. Both events share the same `run_id`.
+`started` event and one terminal event: `completed`, `failed`, `interrupted`,
+or `blocked`. Both events share the same `run_id`. A dedicated `timeout` event
+is reserved for future work and is not emitted by the current middleware.
 
 ## Run IDs
 
@@ -79,6 +80,12 @@ removed before persistence.
 `read_log` also uses this linkage when its local-path boundary rejects a log
 outside the configured allowed directories.
 
+The terminal `event` and `executed` fields are the authoritative security
+outcome. `output.is_error` only reports whether the MCP result itself was
+represented as an error. A guard can return a normal MCP result while still
+recording `event: "blocked"` and `executed: false`; security monitoring must
+therefore select blocked events rather than relying on `output.is_error`.
+
 ## Sensitive Data
 
 Credential-like argument keys such as `password`, `secret`, `token`,
@@ -92,6 +99,22 @@ is applied in the initial implementation.
 
 ## Audit vs. OpenTelemetry
 
-The JSONL audit trail is durable research evidence. OpenTelemetry is the MCP 2
-debugging and performance trace. OpenTelemetry can explain where time was spent;
-the JSONL files preserve what was invoked and which artifacts were produced.
+The JSONL audit trail is durable research evidence. OpenTelemetry is a
+candidate for debugging and performance traces, but this release does not
+configure a collector or exporter and does not promise persistent traces.
+Future OpenTelemetry work must remain optional and must not replace the JSONL
+evidence trail.
+
+## Deferred Work
+
+The following items are intentionally outside Audit v1 and require a separate
+design decision before implementation:
+
+- Optional OpenTelemetry traces for debugging and performance diagnosis,
+  including a safe correlation mechanism between trace/span IDs and `run_id`.
+- Explicit timeout classification and tests. The current middleware records an
+  uncategorized timeout exception as `failed`.
+- Recovery or replay from a snapshot. Any future replay must be explicitly
+  requested, verify the snapshot hash, create a new run ID, and preserve the
+  original run rather than modifying its audit records.
+- Audit retention, rotation, and archival policy.
