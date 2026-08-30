@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any, Awaitable, Callable, Mapping
 
 from opentelemetry import trace
 
+from ..observability.checkpoints import current_checkpoint_writer
 from ..observability.watchdog import SlowCallWatchdog
 from .context import bind_audit_context
 from .models import AuditExecutionContext
@@ -55,6 +56,7 @@ class AuditMiddleware:
         watchdog = (
             SlowCallWatchdog(tool=tool, run_id=run.run_id)
             if tool in {"get_data_info", "stata_do"}
+            and current_checkpoint_writer() is not None
             else None
         )
         if watchdog is not None:

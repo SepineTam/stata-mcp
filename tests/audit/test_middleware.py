@@ -17,6 +17,10 @@ from stata_mcp.audit import (
     bind_audit_context,
     current_audit_context,
 )
+from stata_mcp.observability.checkpoints import (
+    CheckpointWriter,
+    configure_checkpoint_writer,
+)
 
 
 def _read_jsonl(path: Path) -> list[dict]:
@@ -216,12 +220,16 @@ def test_middleware_starts_and_cancels_watchdog_for_target_tools(
         "stata_mcp.audit.middleware.SlowCallWatchdog",
         FakeWatchdog,
     )
+    configure_checkpoint_writer(CheckpointWriter(tmp_path / ".statamcp"))
     middleware = AuditMiddleware(AuditStore(tmp_path / ".statamcp"))
 
     async def call_next(ctx):
         return {"isError": False}
 
-    anyio.run(middleware, _context(tool="get_data_info"), call_next)
+    try:
+        anyio.run(middleware, _context(tool="get_data_info"), call_next)
+    finally:
+        configure_checkpoint_writer(None)
 
     assert state["started"] == 1
     assert state["cancelled"] == 1

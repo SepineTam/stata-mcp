@@ -350,7 +350,12 @@ def handle_server(args: Namespace) -> None:
     from ..observability import configure_local_observability
 
     runtime_config = Config(config_file=getattr(args, "config_file", None))
-    configure_local_observability(runtime_config.STATA_MCP_FOLDER.path)
+    configure_local_observability(
+        runtime_config.STATA_MCP_FOLDER.path,
+        enabled=runtime_config.DEBUG_TRACING_ON,
+        max_bytes=runtime_config.DEBUG_TRACING_MAX_BYTES,
+        backup_count=runtime_config.DEBUG_TRACING_BACKUP_COUNT,
+    )
 
     from ..mcp_servers import register_tools
     from ..mcp_servers import stata_mcp as mcp
