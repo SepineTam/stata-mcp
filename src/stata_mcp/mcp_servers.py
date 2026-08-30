@@ -8,6 +8,7 @@
 # @File   : mcp_servers.py
 
 import asyncio
+import hashlib
 import importlib.metadata
 import logging
 import logging.handlers
@@ -23,7 +24,7 @@ from typing import Any, Callable, Dict, List, Literal, NamedTuple
 from mcp.server import MCPServer
 from mcp.server.mcpserver import Context, Icon
 
-from .audit import AuditMiddleware, AuditStore
+from .audit import AuditMiddleware, AuditStore, record_security_event
 from ._diagnostic_logging import (
     DIAGNOSTIC_BUILD_ID,
     DIAGNOSTIC_SCHEMA_VERSION,
@@ -236,6 +237,13 @@ def _prepare_stata_do_request(dofile_path: str) -> Dict[str, Any] | _StataDoRequ
         logging.warning(
             "[SECURITY VIOLATION] Attempted to execute dofile outside allowed directories."
         )
+        record_security_event(
+            decision="blocked",
+            stage="path_boundary",
+            risk_type="outside_allowed_directories",
+            source_path=dofile_path_resolved,
+            executed=False,
+        )
         return {
             "error": f"Access denied: Dofile '{dofile_path}' is outside allowed directories.",
             "allowed_directories": [d.as_posix() for d in allowed_dirs],
@@ -252,6 +260,17 @@ def _prepare_stata_do_request(dofile_path: str) -> Dict[str, Any] | _StataDoRequ
 
     package_report = PackageManagementGuardValidator().validate(dofile_content)
     if not package_report.is_safe:
+        record_security_event(
+            decision="blocked",
+            stage="package_management_guard",
+            risk_type="package_management",
+            source_path=dofile_path_resolved,
+            source_sha256=hashlib.sha256(
+                dofile_path_resolved.read_bytes()
+            ).hexdigest(),
+            findings=_audit_security_findings(package_report),
+            executed=False,
+        )
         warning_msg = "⚠️  Security warning: Package-management commands detected:\n"
         for item in package_report.dangerous_items:
             warning_msg += f"  - Line {item.line}: {item.type} '{item.content}'\n"
@@ -277,6 +296,17 @@ def _prepare_stata_do_request(dofile_path: str) -> Dict[str, Any] | _StataDoRequ
         report = guard_validator.validate(dofile_content, config=config)
 
         if not report.is_safe:
+            record_security_event(
+                decision="blocked",
+                stage="guard",
+                risk_type="dangerous_command",
+                source_path=dofile_path_resolved,
+                source_sha256=hashlib.sha256(
+                    dofile_path_resolved.read_bytes()
+                ).hexdigest(),
+                findings=_audit_security_findings(report),
+                executed=False,
+            )
             dangerous_summary = ", ".join(
                 f"line {item.line}:{item.type}" for item in report.dangerous_items
             )
@@ -301,6 +331,16 @@ def _prepare_stata_do_request(dofile_path: str) -> Dict[str, Any] | _StataDoRequ
         logging.warning(
             "[SECURITY] Guard is disabled. Dangerous dofile commands will not be blocked."
         )
+        record_security_event(
+            decision="warning",
+            stage="guard",
+            risk_type="guard_disabled",
+            source_path=dofile_path_resolved,
+            source_sha256=hashlib.sha256(
+                dofile_path_resolved.read_bytes()
+            ).hexdigest(),
+            executed=True,
+        )
 
     # Initialize monitors
     monitors = []
@@ -311,6 +351,17 @@ def _prepare_stata_do_request(dofile_path: str) -> Dict[str, Any] | _StataDoRequ
             monitors.append(RAMMonitor(max_ram_mb=config.MAX_RAM_MB))
 
     return _StataDoRequest(dofile_path=dofile_path, monitors=monitors)
+
+
+def _audit_security_findings(report: Any) -> list[dict[str, Any]]:
+    """Return persistent security finding metadata without source content."""
+    return [
+        {
+            "line": getattr(item, "line", None),
+            "type": getattr(item, "type", None),
+        }
+        for item in report.dangerous_items
+    ]
 
 
 def _format_stata_do_result(

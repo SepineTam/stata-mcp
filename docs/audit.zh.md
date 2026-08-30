@@ -11,7 +11,8 @@ MCP-for-Stata 会为 MCP 工具调用写入本地、只追加的审计记录，�
 ├── audit/
 │   ├── stata_do.jsonl
 │   ├── get_data_info.jsonl
-│   └── help.jsonl
+│   ├── help.jsonl
+│   └── security.jsonl
 └── snapshot/
     ├── objects/<完整SHA256>.do
     └── metadata.jsonl
@@ -40,6 +41,12 @@ run ID 由可直接读取的 UTC 时间和防冲突摘要组成：
 Stata 启动前，MCP-for-Stata 会保存真正要执行的完整字节。metadata 会记录原始路径、快照路径、完整 SHA-256、文件大小、复用状态和对应 run ID。Stata 实际执行快照，而不是可能继续变化的原文件。
 
 无论运行时间和原文件名是否相同，完全相同的内容都会复用同一个内容寻址快照；每次调用仍有独立的 metadata 和 run ID。
+
+## 安全审计联动
+
+当 `stata_do` 被路径边界、包管理 Guard 或危险命令 Guard 阻止时，工具账本的结束事件会写成 `blocked`，而不是 `completed`。记录中包含 `executed: false` 和一个或多个 `security_event_ids`。
+
+`audit/security.jsonl` 中对应的记录使用同一个 run ID，并保存安全阶段、判断结果、风险类型、可获得时的源码 SHA-256，以及命中规则的位置。危险命令原文不会进入安全账本。这样工具生命周期和安全判断可以分别查看，同时又能通过安全 ID 直接关联。
 
 ## 敏感信息
 

@@ -26,6 +26,8 @@ class AuditExecutionContext:
     run: AuditRun
     store: Any
     artifacts: dict[str, Any] = field(default_factory=dict)
+    terminal_event: str | None = None
+    security_event_ids: list[str] = field(default_factory=list)
 
 
 @dataclass(frozen=True)

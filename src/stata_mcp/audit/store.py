@@ -94,6 +94,8 @@ class AuditStore:
         artifacts: Mapping[str, Any] | None = None,
         output: Mapping[str, Any] | None = None,
         error: Mapping[str, Any] | None = None,
+        security_event_ids: list[str] | None = None,
+        executed: bool | None = None,
         timestamp_ns: int | None = None,
     ) -> None:
         """Append the terminal event without modifying prior records."""
@@ -127,7 +129,19 @@ class AuditStore:
             event_payload["output"] = redact_value(dict(output))
         if error:
             event_payload["error"] = redact_value(dict(error))
+        if security_event_ids:
+            event_payload["security_event_ids"] = list(security_event_ids)
+        if executed is not None:
+            event_payload["executed"] = executed
         self._append_tool_event(run.tool, event_payload)
+
+    def append_security_event(self, payload: Mapping[str, Any]) -> None:
+        """Append one security decision to the central security ledger."""
+        self._ensure_directories()
+        self._append_jsonl(
+            self.audit_path / "security.jsonl",
+            redact_value(dict(payload)),
+        )
 
     def snapshot_dofile(self, run: AuditRun, dofile_path: Path) -> DofileSnapshot:
         """Store exact do-file bytes and append one metadata record."""

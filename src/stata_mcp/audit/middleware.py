@@ -63,9 +63,14 @@ class AuditMiddleware:
         )
         self.store.finish_run(
             run,
-            event="failed" if is_error else "completed",
+            event=(
+                execution_context.terminal_event
+                or ("failed" if is_error else "completed")
+            ),
             artifacts=execution_context.artifacts,
             output={"is_error": is_error},
+            security_event_ids=execution_context.security_event_ids,
+            executed=execution_context.terminal_event != "blocked",
         )
         return result
 

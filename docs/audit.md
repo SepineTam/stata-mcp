@@ -14,7 +14,8 @@ Audit files live under the configured project artifact directory, which is
 ├── audit/
 │   ├── stata_do.jsonl
 │   ├── get_data_info.jsonl
-│   └── help.jsonl
+│   ├── help.jsonl
+│   └── security.jsonl
 └── snapshot/
     ├── objects/<full-sha256>.do
     └── metadata.jsonl
@@ -56,6 +57,19 @@ snapshot rather than the mutable source path.
 Identical content always reuses one content-addressed snapshot file, regardless
 of invocation time or original filename. Every invocation still gets its own
 metadata record and run ID.
+
+## Security Linkage
+
+When a `stata_do` call is blocked by the path boundary, package-management
+guard, or command guard, its terminal tool event is `blocked` rather than
+`completed`. The event includes `executed: false` and one or more
+`security_event_ids`.
+
+The matching records in `audit/security.jsonl` contain the same run ID, the
+security stage, decision, risk type, source SHA-256 when available, and finding
+locations. Dangerous command content is never persisted in the security
+ledger. This makes the tool lifecycle and the detailed security decision
+independently readable while preserving a direct cross-ledger link.
 
 ## Sensitive Data
 
