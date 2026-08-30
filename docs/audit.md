@@ -99,19 +99,16 @@ is applied in the initial implementation.
 
 ## Audit vs. OpenTelemetry
 
-The JSONL audit trail is durable research evidence. OpenTelemetry is a
-candidate for debugging and performance traces, but this release does not
-configure a collector or exporter and does not promise persistent traces.
-Future OpenTelemetry work must remain optional and must not replace the JSONL
-evidence trail.
+The JSONL audit trail is durable research evidence. The default local
+OpenTelemetry flight recorder is rotating operational data used to locate slow
+or stuck `get_data_info` and `stata_do` calls. It does not replace or mutate the
+JSONL evidence trail. See [Local Debug Tracing](debug-tracing.md).
 
 ## Deferred Work
 
 The following items are intentionally outside Audit v1 and require a separate
 design decision before implementation:
 
-- Optional OpenTelemetry traces for debugging and performance diagnosis,
-  including a safe correlation mechanism between trace/span IDs and `run_id`.
 - Explicit timeout classification and tests. The current middleware records an
   uncategorized timeout exception as `failed`.
 - Recovery or replay from a snapshot. Any future replay must be explicitly
