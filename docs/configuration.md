@@ -366,7 +366,7 @@ The working directory structure:
 ├── stata-mcp-result/   # Analysis results
 ├── stata-mcp-tmp/      # Temporary files
 ├── audit/               # Append-only per-tool audit ledgers
-└── snapshot/            # Executed do-file snapshots and metadata.jsonl
+└── snapshot/            # Full-SHA256 objects and metadata.jsonl
 ```
 
 **Migration note (v1.16.0)**:

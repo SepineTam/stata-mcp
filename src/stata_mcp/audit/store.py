@@ -38,6 +38,7 @@ class AuditStore:
         self.base_path = Path(base_path)
         self.audit_path = self.base_path / "audit"
         self.snapshot_path = self.base_path / "snapshot"
+        self.snapshot_objects_path = self.snapshot_path / "objects"
 
     def start_run(
         self,
@@ -133,18 +134,12 @@ class AuditStore:
         resolved_path = Path(dofile_path).resolve()
         source_bytes = resolved_path.read_bytes()
         full_hash = hashlib.sha256(source_bytes).hexdigest()
-        safe_name = self._safe_snapshot_source_name(resolved_path.name)
-        snapshot_timestamp = datetime.fromisoformat(run.started_at).strftime(
-            "%Y%m%d%H%M"
-        )
-        snapshot_name = f"{snapshot_timestamp}{full_hash[:8]}_{safe_name}"
 
         self._ensure_directories()
         target_path, reused = self._write_or_reuse_snapshot(
-            self.snapshot_path / snapshot_name,
+            self.snapshot_objects_path / f"{full_hash}.do",
             source_bytes,
             full_hash,
-            run,
         )
         snapshot = DofileSnapshot(
             path=target_path,
@@ -160,6 +155,7 @@ class AuditStore:
                 "tool": run.tool,
                 "created_at": run.started_at,
                 "original_path": resolved_path.as_posix(),
+                "original_name": resolved_path.name,
                 "snapshot_path": target_path.resolve().as_posix(),
                 "sha256": full_hash,
                 "sha256_prefix": full_hash[:8],
@@ -180,6 +176,7 @@ class AuditStore:
             gitignore.write_text("*\n", encoding="utf-8")
         self.audit_path.mkdir(exist_ok=True)
         self.snapshot_path.mkdir(exist_ok=True)
+        self.snapshot_objects_path.mkdir(exist_ok=True)
 
     @staticmethod
     def _append_jsonl(path: Path, payload: Mapping[str, Any]) -> None:
@@ -214,16 +211,14 @@ class AuditStore:
         target_path: Path,
         source_bytes: bytes,
         full_hash: str,
-        run: AuditRun,
     ) -> tuple[Path, bool]:
         with _SNAPSHOT_LOCK:
             if target_path.exists():
                 existing_hash = hashlib.sha256(target_path.read_bytes()).hexdigest()
                 if existing_hash == full_hash:
                     return target_path, True
-                run_digest = run.run_id.rsplit("_", maxsplit=1)[-1][:8]
-                target_path = target_path.with_name(
-                    f"{target_path.stem}_{run_digest}{target_path.suffix}"
+                raise RuntimeError(
+                    f"Snapshot object hash mismatch for {target_path}"
                 )
 
             temporary_path: Path | None = None
@@ -244,18 +239,6 @@ class AuditStore:
                 if temporary_path is not None:
                     temporary_path.unlink(missing_ok=True)
         return target_path, False
-
-    @staticmethod
-    def _safe_snapshot_source_name(source_name: str) -> str:
-        source_path = Path(source_name)
-        safe_stem = "".join(
-            character
-            if character.isalnum() or character in {".", "_", "-"}
-            else "_"
-            for character in source_path.stem
-        )
-        safe_stem = re.sub(r"_+", "_", safe_stem).strip("._") or "dofile"
-        return f"{safe_stem[:80]}{source_path.suffix.lower() or '.do'}"
 
     @staticmethod
     def _validate_tool_name(tool: str) -> None:

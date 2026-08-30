@@ -16,7 +16,7 @@ Audit files live under the configured project artifact directory, which is
 │   ├── get_data_info.jsonl
 │   └── help.jsonl
 └── snapshot/
-    ├── YYYYMMDDHHMM<sha256-prefix>_<dofile-name>.do
+    ├── objects/<full-sha256>.do
     └── metadata.jsonl
 ```
 
@@ -53,8 +53,9 @@ The snapshot metadata includes the original path, snapshot path, complete
 SHA-256 digest, size, reuse state, and the shared run ID. Stata executes the
 snapshot rather than the mutable source path.
 
-Repeated identical content within the same minute can reuse one snapshot file;
-every invocation still gets its own metadata record and run ID.
+Identical content always reuses one content-addressed snapshot file, regardless
+of invocation time or original filename. Every invocation still gets its own
+metadata record and run ID.
 
 ## Sensitive Data
 

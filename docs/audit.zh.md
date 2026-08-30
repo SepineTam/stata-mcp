@@ -13,7 +13,7 @@ MCP-for-Stata 会为 MCP 工具调用写入本地、只追加的审计记录，�
 │   ├── get_data_info.jsonl
 │   └── help.jsonl
 └── snapshot/
-    ├── YYYYMMDDHHMM<sha256前8位>_<do文件名>.do
+    ├── objects/<完整SHA256>.do
     └── metadata.jsonl
 ```
 
@@ -39,7 +39,7 @@ run ID 由可直接读取的 UTC 时间和防冲突摘要组成：
 
 Stata 启动前，MCP-for-Stata 会保存真正要执行的完整字节。metadata 会记录原始路径、快照路径、完整 SHA-256、文件大小、复用状态和对应 run ID。Stata 实际执行快照，而不是可能继续变化的原文件。
 
-同一分钟内完全相同的内容可以复用一个快照文件，但每次调用仍有独立的 metadata 和 run ID。
+无论运行时间和原文件名是否相同，完全相同的内容都会复用同一个内容寻址快照；每次调用仍有独立的 metadata 和 run ID。
 
 ## 敏感信息
 

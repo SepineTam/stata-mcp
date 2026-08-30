@@ -53,13 +53,15 @@ def test_stata_do_reuses_middleware_run_and_executes_snapshot(
         result = executor.execute_dofile(_dofile(tmp_path), enable_smcl=False)
 
     executed_path = fake_execute.call_args.args[0]
-    assert executed_path.parent == base_path / "snapshot"
+    assert executed_path.parent == base_path / "snapshot" / "objects"
     assert executed_path.read_text(encoding="utf-8") == "display 1\n"
     assert result == {"text": log_path / "run.log"}
     metadata = _read_jsonl(base_path / "snapshot" / "metadata.jsonl")
     assert metadata[0]["run_id"] == run.run_id
     assert metadata[0]["original_path"].endswith("analysis file.do")
+    assert metadata[0]["original_name"] == "analysis file.do"
     assert len(metadata[0]["sha256"]) == 64
+    assert executed_path.name == f"{metadata[0]['sha256']}.do"
     assert execution_context.artifacts["snapshot_path"] == executed_path.as_posix()
 
 
@@ -81,7 +83,9 @@ def test_direct_stata_do_creates_standalone_lifecycle(tmp_path: Path) -> None:
 
     events = _read_jsonl(base_path / "audit" / "stata_do.jsonl")
     assert [event["event"] for event in events] == ["started", "completed"]
-    assert events[1]["artifacts"]["snapshot_path"].endswith("analysis_file.do")
+    snapshot_path = Path(events[1]["artifacts"]["snapshot_path"])
+    assert snapshot_path.parent == base_path / "snapshot" / "objects"
+    assert snapshot_path.stem == events[1]["artifacts"]["snapshot_sha256"]
 
 
 def test_async_stata_do_reuses_middleware_run(
@@ -117,7 +121,7 @@ def test_async_stata_do_reuses_middleware_run(
     result = asyncio.run(run_case())
 
     executed_path = fake_execute.await_args.args[0]
-    assert executed_path.parent == base_path / "snapshot"
+    assert executed_path.parent == base_path / "snapshot" / "objects"
     assert result == {"text": log_path / "run.log"}
     metadata = _read_jsonl(base_path / "snapshot" / "metadata.jsonl")
     assert metadata[0]["run_id"] == run.run_id

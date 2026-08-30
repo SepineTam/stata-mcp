@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from datetime import datetime, timezone
 from pathlib import Path
@@ -91,3 +92,31 @@ def test_store_removes_url_credentials_query_and_fragment(tmp_path: Path) -> Non
     )[0]
     assert event["source_reference"] == "https://example.com/data.dta"
     assert event["input"]["data_path"] == "https://example.com/data.dta"
+
+
+def test_snapshot_filename_is_full_sha256_and_reused_across_runs(tmp_path: Path) -> None:
+    dofile = tmp_path / "分析 file.do"
+    source_bytes = b"display 1\n"
+    dofile.write_bytes(source_bytes)
+    expected_hash = hashlib.sha256(source_bytes).hexdigest()
+    store = AuditStore(tmp_path / ".statamcp")
+    first_run = store.start_run("stata_do", dofile.as_posix(), {})
+    second_run = store.start_run("stata_do", dofile.as_posix(), {})
+
+    first = store.snapshot_dofile(first_run, dofile)
+    second = store.snapshot_dofile(second_run, dofile)
+
+    assert first.path == second.path
+    assert first.path == (
+        tmp_path / ".statamcp" / "snapshot" / "objects" / f"{expected_hash}.do"
+    )
+    assert first.reused is False
+    assert second.reused is True
+    metadata = _read_jsonl(
+        tmp_path / ".statamcp" / "snapshot" / "metadata.jsonl"
+    )
+    assert [item["original_name"] for item in metadata] == [
+        "分析 file.do",
+        "分析 file.do",
+    ]
+    assert [item["reused"] for item in metadata] == [False, True]
