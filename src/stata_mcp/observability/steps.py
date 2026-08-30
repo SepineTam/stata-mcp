@@ -24,13 +24,15 @@ def debug_step(
     *,
     tool: str | None = None,
     request_id: str | None = None,
+    run_id: str | None = None,
     attributes: Mapping[str, Any] | None = None,
 ) -> Iterator[None]:
     """Record one non-blocking execution step without changing its behavior."""
     started_ns = time.perf_counter_ns()
     safe_attributes = redact_value(dict(attributes or {}))
     audit_context = current_audit_context()
-    run_id = audit_context.run.run_id if audit_context is not None else None
+    if run_id is None and audit_context is not None:
+        run_id = audit_context.run.run_id
 
     span_attributes = _span_attributes(tool, request_id, run_id, safe_attributes)
     with _tracer.start_as_current_span(
