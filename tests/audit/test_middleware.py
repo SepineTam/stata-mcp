@@ -8,6 +8,7 @@ from types import SimpleNamespace
 
 import anyio
 import pytest
+from opentelemetry.sdk.trace import TracerProvider
 
 from stata_mcp.audit import (
     AuditExecutionContext,
@@ -170,3 +171,25 @@ def test_audit_context_propagates_to_sync_tool_worker(tmp_path: Path) -> None:
 
     assert observed is execution_context
     assert current_audit_context() is None
+
+
+def test_middleware_adds_run_id_to_current_otel_span(tmp_path: Path) -> None:
+    store = AuditStore(tmp_path / ".statamcp")
+    middleware = AuditMiddleware(store)
+    provider = TracerProvider()
+    tracer = provider.get_tracer("test")
+
+    async def call_next(ctx):
+        return {"isError": False}
+
+    async def run_case():
+        with tracer.start_as_current_span("tools/call get_data_info") as span:
+            await middleware(_context(tool="get_data_info"), call_next)
+            return span
+
+    span = anyio.run(run_case)
+    events = _read_jsonl(
+        tmp_path / ".statamcp" / "audit" / "get_data_info.jsonl"
+    )
+
+    assert span.attributes["statamcp.run_id"] == events[0]["run_id"]

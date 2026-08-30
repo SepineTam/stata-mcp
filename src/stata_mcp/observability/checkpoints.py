@@ -27,10 +27,11 @@ class CheckpointWriter:
         self,
         artifact_root: str | Path,
         *,
+        filename: str = "checkpoints.jsonl",
         max_bytes: int = 10 * 1024 * 1024,
         backup_count: int = 3,
     ) -> None:
-        self.path = Path(artifact_root) / "debug" / "checkpoints.jsonl"
+        self.path = Path(artifact_root) / "debug" / filename
         self.max_bytes = max(0, int(max_bytes))
         self.backup_count = max(0, int(backup_count))
         self._lock = threading.Lock()

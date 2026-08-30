@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Awaitable, Callable, Mapping
 
+from opentelemetry import trace
+
 from .context import bind_audit_context
 from .models import AuditExecutionContext
 from .store import AuditStore
@@ -44,6 +46,10 @@ class AuditMiddleware:
             request_id=self._request_id(context),
         )
         execution_context = AuditExecutionContext(run=run, store=self.store)
+        current_span = trace.get_current_span()
+        if current_span.is_recording():
+            current_span.set_attribute("statamcp.run_id", run.run_id)
+            current_span.set_attribute("statamcp.tool.name", tool)
 
         try:
             with bind_audit_context(execution_context):
