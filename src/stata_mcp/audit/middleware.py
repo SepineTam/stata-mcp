@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any, Awaitable, Callable, Mapping
 
 from opentelemetry import trace
 
+from ..observability.watchdog import SlowCallWatchdog
 from .context import bind_audit_context
 from .models import AuditExecutionContext
 from .store import AuditStore
@@ -51,43 +52,55 @@ class AuditMiddleware:
             current_span.set_attribute("statamcp.run_id", run.run_id)
             current_span.set_attribute("statamcp.tool.name", tool)
 
+        watchdog = (
+            SlowCallWatchdog(tool=tool, run_id=run.run_id)
+            if tool in {"get_data_info", "stata_do"}
+            else None
+        )
+        if watchdog is not None:
+            watchdog.start()
+
         try:
-            with bind_audit_context(execution_context):
-                result = await call_next(context)
-        except BaseException as error:
+            try:
+                with bind_audit_context(execution_context):
+                    result = await call_next(context)
+            except BaseException as error:
+                self.store.finish_run(
+                    run,
+                    event=(
+                        execution_context.terminal_event
+                        or (
+                            "interrupted"
+                            if isinstance(error, KeyboardInterrupt)
+                            else "failed"
+                        )
+                    ),
+                    artifacts=execution_context.artifacts,
+                    error={"type": type(error).__name__, "message": str(error)},
+                    security_event_ids=execution_context.security_event_ids,
+                    executed=execution_context.terminal_event != "blocked",
+                )
+                raise
+
+            is_error = bool(
+                getattr(result, "is_error", False)
+                or (isinstance(result, Mapping) and result.get("isError"))
+            )
             self.store.finish_run(
                 run,
                 event=(
                     execution_context.terminal_event
-                    or (
-                        "interrupted"
-                        if isinstance(error, KeyboardInterrupt)
-                        else "failed"
-                    )
+                    or ("failed" if is_error else "completed")
                 ),
                 artifacts=execution_context.artifacts,
-                error={"type": type(error).__name__, "message": str(error)},
+                output={"is_error": is_error},
                 security_event_ids=execution_context.security_event_ids,
                 executed=execution_context.terminal_event != "blocked",
             )
-            raise
-
-        is_error = bool(
-            getattr(result, "is_error", False)
-            or (isinstance(result, Mapping) and result.get("isError"))
-        )
-        self.store.finish_run(
-            run,
-            event=(
-                execution_context.terminal_event
-                or ("failed" if is_error else "completed")
-            ),
-            artifacts=execution_context.artifacts,
-            output={"is_error": is_error},
-            security_event_ids=execution_context.security_event_ids,
-            executed=execution_context.terminal_event != "blocked",
-        )
-        return result
+            return result
+        finally:
+            if watchdog is not None:
+                watchdog.cancel()
 
     @staticmethod
     def _source_reference(tool: str, arguments: Mapping[str, Any]) -> str:

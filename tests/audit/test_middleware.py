@@ -193,3 +193,37 @@ def test_middleware_adds_run_id_to_current_otel_span(tmp_path: Path) -> None:
     )
 
     assert span.attributes["statamcp.run_id"] == events[0]["run_id"]
+
+
+def test_middleware_starts_and_cancels_watchdog_for_target_tools(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    state = {"started": 0, "cancelled": 0, "tool": None, "run_id": None}
+
+    class FakeWatchdog:
+        def __init__(self, *, tool, run_id, delays=(30.0, 120.0)):
+            state["tool"] = tool
+            state["run_id"] = run_id
+
+        def start(self):
+            state["started"] += 1
+
+        def cancel(self):
+            state["cancelled"] += 1
+
+    monkeypatch.setattr(
+        "stata_mcp.audit.middleware.SlowCallWatchdog",
+        FakeWatchdog,
+    )
+    middleware = AuditMiddleware(AuditStore(tmp_path / ".statamcp"))
+
+    async def call_next(ctx):
+        return {"isError": False}
+
+    anyio.run(middleware, _context(tool="get_data_info"), call_next)
+
+    assert state["started"] == 1
+    assert state["cancelled"] == 1
+    assert state["tool"] == "get_data_info"
+    assert state["run_id"]

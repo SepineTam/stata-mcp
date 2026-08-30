@@ -8,8 +8,6 @@ import threading
 from pathlib import Path
 from typing import Any, Mapping, Protocol
 
-from ..audit.redaction import redact_value
-
 logger = logging.getLogger(__name__)
 
 
@@ -39,6 +37,8 @@ class CheckpointWriter:
     def append(self, payload: Mapping[str, Any]) -> bool:
         """Write one checkpoint without propagating diagnostic failures."""
         try:
+            from ..audit.redaction import redact_value
+
             normalized = redact_value(dict(payload))
             line = json.dumps(
                 normalized,
@@ -94,3 +94,14 @@ def configure_checkpoint_writer(writer: CheckpointSink | None) -> None:
 def current_checkpoint_writer() -> CheckpointSink | None:
     """Return the configured checkpoint sink, if any."""
     return _checkpoint_writer
+
+
+def write_checkpoint(payload: Mapping[str, Any]) -> bool:
+    """Append one checkpoint through the configured fail-open sink."""
+    writer = current_checkpoint_writer()
+    if writer is None:
+        return False
+    try:
+        return bool(writer.append(payload))
+    except Exception:
+        return False
