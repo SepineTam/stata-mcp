@@ -18,6 +18,7 @@ from stata_mcp.audit import (
     AuditStore,
     bind_audit_context,
 )
+from stata_mcp.observability import CheckpointWriter, configure_checkpoint_writer
 
 
 @pytest.fixture
@@ -431,6 +432,44 @@ def test_get_data_info_mcp_wrapper_logs_lazy_import_and_result_size(
     assert "tool_result_utf8_bytes=12" in messages
     assert sensitive_path not in messages
     assert "confidential.dta" not in messages
+
+
+def test_get_data_info_mcp_wrapper_records_import_and_execution_steps(
+    monkeypatch: pytest.MonkeyPatch,
+    stubbed_mcp_servers,
+    tmp_path: Path,
+) -> None:
+    get_data_info_module = importlib.import_module("stata_mcp.api.get_data_info")
+    monkeypatch.setattr(
+        get_data_info_module,
+        "_get_data_info_impl",
+        lambda **kwargs: "{}",
+    )
+    configure_checkpoint_writer(CheckpointWriter(tmp_path / ".statamcp"))
+
+    try:
+        result = stubbed_mcp_servers.get_data_info("/private/data.dta")
+    finally:
+        configure_checkpoint_writer(None)
+
+    assert result == "{}"
+    checkpoint_path = (
+        tmp_path / ".statamcp" / "debug" / "checkpoints.jsonl"
+    )
+    events = [
+        json.loads(line)
+        for line in checkpoint_path.read_text(encoding="utf-8").splitlines()
+    ]
+    assert [
+        event["event"]
+        for event in events
+        if event["step"] == "get_data_info.lazy_import"
+    ] == ["started", "completed"]
+    assert [
+        event["event"]
+        for event in events
+        if event["step"] == "get_data_info.tool_execution"
+    ] == ["started", "completed"]
 
 
 def test_get_data_info_mcp_wrapper_reraises_base_exception_and_cancels_watchdog(

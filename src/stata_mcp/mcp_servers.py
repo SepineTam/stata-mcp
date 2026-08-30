@@ -38,6 +38,7 @@ from ._diagnostic_logging import (
     utf8_size,
 )
 from .config import Config
+from .observability import debug_step
 from .utils.update import get_current_version, get_latest_version
 
 # Init project config
@@ -688,31 +689,42 @@ def get_data_info(
             python_version=".".join(str(part) for part in sys.version_info[:3]),
             stata_mcp_version=package_versions["stata-mcp"],
         )
-        import_started_at = time.perf_counter()
-        log_event(
-            diagnostic_logger,
-            logging.DEBUG,
-            "get_data_info.mcp_tool.lazy_import.started",
-            request_id,
-        )
-        from .api.get_data_info import _get_data_info_impl
-
-        log_event(
-            diagnostic_logger,
-            logging.DEBUG,
-            "get_data_info.mcp_tool.lazy_import.completed",
-            request_id,
-            duration_ms=elapsed_ms(import_started_at),
-        )
-        result = _get_data_info_impl(
-            data_path=data_path,
-            vars_list=vars_list,
-            encoding=encoding,
-            config_file=None,
-            head=head,
-            tool_context="mcp",
+        with debug_step(
+            "get_data_info.lazy_import",
+            tool="get_data_info",
             request_id=request_id,
-        )
+        ):
+            import_started_at = time.perf_counter()
+            log_event(
+                diagnostic_logger,
+                logging.DEBUG,
+                "get_data_info.mcp_tool.lazy_import.started",
+                request_id,
+            )
+            from .api.get_data_info import _get_data_info_impl
+
+            log_event(
+                diagnostic_logger,
+                logging.DEBUG,
+                "get_data_info.mcp_tool.lazy_import.completed",
+                request_id,
+                duration_ms=elapsed_ms(import_started_at),
+            )
+        with debug_step(
+            "get_data_info.tool_execution",
+            tool="get_data_info",
+            request_id=request_id,
+            attributes={"source_ref": source_reference(data_path)},
+        ):
+            result = _get_data_info_impl(
+                data_path=data_path,
+                vars_list=vars_list,
+                encoding=encoding,
+                config_file=None,
+                head=head,
+                tool_context="mcp",
+                request_id=request_id,
+            )
         log_event(
             diagnostic_logger,
             logging.INFO,
