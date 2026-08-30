@@ -23,7 +23,15 @@ from .._diagnostic_logging import (
 )
 from ..config import ToolContext
 from ..data_info import get_data_handler
-from ..guard.data_path_auditor import DataPathAuditor
+from ..audit import record_security_event
+from ..guard.data_path_auditor import (
+    IP_URL_ACCESS_DENIED,
+    LOCAL_ACCESS_DENIED,
+    NON_HTTPS_URL_ACCESS_DENIED,
+    URL_DOMAIN_ACCESS_DENIED,
+    URL_USERINFO_ACCESS_DENIED,
+    DataPathAuditor,
+)
 from ._runtime import create_runtime_context
 
 logger = logging.getLogger(__name__)
@@ -85,6 +93,11 @@ def _get_data_info_impl(
         if source_kind == "url":
             validated_data = auditor.validate_url(data_path)
             if not isinstance(validated_data, tuple):
+                _record_data_path_rejection(
+                    data_path,
+                    validated_data,
+                    source_kind=source_kind,
+                )
                 log_event(
                     logger,
                     logging.WARNING,
@@ -107,6 +120,11 @@ def _get_data_info_impl(
         else:
             validated_data_path = auditor.validate_local_path(data_path)
             if isinstance(validated_data_path, str):
+                _record_data_path_rejection(
+                    data_path,
+                    validated_data_path,
+                    source_kind=source_kind,
+                )
                 log_event(
                     logger,
                     logging.WARNING,
@@ -265,4 +283,27 @@ def get_data_info(
         config_file=config_file,
         head=head,
         tool_context=tool_context,
+    )
+
+
+def _record_data_path_rejection(
+    data_path: str,
+    rejection: str,
+    *,
+    source_kind: str,
+) -> None:
+    """Link a rejected data source to the active MCP audit run."""
+    risk_types = {
+        LOCAL_ACCESS_DENIED: "local_path_outside_boundary",
+        URL_DOMAIN_ACCESS_DENIED: "url_domain_not_allowed",
+        IP_URL_ACCESS_DENIED: "ip_url_not_allowed",
+        NON_HTTPS_URL_ACCESS_DENIED: "non_https_url",
+        URL_USERINFO_ACCESS_DENIED: "url_userinfo_not_allowed",
+    }
+    record_security_event(
+        decision="blocked",
+        stage="data_path_guard",
+        risk_type=risk_types.get(rejection, f"{source_kind}_path_rejected"),
+        source_path=data_path,
+        executed=False,
     )

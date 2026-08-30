@@ -71,6 +71,10 @@ locations. Dangerous command content is never persisted in the security
 ledger. This makes the tool lifecycle and the detailed security decision
 independently readable while preserving a direct cross-ledger link.
 
+`get_data_info` uses the same linkage when a strict local-path boundary or URL
+guard rejects a data source. URL credentials, query strings, and fragments are
+removed before persistence.
+
 ## Sensitive Data
 
 Credential-like argument keys such as `password`, `secret`, `token`,

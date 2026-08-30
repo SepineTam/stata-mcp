@@ -48,6 +48,8 @@ Stata 启动前，MCP-for-Stata 会保存真正要执行的完整字节。metada
 
 `audit/security.jsonl` 中对应的记录使用同一个 run ID，并保存安全阶段、判断结果、风险类型、可获得时的源码 SHA-256，以及命中规则的位置。危险命令原文不会进入安全账本。这样工具生命周期和安全判断可以分别查看，同时又能通过安全 ID 直接关联。
 
+当严格本地路径边界或 URL Guard 拒绝数据来源时，`get_data_info` 使用同样的关联方式。写入前会移除 URL 中的账号、密码、query 和 fragment。
+
 ## 敏感信息
 
 参数中类似 `password`、`secret`、`token`、`authorization`、`api_key` 的字段会被递归替换为 `[REDACTED]`。审计文件仍可能包含本地路径、变量选择、工具名、错误和结果信息，因此应把整个 `.statamcp/` 目录视为潜在敏感内容。
