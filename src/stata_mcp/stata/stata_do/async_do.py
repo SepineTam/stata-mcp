@@ -61,13 +61,27 @@ class AsyncStataDo(StataDo):
         self._validate_log_name(log_name)
         validated_dofile_path = self._validate_dofile_path(dofile_path)
 
-        return await self._execute_unix_like_async(
+        execution_path, audit_context, owns_run = self._begin_audited_execution(
             validated_dofile_path,
             log_name,
             is_replace,
             enable_smcl,
             timeout,
         )
+        try:
+            result = await self._execute_unix_like_async(
+                execution_path,
+                log_name,
+                is_replace,
+                enable_smcl,
+                timeout,
+            )
+        except BaseException as error:
+            self._finish_audited_failure(audit_context, owns_run, error)
+            raise
+
+        self._finish_audited_success(audit_context, owns_run, result)
+        return result
 
     async def execute_dofiles(
         self,

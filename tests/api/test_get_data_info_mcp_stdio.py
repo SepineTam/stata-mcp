@@ -8,7 +8,7 @@ from pathlib import Path
 
 import anyio
 import pytest
-from mcp import Client, StdioServerParameters
+from mcp import Client, Implementation, StdioServerParameters
 
 
 @pytest.mark.parametrize(
@@ -59,7 +59,12 @@ def test_get_data_info_stdio_schema_and_response_remain_compatible(
             ],
             cwd=str(working_dir),
         )
-        async with Client(server, mode=mode) as client:
+        client_name = f"audit-test-{mode}"
+        async with Client(
+            server,
+            mode=mode,
+            client_info=Implementation(name=client_name, version="1.0.0"),
+        ) as client:
             protocol_version = client.protocol_version
             listed_tools = await client.list_tools()
             tool = next(item for item in listed_tools.tools if item.name == "get_data_info")
@@ -81,5 +86,23 @@ def test_get_data_info_stdio_schema_and_response_remain_compatible(
         text_result = result.content[0].text
         assert result.structured_content["result"] == text_result
         assert json.loads(text_result)["overview"]["obs"] == 2
+
+        audit_path = working_dir / ".statamcp" / "audit" / "get_data_info.jsonl"
+        audit_events = [
+            json.loads(line)
+            for line in audit_path.read_text(encoding="utf-8").splitlines()
+        ]
+        assert [event["event"] for event in audit_events] == [
+            "started",
+            "completed",
+        ]
+        assert {event["run_id"] for event in audit_events} == {
+            audit_events[0]["run_id"]
+        }
+        assert audit_events[0]["client"] == {
+            "name": client_name,
+            "version": "1.0.0",
+        }
+        assert audit_events[0]["protocol_version"] == expected_protocol
 
     anyio.run(_run_protocol_test)

@@ -35,6 +35,7 @@ def loaded_modules(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
         def __init__(self, *args, **kwargs) -> None:
             self._tools = []
             self._resources = []
+            self.middleware = list(kwargs.get("middleware", []))
 
         def tool(self, name: str, description: str):
             def _decorator(func):
@@ -148,6 +149,13 @@ def test_register_tools_core_only_registers_core(monkeypatch: pytest.MonkeyPatch
 
     assert set(server.tools) == {"stata_do", "get_data_info", "help"}
     assert server.resources == []  # resource registration temporarily disabled
+
+
+def test_mcp_server_registers_audit_middleware(loaded_modules):
+    mcp_servers, _ = loaded_modules
+
+    assert len(mcp_servers.stata_mcp.middleware) == 1
+    assert type(mcp_servers.stata_mcp.middleware[0]).__name__ == "AuditMiddleware"
 
 
 def test_stata_do_tool_is_sync_function_by_default(loaded_modules):

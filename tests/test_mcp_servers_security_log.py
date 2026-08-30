@@ -4,12 +4,20 @@ from __future__ import annotations
 
 import asyncio
 import importlib
+import json
 import logging
 import sys
 from pathlib import Path
 from types import ModuleType, SimpleNamespace
 
 import pytest
+
+from stata_mcp.audit import (
+    AuditExecutionContext,
+    AuditMiddleware,
+    AuditStore,
+    bind_audit_context,
+)
 
 
 @pytest.fixture
@@ -115,6 +123,104 @@ def test_prepare_stata_do_request_rejection_log_redacts_url_query(
     assert "evil.com/data.dta" in messages
 
 
+def test_stata_do_package_block_writes_linked_security_event(
+    monkeypatch: pytest.MonkeyPatch,
+    stubbed_mcp_servers,
+    tmp_path: Path,
+) -> None:
+    work = tmp_path / "work"
+    work.mkdir()
+    dofile = work / "blocked.do"
+    dofile.write_text("ssc install reghdfe\n", encoding="utf-8")
+    fake_folder = SimpleNamespace(DO=work, TMP=tmp_path / "tmp")
+    fake_config = SimpleNamespace(
+        WORKING_DIR=work,
+        STATA_MCP_FOLDER=fake_folder,
+        ADDITIONAL_ALLOWED_DIRS=(),
+        IS_GUARD=False,
+        IS_MONITOR=False,
+    )
+    monkeypatch.setattr(stubbed_mcp_servers, "config", fake_config)
+    store = AuditStore(tmp_path / ".statamcp")
+    run = store.start_run(
+        "stata_do",
+        dofile.as_posix(),
+        {"dofile_path": dofile.as_posix()},
+        interface="mcp",
+    )
+    audit_context = AuditExecutionContext(run=run, store=store)
+
+    with bind_audit_context(audit_context):
+        result = stubbed_mcp_servers._prepare_stata_do_request(dofile.as_posix())
+
+    assert result["action"] == "Security check, dofile not executed"
+    assert audit_context.terminal_event == "blocked"
+    security_path = tmp_path / ".statamcp" / "audit" / "security.jsonl"
+    security_event = json.loads(
+        security_path.read_text(encoding="utf-8").splitlines()[0]
+    )
+    assert security_event["run_id"] == run.run_id
+    assert security_event["stage"] == "package_management_guard"
+    assert security_event["source_sha256"]
+    assert "ssc install reghdfe" not in security_path.read_text(encoding="utf-8")
+
+
+def test_stata_do_block_links_tool_and_security_ledgers(
+    monkeypatch: pytest.MonkeyPatch,
+    stubbed_mcp_servers,
+    tmp_path: Path,
+) -> None:
+    work = tmp_path / "work"
+    work.mkdir()
+    dofile = work / "blocked.do"
+    dofile.write_text("ssc install reghdfe\n", encoding="utf-8")
+    fake_folder = SimpleNamespace(DO=work, TMP=tmp_path / "tmp")
+    fake_config = SimpleNamespace(
+        WORKING_DIR=work,
+        STATA_MCP_FOLDER=fake_folder,
+        ADDITIONAL_ALLOWED_DIRS=(),
+        IS_GUARD=False,
+        IS_MONITOR=False,
+    )
+    monkeypatch.setattr(stubbed_mcp_servers, "config", fake_config)
+    store = AuditStore(tmp_path / ".statamcp")
+    middleware = AuditMiddleware(store)
+    request_context = SimpleNamespace(
+        method="tools/call",
+        params={
+            "name": "stata_do",
+            "arguments": {"dofile_path": dofile.as_posix()},
+        },
+        request_id="request-1",
+        protocol_version="2026-07-28",
+        session=SimpleNamespace(client_params=None),
+    )
+
+    async def call_next(context):
+        return stubbed_mcp_servers._sync_stata_do(dofile.as_posix())
+
+    result = asyncio.run(middleware(request_context, call_next))
+
+    assert result["action"] == "Security check, dofile not executed"
+    tool_events = [
+        json.loads(line)
+        for line in (
+            tmp_path / ".statamcp" / "audit" / "stata_do.jsonl"
+        ).read_text(encoding="utf-8").splitlines()
+    ]
+    security_event = json.loads(
+        (tmp_path / ".statamcp" / "audit" / "security.jsonl")
+        .read_text(encoding="utf-8")
+        .splitlines()[0]
+    )
+    assert [event["event"] for event in tool_events] == ["started", "blocked"]
+    assert tool_events[1]["executed"] is False
+    assert tool_events[1]["security_event_ids"] == [
+        security_event["security_event_id"]
+    ]
+    assert tool_events[1]["run_id"] == security_event["run_id"]
+
+
 def test_prepare_stata_do_request_rejection_log_redacts_local_path(
     caplog: pytest.LogCaptureFixture,
     monkeypatch: pytest.MonkeyPatch,
@@ -186,6 +292,55 @@ def test_read_log_rejection_log_redacts_local_path(
     assert "requested_path" not in messages
     assert "resolved_path" not in messages
     assert "allowed_directory" not in messages
+
+
+def test_read_log_block_links_tool_and_security_ledgers(
+    monkeypatch: pytest.MonkeyPatch,
+    stubbed_mcp_servers,
+    tmp_path: Path,
+) -> None:
+    statamcp_dir = tmp_path / ".statamcp"
+    statamcp_dir.mkdir()
+    outside = tmp_path / "secret.log"
+    outside.write_text("log content", encoding="utf-8")
+    fake_folder = SimpleNamespace(path=statamcp_dir)
+    fake_config = SimpleNamespace(STATA_MCP_FOLDER=fake_folder)
+    monkeypatch.setattr(stubbed_mcp_servers, "config", fake_config)
+    store = AuditStore(statamcp_dir)
+    middleware = AuditMiddleware(store)
+    request_context = SimpleNamespace(
+        method="tools/call",
+        params={"name": "read_log", "arguments": {"file_path": outside.as_posix()}},
+        request_id="request-read-log",
+        protocol_version="2026-07-28",
+        session=SimpleNamespace(client_params=None),
+    )
+
+    async def call_next(context):
+        return stubbed_mcp_servers.read_log(outside.as_posix())
+
+    with pytest.raises(PermissionError):
+        asyncio.run(middleware(request_context, call_next))
+
+    tool_events = [
+        json.loads(line)
+        for line in (statamcp_dir / "audit" / "read_log.jsonl")
+        .read_text(encoding="utf-8")
+        .splitlines()
+    ]
+    security_event = json.loads(
+        (statamcp_dir / "audit" / "security.jsonl")
+        .read_text(encoding="utf-8")
+        .splitlines()[0]
+    )
+    assert [event["event"] for event in tool_events] == ["started", "blocked"]
+    assert tool_events[1]["executed"] is False
+    assert tool_events[1]["security_event_ids"] == [
+        security_event["security_event_id"]
+    ]
+    assert security_event["tool"] == "read_log"
+    assert security_event["stage"] == "read_log_boundary"
+    assert security_event["risk_type"] == "outside_allowed_directories"
 
 
 def test_read_log_allows_additional_configured_directory(

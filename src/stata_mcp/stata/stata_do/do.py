@@ -17,6 +17,11 @@ from pathlib import Path
 from typing import Dict, List, Literal, Optional
 from uuid import uuid4
 
+from ...audit import (
+    AuditExecutionContext,
+    AuditStore,
+    current_audit_context,
+)
 from ...utils import get_nowtime
 
 LOG_FILE_NAME_PATTERN = re.compile(r"^[A-Za-z0-9_.-]{1,128}$")
@@ -28,7 +33,9 @@ class StataDo:
                  log_file_path: Path,
                  is_unix: bool = None,
                  cwd: Path = None,
-                 monitors: Optional[List] = None):
+                 monitors: Optional[List] = None,
+                 audit_store: AuditStore | None = None,
+                 audit_interface: str = "runtime"):
         """
         Initialize Stata executor
 
@@ -38,6 +45,8 @@ class StataDo:
             is_unix: Whether the OS is Unix-like (macOS/Linux)
             cwd (Path): current working directory
             monitors: List of monitor instances (e.g., RAMMonitor, TimeoutMonitor)
+            audit_store: Optional audit store. Defaults to the log artifact root.
+            audit_interface: Interface label for standalone audit events.
         """
         self.stata_cli = stata_cli
         self.log_file_path = log_file_path
@@ -49,6 +58,10 @@ class StataDo:
         self.cwd = cwd or Path.cwd()
         self.monitors = monitors or []
         self.IS_MONITOR = len(self.monitors) > 0
+        self.audit_store = audit_store or AuditStore(
+            self._default_audit_base_path(log_file_path)
+        )
+        self.audit_interface = audit_interface
 
     def set_cli(self, cli_path):
         self.stata_cli = cli_path
@@ -91,37 +104,162 @@ class StataDo:
         dofile_path = self._validate_dofile_path(dofile_path)
         log_file = self.generate_log_file(log_name)
 
-        if self.is_unix:
-            if self.IS_MONITOR:
-                return self._execute_unix_like_with_monitors(
-                    dofile_path,
-                    log_name,
-                    is_replace,
-                    enable_smcl,
-                    timeout,
-                )
-            else:
-                return self._execute_unix_like(
-                    dofile_path,
-                    log_name,
-                    is_replace,
-                    enable_smcl,
-                    timeout,
-                )
-        else:
-            # As I do not have a Windows device, I can't test this feature.
-            # Therefore, Windows is not supported yet.
-            if self.IS_MONITOR:
-                self._execute_windows_with_monitors(
-                    dofile_path,
-                    log_file,
-                    is_replace,
-                    timeout,
-                )
-            else:
-                self._execute_windows(dofile_path, log_file, is_replace, timeout)
+        execution_path, audit_context, owns_run = self._begin_audited_execution(
+            dofile_path,
+            log_name,
+            is_replace,
+            enable_smcl,
+            timeout,
+        )
 
-        return {"text": log_file}
+        try:
+            if self.is_unix:
+                if self.IS_MONITOR:
+                    result = self._execute_unix_like_with_monitors(
+                        execution_path,
+                        log_name,
+                        is_replace,
+                        enable_smcl,
+                        timeout,
+                    )
+                else:
+                    result = self._execute_unix_like(
+                        execution_path,
+                        log_name,
+                        is_replace,
+                        enable_smcl,
+                        timeout,
+                    )
+            else:
+                # As I do not have a Windows device, I can't test this feature.
+                # Therefore, Windows is not supported yet.
+                if self.IS_MONITOR:
+                    self._execute_windows_with_monitors(
+                        execution_path,
+                        log_file,
+                        is_replace,
+                        timeout,
+                    )
+                else:
+                    self._execute_windows(
+                        execution_path,
+                        log_file,
+                        is_replace,
+                        timeout,
+                    )
+                result = {"text": log_file}
+        except BaseException as error:
+            self._finish_audited_failure(audit_context, owns_run, error)
+            raise
+
+        self._finish_audited_success(audit_context, owns_run, result)
+        return result
+
+    @staticmethod
+    def _default_audit_base_path(log_file_path: Path) -> Path:
+        """Derive the project artifact root from the configured log directory."""
+        normalized_path = Path(log_file_path)
+        if normalized_path.name in {"stata-mcp-log", "log", "logs"}:
+            return normalized_path.parent
+        return normalized_path
+
+    def _begin_audited_execution(
+        self,
+        dofile_path: Path,
+        log_name: str,
+        is_replace: bool,
+        enable_smcl: bool,
+        timeout: float | None,
+    ) -> tuple[Path, AuditExecutionContext, bool]:
+        """Create or reuse an audit run and snapshot the exact source."""
+        audit_context = current_audit_context()
+        owns_run = audit_context is None or audit_context.run.tool != "stata_do"
+        if owns_run:
+            run = self.audit_store.start_run(
+                tool="stata_do",
+                source_reference=dofile_path.as_posix(),
+                input_payload={
+                    "dofile_path": dofile_path.as_posix(),
+                    "log_file_name": log_name,
+                    "is_replace_log": is_replace,
+                    "enable_smcl": enable_smcl,
+                    "timeout": timeout,
+                },
+                interface=self.audit_interface,
+            )
+            audit_context = AuditExecutionContext(run=run, store=self.audit_store)
+
+        assert audit_context is not None
+        try:
+            snapshot = audit_context.store.snapshot_dofile(
+                audit_context.run,
+                dofile_path,
+            )
+        except BaseException as error:
+            if owns_run:
+                audit_context.store.finish_run(
+                    audit_context.run,
+                    event="failed",
+                    error={
+                        "type": type(error).__name__,
+                        "message": str(error),
+                        "phase": "snapshot",
+                    },
+                )
+            raise
+
+        audit_context.artifacts.update(
+            {
+                "snapshot_path": snapshot.path.as_posix(),
+                "snapshot_sha256": snapshot.sha256,
+                "snapshot_reused": snapshot.reused,
+            }
+        )
+        return snapshot.path, audit_context, owns_run
+
+    @staticmethod
+    def _finish_audited_success(
+        audit_context: AuditExecutionContext,
+        owns_run: bool,
+        log_paths: Dict[str, Path],
+    ) -> None:
+        audit_context.artifacts.update(
+            {
+                f"{log_type}_log_path": log_path.as_posix()
+                for log_type, log_path in log_paths.items()
+            }
+        )
+        if owns_run:
+            audit_context.store.finish_run(
+                audit_context.run,
+                event="completed",
+                artifacts=audit_context.artifacts,
+            )
+
+    @staticmethod
+    def _finish_audited_failure(
+        audit_context: AuditExecutionContext,
+        owns_run: bool,
+        error: BaseException,
+    ) -> None:
+        if not owns_run:
+            return
+        if isinstance(error, KeyboardInterrupt):
+            event = "interrupted"
+        elif "timed out" in str(error).lower():
+            event = "timeout"
+        else:
+            event = "failed"
+        audit_context.store.finish_run(
+            audit_context.run,
+            event=event,
+            artifacts=audit_context.artifacts,
+            error={
+                "type": type(error).__name__,
+                "message": str(error),
+                "phase": "execution",
+            },
+        )
 
     @staticmethod
     def set_fake_terminal_size_env(columns: str | int = '120',

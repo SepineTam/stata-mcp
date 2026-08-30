@@ -364,7 +364,9 @@ The working directory structure:
 ├── stata-mcp-log/      # Stata execution logs
 ├── stata-mcp-dofile/   # Generated do-files
 ├── stata-mcp-result/   # Analysis results
-└── stata-mcp-tmp/      # Temporary files
+├── stata-mcp-tmp/      # Temporary files
+├── audit/               # Append-only per-tool audit ledgers
+└── snapshot/            # Full-SHA256 objects and metadata.jsonl
 ```
 
 **Migration note (v1.16.0)**:
