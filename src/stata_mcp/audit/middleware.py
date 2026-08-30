@@ -51,9 +51,18 @@ class AuditMiddleware:
         except BaseException as error:
             self.store.finish_run(
                 run,
-                event="interrupted" if isinstance(error, KeyboardInterrupt) else "failed",
+                event=(
+                    execution_context.terminal_event
+                    or (
+                        "interrupted"
+                        if isinstance(error, KeyboardInterrupt)
+                        else "failed"
+                    )
+                ),
                 artifacts=execution_context.artifacts,
                 error={"type": type(error).__name__, "message": str(error)},
+                security_event_ids=execution_context.security_event_ids,
+                executed=execution_context.terminal_event != "blocked",
             )
             raise
 

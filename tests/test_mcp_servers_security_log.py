@@ -294,6 +294,55 @@ def test_read_log_rejection_log_redacts_local_path(
     assert "allowed_directory" not in messages
 
 
+def test_read_log_block_links_tool_and_security_ledgers(
+    monkeypatch: pytest.MonkeyPatch,
+    stubbed_mcp_servers,
+    tmp_path: Path,
+) -> None:
+    statamcp_dir = tmp_path / ".statamcp"
+    statamcp_dir.mkdir()
+    outside = tmp_path / "secret.log"
+    outside.write_text("log content", encoding="utf-8")
+    fake_folder = SimpleNamespace(path=statamcp_dir)
+    fake_config = SimpleNamespace(STATA_MCP_FOLDER=fake_folder)
+    monkeypatch.setattr(stubbed_mcp_servers, "config", fake_config)
+    store = AuditStore(statamcp_dir)
+    middleware = AuditMiddleware(store)
+    request_context = SimpleNamespace(
+        method="tools/call",
+        params={"name": "read_log", "arguments": {"file_path": outside.as_posix()}},
+        request_id="request-read-log",
+        protocol_version="2026-07-28",
+        session=SimpleNamespace(client_params=None),
+    )
+
+    async def call_next(context):
+        return stubbed_mcp_servers.read_log(outside.as_posix())
+
+    with pytest.raises(PermissionError):
+        asyncio.run(middleware(request_context, call_next))
+
+    tool_events = [
+        json.loads(line)
+        for line in (statamcp_dir / "audit" / "read_log.jsonl")
+        .read_text(encoding="utf-8")
+        .splitlines()
+    ]
+    security_event = json.loads(
+        (statamcp_dir / "audit" / "security.jsonl")
+        .read_text(encoding="utf-8")
+        .splitlines()[0]
+    )
+    assert [event["event"] for event in tool_events] == ["started", "blocked"]
+    assert tool_events[1]["executed"] is False
+    assert tool_events[1]["security_event_ids"] == [
+        security_event["security_event_id"]
+    ]
+    assert security_event["tool"] == "read_log"
+    assert security_event["stage"] == "read_log_boundary"
+    assert security_event["risk_type"] == "outside_allowed_directories"
+
+
 def test_read_log_allows_additional_configured_directory(
     monkeypatch: pytest.MonkeyPatch,
     stubbed_mcp_servers,

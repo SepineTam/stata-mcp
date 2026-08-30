@@ -14,6 +14,7 @@ Audit files live under the configured project artifact directory, which is
 ├── audit/
 │   ├── stata_do.jsonl
 │   ├── get_data_info.jsonl
+│   ├── read_log.jsonl
 │   ├── help.jsonl
 │   └── security.jsonl
 └── snapshot/
@@ -74,6 +75,9 @@ independently readable while preserving a direct cross-ledger link.
 `get_data_info` uses the same linkage when a strict local-path boundary or URL
 guard rejects a data source. URL credentials, query strings, and fragments are
 removed before persistence.
+
+`read_log` also uses this linkage when its local-path boundary rejects a log
+outside the configured allowed directories.
 
 ## Sensitive Data
 

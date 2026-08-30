@@ -810,6 +810,13 @@ def read_log(
         logging.warning(
             "[SECURITY VIOLATION] Attempted to access file outside allowed directory."
         )
+        record_security_event(
+            decision="blocked",
+            stage="read_log_boundary",
+            risk_type="outside_allowed_directories",
+            source_path=path,
+            executed=False,
+        )
         raise PermissionError(
             "Access denied: File is outside the allowed directory. "
             "read_file can only read files within the stata-mcp-folder."
