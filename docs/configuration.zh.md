@@ -346,7 +346,9 @@ Python API 不要求调用方确认。CLI 未传入 `-y` 或 `--yes` 时会进�
 ├── stata-mcp-log/      # Stata 执行日志
 ├── stata-mcp-dofile/   # 生成的 do 文件
 ├── stata-mcp-result/   # 分析结果
-└── stata-mcp-tmp/      # 临时文件
+├── stata-mcp-tmp/      # 临时文件
+├── audit/               # 按工具拆分的只追加审计账本
+└── snapshot/            # 实际执行的 do 文件快照和 metadata.jsonl
 ```
 
 **迁移说明（v1.16.0）**：

@@ -23,6 +23,7 @@ from typing import Any, Callable, Dict, List, Literal, NamedTuple
 from mcp.server import MCPServer
 from mcp.server.mcpserver import Context, Icon
 
+from .audit import AuditMiddleware, AuditStore
 from ._diagnostic_logging import (
     DIAGNOSTIC_BUILD_ID,
     DIAGNOSTIC_SCHEMA_VERSION,
@@ -143,11 +144,13 @@ _icons = [
 ]
 
 # Initialize MCP Server
+audit_store = AuditStore(config.STATA_MCP_FOLDER.path)
 stata_mcp = MCPServer(
     name="stata-mcp",
     instructions=instructions,
     website_url="https://www.statamcp.com",
     icons=_icons,
+    middleware=[AuditMiddleware(audit_store)],
 )
 
 # =============================================================================

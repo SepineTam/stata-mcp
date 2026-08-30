@@ -81,6 +81,7 @@ nav:
   - Configuration: configuration.md
   - Beta Configuration: beta.md
   - Security: security.md
+  - Audit Trail: audit.md
   - Monitoring: monitoring.md
   - Troubleshooting: troubleshooting.md
   - Tools: mcp/tools.md

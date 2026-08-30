@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - codex/update-mcp-to-v2
+      - codex/mcp-to-v2/audit
     paths:
       - "pyproject.toml"
       - "src/**"
