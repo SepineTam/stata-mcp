@@ -2,7 +2,7 @@
 
 ## 什么是 MCP-for-Stata 和 Stata？
 
-**MCP-for-Stata** 是一个模型上下文协议（Model Context Protocol, MCP）服务器，它将大语言模型（LLM）与 Stata 连接起来，实现自主计量经济学分析和统计计算。基于 FastMCP 框架构建，MCP-for-Stata 将 Stata 全面分析能力作为结构化工具暴露出来，供 LLM 以编程方式调用，将自然语言查询转换为可复现的 Stata 工作流程。
+**MCP-for-Stata** 是一个模型上下文协议（Model Context Protocol, MCP）服务器，它将大语言模型（LLM）与 Stata 连接起来，实现自主计量经济学分析和统计计算。项目现基于 MCP Python SDK 2.x 的 `MCPServer` 架构，将 Stata 分析能力作为结构化工具暴露出来，供 LLM 以编程方式调用，将自然语言查询转换为可复现的 Stata 工作流程。
 
 ### 为什么选择 MCP-for-Stata？
 
@@ -17,10 +17,10 @@ MCP-for-Stata 解决了 AI 辅助研究中的一个关键空白：虽然现代 L
 
 ## 架构概述
 
-MCP-for-Stata 通过四个架构层运行：
+MCP-for-Stata 通过六个架构层运行：
 
 ### 1. **协议层（MCP 服务器）**
-基于 `FastMCP` 的服务器（`src/stata_mcp/__init__.py`）实现模型上下文协议，将 Stata 操作作为结构化工具暴露。每个工具定义：
+基于 `MCPServer` 的服务器（`src/stata_mcp/mcp_servers.py`）实现模型上下文协议，将 Stata 操作作为结构化工具暴露。服务器同时支持现代 `2026-07-28` 协商和旧版 initialize 客户端。每个工具定义：
 - 带类型验证的输入参数模式
 - 供 LLM 消费的输出序列化
 - 错误处理和日志基础设施
@@ -32,21 +32,26 @@ MCP-for-Stata 通过四个架构层运行：
 - **`StataController`**：管理 Stata 进程生命周期、命令调用和退出代码监控
 - **`StataDo`**：处理带日志捕获和错误报告的 do 文件执行
 
-### 3. **安全与监控层**
+### 3. **安全与审计层**
 生产部署的高级安全功能：
 - **[安全守卫](security.md)**：针对危险命令（shell 执行、文件删除等）验证 dofile
-- **[监控系统](monitoring.md)**：带自动进程终止的实时 RAM 监控
 - **基于黑名单的验证**：在执行前阻止危险操作
+- **[审计记录](audit.md)**：只追加的工具/安全账本和不可变 do-file 快照
+
+### 4. **可观测性与监控层**
+- **[本地调试黑匣子](debug-tracing.md)**：默认开启的本地 OpenTelemetry span 和即时执行检查点
+- **慢调用 watchdog**：在 30 秒和 120 秒记录隐私安全的线程位置
+- **[监控系统](monitoring.md)**：带自动进程终止的实时 RAM 监控
 - **资源限制**：防止内存耗尽和系统不稳定
 
-### 4. **配置层**
+### 5. **配置层**
 带分层优先级的统一配置管理：
 - **[配置系统](configuration.md)**：位于 `~/.statamcp/config.toml` 的 TOML 配置文件
 - **环境变量**：针对特定会话覆盖设置
 - **优先级**：环境变量 > 配置文件 > 默认值
 - **分区**：DEBUG、SECURITY、PROJECT、MONITOR、BETA、HELP、STATA、data_info
 
-### 5. **应用层（模式与工具）**
+### 6. **应用层（模式与工具）**
 两种主要操作模式：
 
 #### **MCP 服务器模式**（默认）
@@ -91,7 +96,10 @@ MCP-for-Stata 为可复现研究强制执行标准化的目录布局：
 ~/.statamcp/
 ├── stata-mcp-log/      # Stata 执行日志（带时间戳）
 ├── stata-mcp-dofile/   # 生成的 do 文件（ISO 8601 时间戳）
-└── stata-mcp-tmp/      # 临时文件（数据信息缓存）
+├── stata-mcp-tmp/      # 临时文件（数据信息缓存）
+├── audit/              # 只追加的工具账本和安全账本
+├── snapshot/           # 使用完整哈希寻址的 do-file 对象和 metadata.jsonl
+└── debug/              # 允许轮转的 checkpoints.jsonl 和 traces.jsonl
 ```
 
 对于 AI 辅助研究项目，推荐布局如下：
