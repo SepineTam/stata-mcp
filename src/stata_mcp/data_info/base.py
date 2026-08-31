@@ -392,9 +392,9 @@ class DataInfoBase(ABC):
     def metrics(self) -> List[str]:
         return list(self._metrics)
 
-    @property
+    @cached_property
     def df(self) -> pd.DataFrame:
-        """Get the data as a pandas DataFrame."""
+        """Parse and reuse the DataFrame for this handler instance."""
         self._dataframe_read_count += 1
         read_occurrence = self._dataframe_read_count
         started_at = time.perf_counter()
