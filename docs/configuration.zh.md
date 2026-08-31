@@ -58,6 +58,11 @@ LOG_FILE = "~/.statamcp/stata_mcp_debug.log"
 MAX_BYTES = 10_000_000
 BACKUP_COUNT = 5
 
+[DEBUG.tracing]
+ENABLED = true
+MAX_BYTES = 10485760
+BACKUP_COUNT = 3
+
 [BETA]
 IS_ASYNC_DO = false
 MAX_ASYNC_DO = 3
@@ -186,6 +191,32 @@ Beta 选项单独放在 [Beta 配置](beta.md) 中说明。
   ```bash
   export STATA_MCP__LOGGING__BACKUP_COUNT=10
   ```
+
+#### `DEBUG.tracing.ENABLED`
+
+为 `get_data_info` 和 `stata_do` 启用本地检查点、OpenTelemetry 记录和慢调用现场记录。
+
+- **类型**：Boolean
+- **默认值**：`true`
+- **环境变量**：`STATA_MCP__DEBUG_TRACING_ON`
+
+#### `DEBUG.tracing.MAX_BYTES`
+
+每个本地 debug JSONL 活动文件在轮转前允许的最大大小。
+
+- **类型**：Integer（bytes）
+- **默认值**：`10485760`（10 MiB）
+- **环境变量**：`STATA_MCP__DEBUG_TRACING_MAX_BYTES`
+
+#### `DEBUG.tracing.BACKUP_COUNT`
+
+checkpoints 和 traces 各自保留的轮转备份数量。
+
+- **类型**：Integer
+- **默认值**：`3`
+- **环境变量**：`STATA_MCP__DEBUG_TRACING_BACKUP_COUNT`
+
+具体记录步骤、隐私边界和查看方法参见[本地调试黑匣子](debug-tracing.md)。
 
 ### HELP 分区
 

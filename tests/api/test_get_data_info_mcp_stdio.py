@@ -105,4 +105,40 @@ def test_get_data_info_stdio_schema_and_response_remain_compatible(
         }
         assert audit_events[0]["protocol_version"] == expected_protocol
 
+        checkpoint_events = [
+            json.loads(line)
+            for line in (
+                working_dir / ".statamcp" / "debug" / "checkpoints.jsonl"
+            )
+            .read_text(encoding="utf-8")
+            .splitlines()
+        ]
+        assert [
+            event["event"]
+            for event in checkpoint_events
+            if event["step"] == "get_data_info.tool_execution"
+        ] == ["started", "completed"]
+        assert {
+            event["run_id"]
+            for event in checkpoint_events
+            if event["step"] == "get_data_info.tool_execution"
+        } == {audit_events[0]["run_id"]}
+
+        trace_events = [
+            json.loads(line)
+            for line in (
+                working_dir / ".statamcp" / "debug" / "traces.jsonl"
+            )
+            .read_text(encoding="utf-8")
+            .splitlines()
+        ]
+        tool_span = next(
+            event
+            for event in trace_events
+            if event["name"] == "tools/call get_data_info"
+        )
+        assert tool_span["attributes"]["statamcp.run_id"] == audit_events[0][
+            "run_id"
+        ]
+
     anyio.run(_run_protocol_test)

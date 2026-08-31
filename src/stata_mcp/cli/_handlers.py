@@ -346,6 +346,17 @@ def handle_verify(args: Namespace) -> int:
 
 def handle_server(args: Namespace) -> None:
     """Handle the default behavior of starting the MCP server."""
+    from ..config import Config
+    from ..observability import configure_local_observability
+
+    runtime_config = Config(config_file=getattr(args, "config_file", None))
+    configure_local_observability(
+        runtime_config.STATA_MCP_FOLDER.path,
+        enabled=runtime_config.DEBUG_TRACING_ON,
+        max_bytes=runtime_config.DEBUG_TRACING_MAX_BYTES,
+        backup_count=runtime_config.DEBUG_TRACING_BACKUP_COUNT,
+    )
+
     from ..mcp_servers import register_tools
     from ..mcp_servers import stata_mcp as mcp
 

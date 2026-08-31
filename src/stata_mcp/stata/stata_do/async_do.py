@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Dict, Sequence
 
 from ...utils import get_nowtime
+from ...observability import debug_step
 from .do import StataDo
 
 
@@ -56,10 +57,11 @@ class AsyncStataDo(StataDo):
                 timeout,
             )
 
-        timeout = self._validate_timeout(timeout)
-        log_name = log_file_name or self._generate_default_log_name()
-        self._validate_log_name(log_name)
-        validated_dofile_path = self._validate_dofile_path(dofile_path)
+        with debug_step("stata_do.input_validation", tool="stata_do"):
+            timeout = self._validate_timeout(timeout)
+            log_name = log_file_name or self._generate_default_log_name()
+            self._validate_log_name(log_name)
+            validated_dofile_path = self._validate_dofile_path(dofile_path)
 
         execution_path, audit_context, owns_run = self._begin_audited_execution(
             validated_dofile_path,
@@ -69,18 +71,36 @@ class AsyncStataDo(StataDo):
             timeout,
         )
         try:
-            result = await self._execute_unix_like_async(
-                execution_path,
-                log_name,
-                is_replace,
-                enable_smcl,
-                timeout,
-            )
+            with debug_step(
+                "stata_do.process_execution",
+                tool="stata_do",
+                run_id=audit_context.run.run_id,
+                attributes={"mode": "async", "platform": "unix"},
+            ):
+                result = await self._execute_unix_like_async(
+                    execution_path,
+                    log_name,
+                    is_replace,
+                    enable_smcl,
+                    timeout,
+                )
         except BaseException as error:
-            self._finish_audited_failure(audit_context, owns_run, error)
+            with debug_step(
+                "stata_do.audit_finalize",
+                tool="stata_do",
+                run_id=audit_context.run.run_id,
+                attributes={"outcome": "failed"},
+            ):
+                self._finish_audited_failure(audit_context, owns_run, error)
             raise
 
-        self._finish_audited_success(audit_context, owns_run, result)
+        with debug_step(
+            "stata_do.audit_finalize",
+            tool="stata_do",
+            run_id=audit_context.run.run_id,
+            attributes={"outcome": "completed"},
+        ):
+            self._finish_audited_success(audit_context, owns_run, result)
         return result
 
     async def execute_dofiles(

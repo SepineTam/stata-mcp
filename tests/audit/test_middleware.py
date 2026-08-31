@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from types import SimpleNamespace
 
 import anyio
 import pytest
+from opentelemetry.sdk.trace import TracerProvider
 
 from stata_mcp.audit import (
     AuditExecutionContext,
@@ -15,6 +17,10 @@ from stata_mcp.audit import (
     AuditStore,
     bind_audit_context,
     current_audit_context,
+)
+from stata_mcp.observability.checkpoints import (
+    CheckpointWriter,
+    configure_checkpoint_writer,
 )
 
 
@@ -170,3 +176,90 @@ def test_audit_context_propagates_to_sync_tool_worker(tmp_path: Path) -> None:
 
     assert observed is execution_context
     assert current_audit_context() is None
+
+
+def test_middleware_adds_run_id_to_current_otel_span(tmp_path: Path) -> None:
+    store = AuditStore(tmp_path / ".statamcp")
+    middleware = AuditMiddleware(store)
+    provider = TracerProvider()
+    tracer = provider.get_tracer("test")
+
+    async def call_next(ctx):
+        return {"isError": False}
+
+    async def run_case():
+        with tracer.start_as_current_span("tools/call get_data_info") as span:
+            await middleware(_context(tool="get_data_info"), call_next)
+            return span
+
+    span = anyio.run(run_case)
+    events = _read_jsonl(
+        tmp_path / ".statamcp" / "audit" / "get_data_info.jsonl"
+    )
+
+    assert span.attributes["statamcp.run_id"] == events[0]["run_id"]
+
+
+def test_middleware_starts_and_cancels_watchdog_for_target_tools(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    state = {
+        "started": 0,
+        "cancelled": 0,
+        "tool": None,
+        "run_id": None,
+        "trace_id": None,
+        "span_id": None,
+        "process_id": None,
+    }
+
+    class FakeWatchdog:
+        def __init__(
+            self,
+            *,
+            tool,
+            run_id,
+            trace_id=None,
+            span_id=None,
+            process_id=None,
+            delays=(30.0, 120.0),
+        ):
+            state["tool"] = tool
+            state["run_id"] = run_id
+            state["trace_id"] = trace_id
+            state["span_id"] = span_id
+            state["process_id"] = process_id
+
+        def start(self):
+            state["started"] += 1
+
+        def cancel(self):
+            state["cancelled"] += 1
+
+    monkeypatch.setattr(
+        "stata_mcp.audit.middleware.SlowCallWatchdog",
+        FakeWatchdog,
+    )
+    configure_checkpoint_writer(CheckpointWriter(tmp_path / ".statamcp"))
+    middleware = AuditMiddleware(AuditStore(tmp_path / ".statamcp"))
+
+    async def call_next(ctx):
+        return {"isError": False}
+
+    provider = TracerProvider()
+    tracer = provider.get_tracer("watchdog-test")
+    try:
+        with tracer.start_as_current_span("tools/call get_data_info") as span:
+            span_context = span.get_span_context()
+            anyio.run(middleware, _context(tool="get_data_info"), call_next)
+    finally:
+        configure_checkpoint_writer(None)
+
+    assert state["started"] == 1
+    assert state["cancelled"] == 1
+    assert state["tool"] == "get_data_info"
+    assert state["run_id"]
+    assert state["trace_id"] == f"{span_context.trace_id:032x}"
+    assert state["span_id"] == f"{span_context.span_id:016x}"
+    assert state["process_id"] == os.getpid()

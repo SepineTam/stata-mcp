@@ -5,6 +5,7 @@ on:
     branches:
       - codex/update-mcp-to-v2
       - codex/mcp-to-v2/audit
+      - codex/mcp-to-v2/otel-debug
     paths:
       - "pyproject.toml"
       - "src/**"

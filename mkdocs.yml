@@ -82,6 +82,7 @@ nav:
   - Beta Configuration: beta.md
   - Security: security.md
   - Audit Trail: audit.md
+  - Local Debug Tracing: debug-tracing.md
   - Monitoring: monitoring.md
   - Troubleshooting: troubleshooting.md
   - Tools: mcp/tools.md

@@ -22,6 +22,7 @@ from ...audit import (
     AuditStore,
     current_audit_context,
 )
+from ...observability import debug_step
 from ...utils import get_nowtime
 
 LOG_FILE_NAME_PATTERN = re.compile(r"^[A-Za-z0-9_.-]{1,128}$")
@@ -97,12 +98,13 @@ class StataDo:
             ValueError: Unsupported operating system
             RuntimeError: Stata execution error
         """
-        timeout = self._validate_timeout(timeout)
-        nowtime = get_nowtime()
-        log_name = log_file_name or nowtime
-        self._validate_log_name(log_name)
-        dofile_path = self._validate_dofile_path(dofile_path)
-        log_file = self.generate_log_file(log_name)
+        with debug_step("stata_do.input_validation", tool="stata_do"):
+            timeout = self._validate_timeout(timeout)
+            nowtime = get_nowtime()
+            log_name = log_file_name or nowtime
+            self._validate_log_name(log_name)
+            dofile_path = self._validate_dofile_path(dofile_path)
+            log_file = self.generate_log_file(log_name)
 
         execution_path, audit_context, owns_run = self._begin_audited_execution(
             dofile_path,
@@ -113,46 +115,62 @@ class StataDo:
         )
 
         try:
-            if self.is_unix:
-                if self.IS_MONITOR:
-                    result = self._execute_unix_like_with_monitors(
-                        execution_path,
-                        log_name,
-                        is_replace,
-                        enable_smcl,
-                        timeout,
-                    )
+            with debug_step(
+                "stata_do.process_execution",
+                tool="stata_do",
+                run_id=audit_context.run.run_id,
+                attributes={"mode": "sync", "platform": "unix" if self.is_unix else "windows"},
+            ):
+                if self.is_unix:
+                    if self.IS_MONITOR:
+                        result = self._execute_unix_like_with_monitors(
+                            execution_path,
+                            log_name,
+                            is_replace,
+                            enable_smcl,
+                            timeout,
+                        )
+                    else:
+                        result = self._execute_unix_like(
+                            execution_path,
+                            log_name,
+                            is_replace,
+                            enable_smcl,
+                            timeout,
+                        )
                 else:
-                    result = self._execute_unix_like(
-                        execution_path,
-                        log_name,
-                        is_replace,
-                        enable_smcl,
-                        timeout,
-                    )
-            else:
-                # As I do not have a Windows device, I can't test this feature.
-                # Therefore, Windows is not supported yet.
-                if self.IS_MONITOR:
-                    self._execute_windows_with_monitors(
-                        execution_path,
-                        log_file,
-                        is_replace,
-                        timeout,
-                    )
-                else:
-                    self._execute_windows(
-                        execution_path,
-                        log_file,
-                        is_replace,
-                        timeout,
-                    )
-                result = {"text": log_file}
+                    if self.IS_MONITOR:
+                        self._execute_windows_with_monitors(
+                            execution_path,
+                            log_file,
+                            is_replace,
+                            timeout,
+                        )
+                    else:
+                        self._execute_windows(
+                            execution_path,
+                            log_file,
+                            is_replace,
+                            timeout,
+                        )
+                    result = {"text": log_file}
         except BaseException as error:
-            self._finish_audited_failure(audit_context, owns_run, error)
+            with debug_step(
+                "stata_do.audit_finalize",
+                tool="stata_do",
+                run_id=audit_context.run.run_id,
+                attributes={"outcome": "failed"},
+            ):
+                self._finish_audited_failure(audit_context, owns_run, error)
             raise
 
-        self._finish_audited_success(audit_context, owns_run, result)
+        with debug_step(
+            "stata_do.audit_finalize",
+            tool="stata_do",
+            run_id=audit_context.run.run_id,
+            attributes={"outcome": "completed"},
+        ):
+            self._finish_audited_success(audit_context, owns_run, result)
         return result
 
     @staticmethod
@@ -191,10 +209,15 @@ class StataDo:
 
         assert audit_context is not None
         try:
-            snapshot = audit_context.store.snapshot_dofile(
-                audit_context.run,
-                dofile_path,
-            )
+            with debug_step(
+                "stata_do.snapshot",
+                tool="stata_do",
+                run_id=audit_context.run.run_id,
+            ):
+                snapshot = audit_context.store.snapshot_dofile(
+                    audit_context.run,
+                    dofile_path,
+                )
         except BaseException as error:
             if owns_run:
                 audit_context.store.finish_run(

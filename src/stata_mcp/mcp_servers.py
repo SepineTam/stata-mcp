@@ -38,6 +38,7 @@ from ._diagnostic_logging import (
     utf8_size,
 )
 from .config import Config
+from .observability import debug_step
 from .utils.update import get_current_version, get_latest_version
 
 # Init project config
@@ -451,7 +452,12 @@ def _sync_stata_do(
         - Security guard blocks execution when dangerous commands are detected.
         - To disable security guard, set STATA_MCP__IS_GUARD=false (not recommended).
     """
-    request = _prepare_stata_do_request(dofile_path)
+    with debug_step(
+        "stata_do.prepare_request",
+        tool="stata_do",
+        attributes={"source_ref": source_reference(dofile_path)},
+    ):
+        request = _prepare_stata_do_request(dofile_path)
     if isinstance(request, dict):
         return request
 
@@ -472,13 +478,14 @@ def _sync_stata_do(
     from .core.types import RAMLimitExceededError
 
     try:
-        log_file_path_mapping: Dict[str, Path] = stata_executor.execute_dofile(
-            request.dofile_path,
-            log_file_name,
-            is_replace_log,
-            enable_smcl,
-            timeout=timeout,
-        )
+        with debug_step("stata_do.execution", tool="stata_do"):
+            log_file_path_mapping: Dict[str, Path] = stata_executor.execute_dofile(
+                request.dofile_path,
+                log_file_name,
+                is_replace_log,
+                enable_smcl,
+                timeout=timeout,
+            )
         text_log = log_file_path_mapping.get("text").as_posix()
         logging.info("Dofile executed successfully.")
     except RAMLimitExceededError as e:
@@ -489,13 +496,14 @@ def _sync_stata_do(
         logging.debug("Execution exception details: %s", e)
         return {"error": str(e)}
 
-    return _format_stata_do_result(
-        log_file_path_mapping,
-        read_log_when_error,
-        enable_smcl,
-        stata_executor,
-        text_log,
-    )
+    with debug_step("stata_do.result_formatting", tool="stata_do"):
+        return _format_stata_do_result(
+            log_file_path_mapping,
+            read_log_when_error,
+            enable_smcl,
+            stata_executor,
+            text_log,
+        )
 
 
 async def _async_stata_do(
@@ -507,7 +515,12 @@ async def _async_stata_do(
     timeout: float | None = None,
 ) -> Dict[str, Any]:
     """Async Stata do-file tool implementation."""
-    request = _prepare_stata_do_request(dofile_path)
+    with debug_step(
+        "stata_do.prepare_request",
+        tool="stata_do",
+        attributes={"source_ref": source_reference(dofile_path)},
+    ):
+        request = _prepare_stata_do_request(dofile_path)
     if isinstance(request, dict):
         return request
 
@@ -526,16 +539,17 @@ async def _async_stata_do(
     from .core.types import RAMLimitExceededError
 
     try:
-        async with _get_async_do_semaphore():
-            log_file_path_mapping: Dict[str, Path] = (
-                await stata_executor.execute_dofile_async(
-                    request.dofile_path,
-                    log_file_name,
-                    is_replace_log,
-                    enable_smcl,
-                    timeout=timeout,
+        with debug_step("stata_do.execution", tool="stata_do"):
+            async with _get_async_do_semaphore():
+                log_file_path_mapping: Dict[str, Path] = (
+                    await stata_executor.execute_dofile_async(
+                        request.dofile_path,
+                        log_file_name,
+                        is_replace_log,
+                        enable_smcl,
+                        timeout=timeout,
+                    )
                 )
-            )
         text_log = log_file_path_mapping.get("text").as_posix()
         logging.info("Dofile executed successfully.")
     except RAMLimitExceededError as e:
@@ -546,13 +560,14 @@ async def _async_stata_do(
         logging.debug("Execution exception details: %s", e)
         return {"error": str(e)}
 
-    return _format_stata_do_result(
-        log_file_path_mapping,
-        read_log_when_error,
-        enable_smcl,
-        stata_executor,
-        text_log,
-    )
+    with debug_step("stata_do.result_formatting", tool="stata_do"):
+        return _format_stata_do_result(
+            log_file_path_mapping,
+            read_log_when_error,
+            enable_smcl,
+            stata_executor,
+            text_log,
+        )
 
 
 stata_do = _async_stata_do if getattr(config, "IS_ASYNC_DO", False) else _sync_stata_do
@@ -688,31 +703,42 @@ def get_data_info(
             python_version=".".join(str(part) for part in sys.version_info[:3]),
             stata_mcp_version=package_versions["stata-mcp"],
         )
-        import_started_at = time.perf_counter()
-        log_event(
-            diagnostic_logger,
-            logging.DEBUG,
-            "get_data_info.mcp_tool.lazy_import.started",
-            request_id,
-        )
-        from .api.get_data_info import _get_data_info_impl
-
-        log_event(
-            diagnostic_logger,
-            logging.DEBUG,
-            "get_data_info.mcp_tool.lazy_import.completed",
-            request_id,
-            duration_ms=elapsed_ms(import_started_at),
-        )
-        result = _get_data_info_impl(
-            data_path=data_path,
-            vars_list=vars_list,
-            encoding=encoding,
-            config_file=None,
-            head=head,
-            tool_context="mcp",
+        with debug_step(
+            "get_data_info.lazy_import",
+            tool="get_data_info",
             request_id=request_id,
-        )
+        ):
+            import_started_at = time.perf_counter()
+            log_event(
+                diagnostic_logger,
+                logging.DEBUG,
+                "get_data_info.mcp_tool.lazy_import.started",
+                request_id,
+            )
+            from .api.get_data_info import _get_data_info_impl
+
+            log_event(
+                diagnostic_logger,
+                logging.DEBUG,
+                "get_data_info.mcp_tool.lazy_import.completed",
+                request_id,
+                duration_ms=elapsed_ms(import_started_at),
+            )
+        with debug_step(
+            "get_data_info.tool_execution",
+            tool="get_data_info",
+            request_id=request_id,
+            attributes={"source_ref": source_reference(data_path)},
+        ):
+            result = _get_data_info_impl(
+                data_path=data_path,
+                vars_list=vars_list,
+                encoding=encoding,
+                config_file=None,
+                head=head,
+                tool_context="mcp",
+                request_id=request_id,
+            )
         log_event(
             diagnostic_logger,
             logging.INFO,

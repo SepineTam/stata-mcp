@@ -38,6 +38,7 @@ from .._diagnostic_logging import (
     source_reference,
     utf8_size,
 )
+from ..observability import debug_step
 
 # Global registry for data info classes
 # Maps file extensions to their corresponding DataInfoBase subclass
@@ -407,7 +408,17 @@ class DataInfoBase(ABC):
             suffix=self.suffix.lower(),
         )
         try:
-            data_frame = self._read_data()
+            with debug_step(
+                "get_data_info.dataframe_read",
+                tool="get_data_info",
+                request_id=self.request_id,
+                attributes={
+                    "occurrence": read_occurrence,
+                    "source_ref": self.source_ref,
+                    "suffix": self.suffix.lower(),
+                },
+            ):
+                data_frame = self._read_data()
         except Exception as error:
             log_event(
                 logger,
@@ -452,7 +463,13 @@ class DataInfoBase(ABC):
             cache_enabled=self.is_cache,
             head=self._head,
         )
-        summary = self.summary()
+        with debug_step(
+            "get_data_info.summary",
+            tool="get_data_info",
+            request_id=self.request_id,
+            attributes={"cache_enabled": self.is_cache},
+        ):
+            summary = self.summary()
         stage_started_at = time.perf_counter()
         log_event(
             logger,

@@ -63,13 +63,12 @@ Stata 启动前，MCP-for-Stata 会保存真正要执行的完整字节。metada
 
 ## Audit 与 OpenTelemetry
 
-JSONL audit 是长期保存的研究证据。OpenTelemetry 是下一阶段用于调试和性能分析的候选方案；当前版本没有配置 collector 或 exporter，也不承诺生成可长期查询的 trace。未来即使加入 OpenTelemetry，它也必须是可选能力，不能替代 JSONL 证据链。
+JSONL audit 是长期保存的研究证据。默认开启的本地 OpenTelemetry 黑匣子是允许轮转的运行诊断，用来定位 `get_data_info` 和 `stata_do` 变慢或卡住的位置。它不会替代或修改 JSONL 证据链。参见[本地调试黑匣子](debug-tracing.md)。
 
 ## 暂缓开发事项
 
 下列内容不属于 Audit v1，需要单独讨论设计后再开发：
 
-- 可选的 OpenTelemetry 调试与性能 trace，以及 trace/span ID 与 `run_id` 的安全关联方式。
 - 独立的 timeout 分类和测试。当前未分类的超时异常会记为 `failed`。
 - 基于快照的恢复或重放。未来若实现，必须由用户明确发起、校验快照哈希、生成新的 run ID，并保留原始运行记录不被修改。
 - 审计文件的保留期限、轮转与归档策略。
