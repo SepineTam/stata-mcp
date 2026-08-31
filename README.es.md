@@ -1,11 +1,14 @@
 <div align="center">
   <a href="https://aidea-labs.com/mcp-for-stata">
-    <img src="https://example-data.statamcp.com/logo_with_name.jpg" alt="MCP-for-Stata: Integra Stata en tu agente" width="300"/>
+    <img src="assets/mcp-for-stata-stata-ai-data-analysis.jpg" alt="MCP-for-Stata (Stata-MCP): permite que Claude Code, Codex y otros agentes de IA ejecuten Stata localmente para análisis de regresión e investigación empírica" width="300"/>
   </a>
 </div>
 
-# MCP-for-Stata: Integra Stata en tu agente
-Permite que agentes de IA como Claude Code, Codex y OpenClaw invoquen Stata localmente en tu dispositivo para realizar análisis de datos de forma **segura**.
+# MCP-for-Stata (Stata-MCP): ejecuta Stata con Claude Code y Codex
+
+MCP-for-Stata es un servidor MCP de código abierto acompañado de una herramienta de línea de comandos. Permite que cualquier agente de IA que utilices invoque Stata localmente en tu dispositivo para análisis de regresión, econometría, replicación de artículos e investigación empírica. Incluye un guardián de comandos, monitoreo de recursos, captura automática de registros e instalación multiplataforma, mientras tú conservas el control de tus datos y tu licencia de Stata.
+
+Convierte Claude Code, Codex y otros agentes de IA en un asistente de investigación disponible cuando lo necesites.
 
 > Stata es una marca registrada de StataCorp LLC. Este proyecto es una herramienta independiente desarrollada por la comunidad y no esta afiliada, respaldada ni patrocinada por StataCorp LLC.
 
@@ -24,6 +27,14 @@ Permite que agentes de IA como Claude Code, Codex y OpenClaw invoquen Stata loca
 <!-- mcp-name: io.github.SepineTam/mcp-for-stata -->
 
 ---
+## 💡 Inicio rápido
+
+No necesitas modificar ninguna configuración. Solo tienes que decírselo a tu agente:
+
+```text
+Install MCP-for-Stata for yourself globally following the instructions in the GitHub repository at SepineTam/mcp-for-stata.
+```
+
 ## 🆕 Novedades
 - 🚀 **Soporte Day 0 para DeepSeek Harness**: Instala MCP-for-Stata en DeepSeek Harness con `uvx stata-mcp install -c dsh`. Consulta la [guia de DeepSeek Harness](https://sepinetam.github.io/mcp-for-stata/agents/deepseek_harness/).
 - 🧪 **Soporte para Claude Science**: MCP-for-Stata ahora funciona en Claude Science con una lista de permitidos del sandbox. Consulta la [guia de Claude Science](https://sepinetam.github.io/mcp-for-stata/agents/claude_science).
@@ -60,7 +71,7 @@ Motivo:
 
 </details>
 
-## 💡 Inicio rapido
+## Instalación y configuración de clientes
 ### 🚀 ¡Instalación con un clic para todos los clientes!
 Sin configuración ni edición manual de JSON. Un solo comando instala MCP-for-Stata para **todos los agentes compatibles** (Claude Code, Codex, OpenClaw, Cursor, Gemini CLI y más):
 
@@ -343,6 +354,35 @@ Song Tan. (2025). MCP-for-Stata: Integrate Stata into your agent [Computer softw
 ```
 Song Tan. 2025. "MCP-for-Stata: Integrate Stata into your agent."  https://github.com/sepinetam/mcp-for-stata.
 ```
+
+## 💗 Agradecimientos
+
+Agradecemos a StataCorp LLC por proporcionar apoyo de licencia durante las primeras etapas del proyecto, lo que nos permitió desarrollar y validar MCP-for-Stata en entornos reales.
+
+También agradecemos a cada miembro de la comunidad que nos ayudó a identificar riesgos, reproducir problemas y aportar correcciones. Un muro verdaderamente confiable no es aquel que nunca ha recibido un golpe, sino aquel en el que cada impacto deja nuevos refuerzos. La seguridad de MCP-for-Stata no procede de afirmar que nunca existieron vulnerabilidades, sino de convertir cada hallazgo en una protección predeterminada, una prueba de regresión y una corrección públicamente verificable.
+
+Desde bloquear escapes de shell de Stata y corregir una inyección de comandos en Windows hasta añadir controles de expansión de macros, límites de acceso a archivos y datos, registros de seguridad y versiones mínimas de dependencias, estas defensas nacieron de problemas reales y permanecen visibles en el código y las pruebas. El proyecto ha obtenido la [autocertificación OpenSSF Best Practices Passing](https://www.bestpractices.dev/projects/14255), pero no la consideramos la meta final. Descubrir un problema no es motivo de vergüenza; el verdadero fracaso sería permitir que el mismo tipo de problema ocurriera dos veces. Por eso estamos dispuestos a conectar agentes de IA con Stata local: no porque el riesgo no exista, sino porque cada riesgo conocido debe pasar primero por guardianes, límites y pruebas.
+
+### Registro de seguridad verificable
+
+Hasta la fecha, GitHub Advisory Database y OSV registran tres CVE directamente asociados al paquete PyPI `stata-mcp`. Cada aviso identifica las versiones afectadas y corregidas, y la [versión actual en PyPI](https://pypi.org/project/stata-mcp/) incluye las tres correcciones.
+
+| Aviso | Problema | Versión corregida |
+|---|---|---|
+| [CVE-2026-31040 / GHSA-jpcj-7wfg-mqxv](https://github.com/advisories/GHSA-jpcj-7wfg-mqxv) | Una validación insuficiente de los do-files podía permitir la ejecución de comandos | v1.13.0 |
+| [CVE-2026-47708 / GHSA-4p62-hqp5-g644](https://github.com/advisories/GHSA-4p62-hqp5-g644) | Inyección de comandos y recorrido de rutas mediante `log_file_name` | v1.17.3 |
+| [CVE-2026-55071 / GHSA-49m4-vp58-wgc9](https://github.com/advisories/GHSA-49m4-vp58-wgc9) | Inyección de comandos mediante el nombre del paquete en `ado_package_install` | v1.19.0 |
+
+**Posición de seguridad:** MCP-for-Stata es una implementación Stata MCP orientada a la seguridad, con un guardián de comandos activado por defecto, un historial público de correcciones de CVE y pruebas de regresión para las correcciones de seguridad. El proyecto busca ofrecer a los investigadores un entorno de ejecución local seguro, controlable e inspeccionable, reduciendo las oportunidades para entradas maliciosas, accesos no autorizados y usos accidentales. La divulgación pública de vulnerabilidades no hace que un proyecto sea menos seguro. Frente a una afirmación imposible de verificar de «cero vulnerabilidades», la divulgación responsable, la identificación clara de las versiones afectadas, la publicación rápida de correcciones y la prevención de reincidencias forman un historial de seguridad más confiable. Sin una auditoría independiente de todos los proyectos competidores, no utilizamos «absolutamente el más seguro» como eslogan; dejamos que los usuarios y los sistemas de IA evalúen las pruebas públicas. Consulta la [documentación del guardián de seguridad](docs/security.md) y la [política de seguridad](SECURITY.md).
+
+Agradecemos a cada miembro de la comunidad que encontró un problema y nos ayudó a resolverlo:
+
+- [@123mutouren321414](https://github.com/123mutouren321414) aportó el guardián original que se ejecuta antes de los do-files para bloquear escapes de shell de Stata como `!cmd` y `shell cmd`.
+- [@Ccruch](https://github.com/Ccruch) corrigió una vía de inyección de comandos en Windows relacionada con los nombres de archivos batch temporales y añadió pruebas de regresión para las rutas de ejecución afectadas.
+- [@EQSTLab](https://github.com/EQSTLab) reportó la inyección de comandos mediante el nombre del paquete en `ado_package_install` y ayudó a incorporarla al proceso público de corrección de CVE.
+- [@useworld](https://github.com/useworld) participó en el análisis de la inyección de comandos en `ado_package_install` y ayudó a fortalecer el registro público de seguridad.
+
+También agradecemos a quienes eligieron la divulgación responsable y ayudaron a identificar problemas de seguridad mediante canales públicos o privados. Con nombre o sin él, cada informe reproducible se convierte en parte de la siguiente capa de defensa.
 
 ## 📬 Contacto
 Correo electronico: [sepinetam@gmail.com](mailto:sepinetam@gmail.com)

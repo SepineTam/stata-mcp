@@ -1,7 +1,7 @@
 [project]
 name = "stata-mcp"
 version = "1.23.1"
-description = "MCP-for-Stata: one-command install of a Stata MCP server for Claude Code, Codex, OpenClaw, and 7+ AI agents. Run Stata do-files through natural language."
+description = "MCP-for-Stata: a stable, security-first MCP server and CLI for integrating local Stata into Claude Code, Codex, OpenClaw, and other AI research workflows."
 readme = "README.md"
 authors = [
     { name = "Song Tan", email = "sepinetam@gmail.com" }

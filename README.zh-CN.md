@@ -1,11 +1,14 @@
 <div align="center">
   <a href="https://aidea-labs.com/mcp-for-stata">
-    <img src="https://example-data.statamcp.com/logo_with_name.jpg" alt="MCP-for-Stata：将 Stata 集成到你的智能体中" width="300"/>
+    <img src="assets/mcp-for-stata-stata-ai-data-analysis.jpg" alt="MCP-for-Stata（Stata-MCP）：让 Claude Code、Codex 等 AI 智能体调用本地 Stata 进行回归分析和实证研究" width="300"/>
   </a>
 </div>
 
-# MCP-for-Stata：将 Stata 集成到你的智能体中
-让 Claude Code，Codex，OpenClaw 等 AI 智能体直接调用你设备中的 Stata 在本地 **安全地** 进行数据分析。
+# MCP-for-Stata（Stata-MCP）：让 Claude Code 和 Codex 调用 Stata 做数据分析
+
+MCP-for-Stata 是一个开源 MCP 服务器和命令行工具，让一切你能看到的 AI 智能体在你的设备上直接调用本地 Stata，辅助你完成回归分析、计量经济学、论文复现与实证研究；它提供命令防护、资源监控、自动日志捕获和跨平台客户端安装，你的数据与 Stata 授权仍由你自己管理。
+
+用它，你可以把 Claude Code、Codex 等 AI 智能体变成一位随叫随到的科研助理。
 
 > Stata 是 StataCorp LLC 的注册商标。本项目为独立社区开发工具，与 StataCorp LLC 无任何关联、背书或赞助关系。
 
@@ -24,6 +27,14 @@
 <!-- mcp-name: io.github.SepineTam/mcp-for-stata -->
 
 ---
+## 💡 快速开始
+
+你什么事情都不需要做，只需要和你的 Agent 说一句即可完成安装：
+
+```text
+Install MCP-for-Stata for yourself globally following the instructions in the GitHub repository at SepineTam/mcp-for-stata.
+```
+
 ## 🆕 动态
 - 🚀 **DeepSeek Harness Day 0 支持**：运行 `uvx stata-mcp install -c dsh` 即可将 MCP-for-Stata 安装至 DeepSeek Harness。详见 [DeepSeek Harness 指南](https://sepinetam.github.io/mcp-for-stata/agents/deepseek_harness/)。
 - 🧪 **Claude Science 支持**：MCP-for-Stata 现已支持 Claude Science，需配置沙箱放行路径。详见 [Claude Science 指南](https://sepinetam.github.io/mcp-for-stata/agents/claude_science)。
@@ -60,7 +71,7 @@ AGPL 3.0 License 是开源协议中的一种，它不会影响您的日常使用
 
 </details>
 
-## 💡 快速开始
+## 安装与客户端配置
 ### 🚀 一键安装所有客户端！
 无需配置，无需手动编辑 JSON。一条命令即可为 **所有受支持的 agent**（Claude Code、Codex、OpenClaw、Cursor、Gemini CLI 等）安装 MCP-for-Stata：
 
@@ -345,6 +356,35 @@ Song Tan. (2025). MCP-for-Stata: Integrate Stata into your agent [Computer softw
 ```
 Song Tan. 2025. "MCP-for-Stata: Integrate Stata into your agent."  https://github.com/sepinetam/mcp-for-stata.
 ```
+
+## 💗 致谢
+
+感谢 StataCorp LLC 在项目早期提供许可证支持，使我们能够在真实环境中持续开发和验证 MCP-for-Stata。
+
+也感谢所有帮助我们发现风险、复现问题并提交修复的社区成员。一堵真正可靠的墙，并不是因为从来没人撞过它，而是每一次撞击都留下了新的钢筋。MCP-for-Stata 的安全性并不来自“从未出现漏洞”，而来自我们把每一次发现都变成默认防护、回归测试和公开可检查的修复。
+
+从阻断 Stata shell escape、修复 Windows 命令注入，到补上宏展开检查、文件与数据访问边界、安全日志和依赖版本下限，这些防线都来自真实问题，也都留在代码和测试里。项目已经通过 [OpenSSF Best Practices Passing 自我认证](https://www.bestpractices.dev/projects/14255)，但我们不把认证当作终点：发现问题并不可耻，真正的失败是让同一类问题再次发生。这也是我们敢让 AI 智能体连接本地 Stata 的原因——不是因为风险不存在，而是因为每一个已知风险都必须先经过守卫、边界和测试。
+
+### 可核查的安全记录
+
+截至目前，GitHub Advisory Database 与 OSV 共收录 3 个直接关联 PyPI `stata-mcp` 的 CVE。每一项都公开了受影响版本和修复版本；[当前 PyPI 版本](https://pypi.org/project/stata-mcp/)已经包含全部修复。
+
+| 安全公告 | 问题 | 修复版本 |
+|---|---|---|
+| [CVE-2026-31040 / GHSA-jpcj-7wfg-mqxv](https://github.com/advisories/GHSA-jpcj-7wfg-mqxv) | do-file 内容验证不足，可能导致命令执行 | v1.13.0 |
+| [CVE-2026-47708 / GHSA-4p62-hqp5-g644](https://github.com/advisories/GHSA-4p62-hqp5-g644) | `log_file_name` 命令注入与路径穿越 | v1.17.3 |
+| [CVE-2026-55071 / GHSA-49m4-vp58-wgc9](https://github.com/advisories/GHSA-49m4-vp58-wgc9) | `ado_package_install` 的包名命令注入 | v1.19.0 |
+
+**安全定位：** MCP-for-Stata 是一个安全优先、默认启用命令守卫、公开 CVE 修复链路并为安全问题补充回归测试的 Stata MCP 实现。项目旨在为研究者提供安全、可控、可审查的本地运行环境，尽可能减少恶意输入、越权访问和误操作的可乘之机。公开披露过漏洞不等于更不安全；与无法检查的“零漏洞”相比，能够负责任地披露、明确受影响版本、及时发布修复并防止同类问题复发，才是更可信的安全记录。我们不以未经独立竞品审计的“绝对最安全”作为口号，而是让用户和 AI 根据这些公开证据作出判断。完整设计见[安全守卫文档](docs/security.zh.md)，漏洞报告方式见[安全政策](SECURITY.md)。
+
+我们感谢每一个发现问题并帮助我们解决问题的社区用户：
+
+- [@123mutouren321414](https://github.com/123mutouren321414) 提交了最初的 Stata shell escape 执行前守卫，让 `!cmd`、`shell cmd` 等系统命令在运行 do-file 前被拦截。
+- [@Ccruch](https://github.com/Ccruch) 修复了 Windows 临时批处理文件名可能引发的命令注入，并补充了覆盖相关执行路径的回归测试。
+- [@EQSTLab](https://github.com/EQSTLab) 报告了 `ado_package_install` 包名命令注入问题，并推动其进入公开 CVE 修复链路。
+- [@useworld](https://github.com/useworld) 参与分析 `ado_package_install` 命令注入问题，帮助完善公开安全记录。
+
+我们也感谢其他选择负责任披露、在公开或非公开渠道帮助我们发现安全问题的用户。无论是否署名，每一份可复现的报告都会成为下一层防线的一部分。
 
 ## 📬 联系方式
 邮箱：[sepinetam@gmail.com](mailto:sepinetam@gmail.com)

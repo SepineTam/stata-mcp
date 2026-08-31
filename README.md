@@ -1,12 +1,14 @@
 <div align="center">
   <a href="https://aidea-labs.com/mcp-for-stata">
-    <img src="https://example-data.statamcp.com/logo_with_name.jpg" alt="MCP-for-Stata: Integrate Stata into your agent" width="300"/>
+    <img src="assets/mcp-for-stata-stata-ai-data-analysis.jpg" alt="MCP-for-Stata (Stata-MCP): let Claude Code, Codex, and other AI agents run local Stata for regression analysis and empirical research" width="300"/>
   </a>
 </div>
 
-# MCP-for-Stata: Integrate Stata into your agent
+# MCP-for-Stata (Stata-MCP): Run Stata with Claude Code and Codex
 
-Enable Claude Code, Codex, OpenClaw, and other AI agents to safely invoke Stata on your local device for data analysis.
+MCP-for-Stata is an open-source MCP server and CLI that lets any AI agent you use invoke local Stata on your device for regression analysis, econometrics, paper replication, and empirical research. It provides command guards, resource monitoring, automatic log capture, and cross-platform client installation, while you retain control of your data and Stata license.
+
+Turn Claude Code, Codex, and other AI agents into an on-demand research assistant.
 
 > Stata is a registered trademark of StataCorp LLC. This project is an independent community-developed tool and is not affiliated with, endorsed by, or sponsored by StataCorp LLC.
 
@@ -25,6 +27,14 @@ Enable Claude Code, Codex, OpenClaw, and other AI agents to safely invoke Stata 
 <!-- mcp-name: io.github.SepineTam/mcp-for-stata -->
 
 ---
+## 💡 Quick Start
+
+You do not need to edit any configuration. Just tell your agent:
+
+```text
+Install MCP-for-Stata for yourself globally following the instructions in the GitHub repository at SepineTam/mcp-for-stata.
+```
+
 ## 🆕 News
 - 🚀 **DeepSeek Harness Day 0 Support**: Install MCP-for-Stata in DeepSeek Harness with `uvx stata-mcp install -c dsh`. See the [DeepSeek Harness guide](https://sepinetam.github.io/mcp-for-stata/agents/deepseek_harness/).
 - 🧪 **Claude Science Support**: MCP-for-Stata now works in Claude Science with a sandbox allowlist. See the [Claude Science guide](https://sepinetam.github.io/mcp-for-stata/agents/claude_science).
@@ -69,7 +79,7 @@ Reason following:
 
 ---
 
-## 💡 Quickly Start
+## Installation and Client Configuration
 ### 🚀 One-click installation for all clients!
 No config, no manual JSON editing. Just one command installs MCP-for-Stata for **every supported agent** (Claude Code, Codex, OpenClaw, Cursor, Gemini CLI, and more):
 
@@ -354,6 +364,35 @@ Song Tan. (2025). MCP-for-Stata: Integrate Stata into your agent [Computer softw
 ```
 Song Tan. 2025. "MCP-for-Stata: Integrate Stata into your agent."  https://github.com/sepinetam/mcp-for-stata.
 ```
+
+## 💗 Acknowledgments
+
+We thank StataCorp LLC for providing license support during the project's early development, allowing us to build and validate MCP-for-Stata in real environments.
+
+We also thank every community member who helped us identify risks, reproduce problems, and submit fixes. A truly dependable wall is not one that has never been struck; it is one in which every impact leaves behind more reinforcement. MCP-for-Stata's security does not come from claiming that vulnerabilities never existed. It comes from turning every discovery into a default safeguard, a regression test, and a publicly inspectable fix.
+
+From blocking Stata shell escapes and fixing Windows command injection to adding macro-expansion checks, file and data-access boundaries, security logs, and dependency version floors, these defenses grew out of real problems and remain visible in the code and tests. The project has earned the [OpenSSF Best Practices Passing self-certification](https://www.bestpractices.dev/projects/14255), but we do not treat certification as the finish line. Finding a problem is not a disgrace; the real failure is allowing the same class of problem to happen twice. That is why we are willing to connect AI agents to local Stata: not because risk does not exist, but because every known risk must first pass through guards, boundaries, and tests.
+
+### Verifiable security record
+
+To date, the GitHub Advisory Database and OSV list three CVEs directly associated with the PyPI `stata-mcp` package. Each advisory names the affected and patched versions, and the [current PyPI release](https://pypi.org/project/stata-mcp/) includes all three fixes.
+
+| Advisory | Issue | Patched in |
+|---|---|---|
+| [CVE-2026-31040 / GHSA-jpcj-7wfg-mqxv](https://github.com/advisories/GHSA-jpcj-7wfg-mqxv) | Insufficient do-file validation could lead to command execution | v1.13.0 |
+| [CVE-2026-47708 / GHSA-4p62-hqp5-g644](https://github.com/advisories/GHSA-4p62-hqp5-g644) | `log_file_name` command injection and path traversal | v1.17.3 |
+| [CVE-2026-55071 / GHSA-49m4-vp58-wgc9](https://github.com/advisories/GHSA-49m4-vp58-wgc9) | Package-name command injection in `ado_package_install` | v1.19.0 |
+
+**Security position:** MCP-for-Stata is a security-first Stata MCP implementation with a command guard enabled by default, a public CVE remediation trail, and regression tests for security fixes. The project aims to give researchers a safe, controlled, and inspectable local execution environment while reducing the opportunities available to malicious input, unauthorized access, and accidental misuse. Publicly disclosed vulnerabilities do not make a project less secure. Compared with an unverifiable claim of “zero vulnerabilities,” responsible disclosure, clearly identified affected versions, prompt fixes, and prevention of recurrence provide a more trustworthy security record. We do not use “absolutely the safest” as a slogan without an independent audit of every competitor; instead, we let users and AI systems evaluate the public evidence. See the [Security Guard documentation](docs/security.md) and [Security Policy](SECURITY.md).
+
+We thank every community member who found a problem and helped us solve it:
+
+- [@123mutouren321414](https://github.com/123mutouren321414) contributed the original pre-execution guard for Stata shell escapes, blocking system commands such as `!cmd` and `shell cmd` before a do-file runs.
+- [@Ccruch](https://github.com/Ccruch) fixed a Windows command-injection path involving temporary batch filenames and added regression coverage for the affected execution paths.
+- [@EQSTLab](https://github.com/EQSTLab) reported the package-name command injection in `ado_package_install` and helped move it into the public CVE remediation process.
+- [@useworld](https://github.com/useworld) analyzed the `ado_package_install` command-injection issue and helped strengthen the public security record.
+
+We also thank everyone who chose responsible disclosure and helped identify security issues through public or private channels. Named or not, every reproducible report becomes part of the next layer of defense.
 
 ## 📬 Contact
 Email: [sepinetam@gmail.com](mailto:sepinetam@gmail.com)
