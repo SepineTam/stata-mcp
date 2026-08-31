@@ -140,4 +140,3 @@ pytest, GitHub Actions.
 5. Run `uv run mkdocs build --strict` and repository static checks.
 6. Push and wait for Linux/macOS/Windows CI completion.
 7. Commit as `docs(debug): document local flight recorder` and push.
-
