@@ -3,6 +3,7 @@ name: MCP v2 Compatibility
 on:
   push:
     branches:
+      - master
       - codex/update-mcp-to-v2
       - codex/mcp-to-v2/audit
       - codex/mcp-to-v2/otel-debug
