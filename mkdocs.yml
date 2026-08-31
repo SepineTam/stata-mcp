@@ -74,6 +74,7 @@ plugins:
 nav:
   - Home: index.md
   - Overview: overview.md
+  - MCP Python SDK v2: mcp-v2.md
   - CLI Reference: cli.md
   - Usage: usage.md
   - Claude Plugin: claude-plugin.md
@@ -81,6 +82,8 @@ nav:
   - Configuration: configuration.md
   - Beta Configuration: beta.md
   - Security: security.md
+  - Audit Trail: audit.md
+  - Local Debug Tracing: debug-tracing.md
   - Monitoring: monitoring.md
   - Troubleshooting: troubleshooting.md
   - Tools: mcp/tools.md

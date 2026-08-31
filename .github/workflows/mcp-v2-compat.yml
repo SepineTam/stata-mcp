@@ -1,0 +1,79 @@
+name: MCP v2 Compatibility
+
+on:
+  push:
+    branches:
+      - master
+      - codex/update-mcp-to-v2
+      - codex/mcp-to-v2/audit
+      - codex/mcp-to-v2/otel-debug
+    paths:
+      - "pyproject.toml"
+      - "src/**"
+      - "tests/**"
+      - ".github/workflows/mcp-v2-compat.yml"
+  pull_request:
+    branches:
+      - master
+    paths:
+      - "pyproject.toml"
+      - "src/**"
+      - "tests/**"
+      - ".github/workflows/mcp-v2-compat.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  protocol:
+    name: Protocol (${{ matrix.os }}, Python ${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-14, windows-latest]
+        python: ["3.11", "3.12", "3.13"]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Verify MCP version
+        run: uv run python -c "from importlib.metadata import version; assert version('mcp').startswith('2.')"
+
+      - name: Test modern and legacy stdio protocols
+        run: uv run pytest tests/api/test_get_data_info_mcp_stdio.py -q
+
+  full-suite:
+    name: Full suite (Ubuntu, Python 3.11)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Run full test suite
+        run: >-
+          uv run pytest -q
+          --deselect=tests/test_config_security.py::test_debug_config_file_ignores_user_and_project_config

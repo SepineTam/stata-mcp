@@ -23,7 +23,16 @@ from .._diagnostic_logging import (
 )
 from ..config import ToolContext
 from ..data_info import get_data_handler
-from ..guard.data_path_auditor import DataPathAuditor
+from ..audit import record_security_event
+from ..guard.data_path_auditor import (
+    IP_URL_ACCESS_DENIED,
+    LOCAL_ACCESS_DENIED,
+    NON_HTTPS_URL_ACCESS_DENIED,
+    URL_DOMAIN_ACCESS_DENIED,
+    URL_USERINFO_ACCESS_DENIED,
+    DataPathAuditor,
+)
+from ..observability import debug_step
 from ._runtime import create_runtime_context
 
 logger = logging.getLogger(__name__)
@@ -57,9 +66,14 @@ def _get_data_info_impl(
 
     try:
         stage_started_at = time.perf_counter()
-        runtime = create_runtime_context(config_file=config_file)
-        data_info_config = runtime.config.get_data_info_config(tool_context)
-        resolved_head = data_info_config.heads if head is None else head
+        with debug_step(
+            "get_data_info.runtime",
+            tool="get_data_info",
+            request_id=active_request_id,
+        ):
+            runtime = create_runtime_context(config_file=config_file)
+            data_info_config = runtime.config.get_data_info_config(tool_context)
+            resolved_head = data_info_config.heads if head is None else head
         log_event(
             logger,
             logging.DEBUG,
@@ -83,8 +97,19 @@ def _get_data_info_impl(
         stage_started_at = time.perf_counter()
         source_kind = "url" if auditor.is_url(data_path) else "local"
         if source_kind == "url":
-            validated_data = auditor.validate_url(data_path)
+            with debug_step(
+                "get_data_info.path_validation",
+                tool="get_data_info",
+                request_id=active_request_id,
+                attributes={"source_kind": source_kind, "source_ref": source_ref},
+            ):
+                validated_data = auditor.validate_url(data_path)
             if not isinstance(validated_data, tuple):
+                _record_data_path_rejection(
+                    data_path,
+                    validated_data,
+                    source_kind=source_kind,
+                )
                 log_event(
                     logger,
                     logging.WARNING,
@@ -105,8 +130,19 @@ def _get_data_info_impl(
                 return validated_data
             resolved_data_path, data_extension = validated_data
         else:
-            validated_data_path = auditor.validate_local_path(data_path)
+            with debug_step(
+                "get_data_info.path_validation",
+                tool="get_data_info",
+                request_id=active_request_id,
+                attributes={"source_kind": source_kind, "source_ref": source_ref},
+            ):
+                validated_data_path = auditor.validate_local_path(data_path)
             if isinstance(validated_data_path, str):
+                _record_data_path_rejection(
+                    data_path,
+                    validated_data_path,
+                    source_kind=source_kind,
+                )
                 log_event(
                     logger,
                     logging.WARNING,
@@ -159,19 +195,25 @@ def _get_data_info_impl(
             return f"Unsupported file extension now: {data_extension}"
 
         stage_started_at = time.perf_counter()
-        data_info = data_info_cls(
-            resolved_data_path,
-            vars_list,
-            encoding=encoding,
-            cache_dir=runtime.tmp_base_path,
-            head=resolved_head,
-            is_cache=data_info_config.is_cache,
-            metrics=data_info_config.metrics,
-            string_keep_number=data_info_config.string_keep_number,
-            decimal_places=data_info_config.decimal_places,
-            hash_length=data_info_config.hash_length,
+        with debug_step(
+            "get_data_info.handler_initialization",
+            tool="get_data_info",
             request_id=active_request_id,
-        )
+            attributes={"suffix": data_extension},
+        ):
+            data_info = data_info_cls(
+                resolved_data_path,
+                vars_list,
+                encoding=encoding,
+                cache_dir=runtime.tmp_base_path,
+                head=resolved_head,
+                is_cache=data_info_config.is_cache,
+                metrics=data_info_config.metrics,
+                string_keep_number=data_info_config.string_keep_number,
+                decimal_places=data_info_config.decimal_places,
+                hash_length=data_info_config.hash_length,
+                request_id=active_request_id,
+            )
         log_event(
             logger,
             logging.DEBUG,
@@ -189,7 +231,13 @@ def _get_data_info_impl(
             active_request_id,
         )
         summary_started = True
-        data_summary = data_info.info
+        with debug_step(
+            "get_data_info.info_pipeline",
+            tool="get_data_info",
+            request_id=active_request_id,
+            attributes={"suffix": data_extension},
+        ):
+            data_summary = data_info.info
         log_event(
             logger,
             logging.DEBUG,
@@ -205,8 +253,13 @@ def _get_data_info_impl(
             "get_data_info.serialization.started",
             active_request_id,
         )
-        result = json.dumps(data_summary, ensure_ascii=False)
-        result_utf8_bytes = utf8_size(result)
+        with debug_step(
+            "get_data_info.serialization",
+            tool="get_data_info",
+            request_id=active_request_id,
+        ):
+            result = json.dumps(data_summary, ensure_ascii=False)
+            result_utf8_bytes = utf8_size(result)
         log_event(
             logger,
             logging.DEBUG,
@@ -265,4 +318,27 @@ def get_data_info(
         config_file=config_file,
         head=head,
         tool_context=tool_context,
+    )
+
+
+def _record_data_path_rejection(
+    data_path: str,
+    rejection: str,
+    *,
+    source_kind: str,
+) -> None:
+    """Link a rejected data source to the active MCP audit run."""
+    risk_types = {
+        LOCAL_ACCESS_DENIED: "local_path_outside_boundary",
+        URL_DOMAIN_ACCESS_DENIED: "url_domain_not_allowed",
+        IP_URL_ACCESS_DENIED: "ip_url_not_allowed",
+        NON_HTTPS_URL_ACCESS_DENIED: "non_https_url",
+        URL_USERINFO_ACCESS_DENIED: "url_userinfo_not_allowed",
+    }
+    record_security_event(
+        decision="blocked",
+        stage="data_path_guard",
+        risk_type=risk_types.get(rejection, f"{source_kind}_path_rejected"),
+        source_path=data_path,
+        executed=False,
     )

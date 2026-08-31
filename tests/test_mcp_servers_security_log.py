@@ -4,12 +4,21 @@ from __future__ import annotations
 
 import asyncio
 import importlib
+import json
 import logging
 import sys
 from pathlib import Path
 from types import ModuleType, SimpleNamespace
 
 import pytest
+
+from stata_mcp.audit import (
+    AuditExecutionContext,
+    AuditMiddleware,
+    AuditStore,
+    bind_audit_context,
+)
+from stata_mcp.observability import CheckpointWriter, configure_checkpoint_writer
 
 
 @pytest.fixture
@@ -23,9 +32,9 @@ def stubbed_mcp_servers(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
     monkeypatch.chdir(project_dir)
     monkeypatch.delenv("STATA_MCP_CONFIG_FILE", raising=False)
 
-    fastmcp_module = ModuleType("mcp.server.fastmcp")
+    mcpserver_module = ModuleType("mcp.server.mcpserver")
 
-    class _FastMCP:
+    class _MCPServer:
         def __init__(self, *args, **kwargs) -> None:
             self._tools = []
 
@@ -52,18 +61,18 @@ def stubbed_mcp_servers(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
     class _Context:
         pass
 
-    fastmcp_module.FastMCP = _FastMCP
-    fastmcp_module.Icon = _Icon
-    fastmcp_module.Context = _Context
+    mcpserver_module.Icon = _Icon
+    mcpserver_module.Context = _Context
 
     mcp_module = ModuleType("mcp")
     mcp_server_module = ModuleType("mcp.server")
-    mcp_server_module.fastmcp = fastmcp_module
+    mcp_server_module.MCPServer = _MCPServer
+    mcp_server_module.mcpserver = mcpserver_module
     mcp_module.server = mcp_server_module
 
     monkeypatch.setitem(sys.modules, "mcp", mcp_module)
     monkeypatch.setitem(sys.modules, "mcp.server", mcp_server_module)
-    monkeypatch.setitem(sys.modules, "mcp.server.fastmcp", fastmcp_module)
+    monkeypatch.setitem(sys.modules, "mcp.server.mcpserver", mcpserver_module)
 
     monkeypatch.delitem(sys.modules, "stata_mcp.mcp_servers", raising=False)
 
@@ -113,6 +122,104 @@ def test_prepare_stata_do_request_rejection_log_redacts_url_query(
     assert "token=secret" not in messages
     assert "#anchor" not in messages
     assert "evil.com/data.dta" in messages
+
+
+def test_stata_do_package_block_writes_linked_security_event(
+    monkeypatch: pytest.MonkeyPatch,
+    stubbed_mcp_servers,
+    tmp_path: Path,
+) -> None:
+    work = tmp_path / "work"
+    work.mkdir()
+    dofile = work / "blocked.do"
+    dofile.write_text("ssc install reghdfe\n", encoding="utf-8")
+    fake_folder = SimpleNamespace(DO=work, TMP=tmp_path / "tmp")
+    fake_config = SimpleNamespace(
+        WORKING_DIR=work,
+        STATA_MCP_FOLDER=fake_folder,
+        ADDITIONAL_ALLOWED_DIRS=(),
+        IS_GUARD=False,
+        IS_MONITOR=False,
+    )
+    monkeypatch.setattr(stubbed_mcp_servers, "config", fake_config)
+    store = AuditStore(tmp_path / ".statamcp")
+    run = store.start_run(
+        "stata_do",
+        dofile.as_posix(),
+        {"dofile_path": dofile.as_posix()},
+        interface="mcp",
+    )
+    audit_context = AuditExecutionContext(run=run, store=store)
+
+    with bind_audit_context(audit_context):
+        result = stubbed_mcp_servers._prepare_stata_do_request(dofile.as_posix())
+
+    assert result["action"] == "Security check, dofile not executed"
+    assert audit_context.terminal_event == "blocked"
+    security_path = tmp_path / ".statamcp" / "audit" / "security.jsonl"
+    security_event = json.loads(
+        security_path.read_text(encoding="utf-8").splitlines()[0]
+    )
+    assert security_event["run_id"] == run.run_id
+    assert security_event["stage"] == "package_management_guard"
+    assert security_event["source_sha256"]
+    assert "ssc install reghdfe" not in security_path.read_text(encoding="utf-8")
+
+
+def test_stata_do_block_links_tool_and_security_ledgers(
+    monkeypatch: pytest.MonkeyPatch,
+    stubbed_mcp_servers,
+    tmp_path: Path,
+) -> None:
+    work = tmp_path / "work"
+    work.mkdir()
+    dofile = work / "blocked.do"
+    dofile.write_text("ssc install reghdfe\n", encoding="utf-8")
+    fake_folder = SimpleNamespace(DO=work, TMP=tmp_path / "tmp")
+    fake_config = SimpleNamespace(
+        WORKING_DIR=work,
+        STATA_MCP_FOLDER=fake_folder,
+        ADDITIONAL_ALLOWED_DIRS=(),
+        IS_GUARD=False,
+        IS_MONITOR=False,
+    )
+    monkeypatch.setattr(stubbed_mcp_servers, "config", fake_config)
+    store = AuditStore(tmp_path / ".statamcp")
+    middleware = AuditMiddleware(store)
+    request_context = SimpleNamespace(
+        method="tools/call",
+        params={
+            "name": "stata_do",
+            "arguments": {"dofile_path": dofile.as_posix()},
+        },
+        request_id="request-1",
+        protocol_version="2026-07-28",
+        session=SimpleNamespace(client_params=None),
+    )
+
+    async def call_next(context):
+        return stubbed_mcp_servers._sync_stata_do(dofile.as_posix())
+
+    result = asyncio.run(middleware(request_context, call_next))
+
+    assert result["action"] == "Security check, dofile not executed"
+    tool_events = [
+        json.loads(line)
+        for line in (
+            tmp_path / ".statamcp" / "audit" / "stata_do.jsonl"
+        ).read_text(encoding="utf-8").splitlines()
+    ]
+    security_event = json.loads(
+        (tmp_path / ".statamcp" / "audit" / "security.jsonl")
+        .read_text(encoding="utf-8")
+        .splitlines()[0]
+    )
+    assert [event["event"] for event in tool_events] == ["started", "blocked"]
+    assert tool_events[1]["executed"] is False
+    assert tool_events[1]["security_event_ids"] == [
+        security_event["security_event_id"]
+    ]
+    assert tool_events[1]["run_id"] == security_event["run_id"]
 
 
 def test_prepare_stata_do_request_rejection_log_redacts_local_path(
@@ -186,6 +293,55 @@ def test_read_log_rejection_log_redacts_local_path(
     assert "requested_path" not in messages
     assert "resolved_path" not in messages
     assert "allowed_directory" not in messages
+
+
+def test_read_log_block_links_tool_and_security_ledgers(
+    monkeypatch: pytest.MonkeyPatch,
+    stubbed_mcp_servers,
+    tmp_path: Path,
+) -> None:
+    statamcp_dir = tmp_path / ".statamcp"
+    statamcp_dir.mkdir()
+    outside = tmp_path / "secret.log"
+    outside.write_text("log content", encoding="utf-8")
+    fake_folder = SimpleNamespace(path=statamcp_dir)
+    fake_config = SimpleNamespace(STATA_MCP_FOLDER=fake_folder)
+    monkeypatch.setattr(stubbed_mcp_servers, "config", fake_config)
+    store = AuditStore(statamcp_dir)
+    middleware = AuditMiddleware(store)
+    request_context = SimpleNamespace(
+        method="tools/call",
+        params={"name": "read_log", "arguments": {"file_path": outside.as_posix()}},
+        request_id="request-read-log",
+        protocol_version="2026-07-28",
+        session=SimpleNamespace(client_params=None),
+    )
+
+    async def call_next(context):
+        return stubbed_mcp_servers.read_log(outside.as_posix())
+
+    with pytest.raises(PermissionError):
+        asyncio.run(middleware(request_context, call_next))
+
+    tool_events = [
+        json.loads(line)
+        for line in (statamcp_dir / "audit" / "read_log.jsonl")
+        .read_text(encoding="utf-8")
+        .splitlines()
+    ]
+    security_event = json.loads(
+        (statamcp_dir / "audit" / "security.jsonl")
+        .read_text(encoding="utf-8")
+        .splitlines()[0]
+    )
+    assert [event["event"] for event in tool_events] == ["started", "blocked"]
+    assert tool_events[1]["executed"] is False
+    assert tool_events[1]["security_event_ids"] == [
+        security_event["security_event_id"]
+    ]
+    assert security_event["tool"] == "read_log"
+    assert security_event["stage"] == "read_log_boundary"
+    assert security_event["risk_type"] == "outside_allowed_directories"
 
 
 def test_read_log_allows_additional_configured_directory(
@@ -276,6 +432,44 @@ def test_get_data_info_mcp_wrapper_logs_lazy_import_and_result_size(
     assert "tool_result_utf8_bytes=12" in messages
     assert sensitive_path not in messages
     assert "confidential.dta" not in messages
+
+
+def test_get_data_info_mcp_wrapper_records_import_and_execution_steps(
+    monkeypatch: pytest.MonkeyPatch,
+    stubbed_mcp_servers,
+    tmp_path: Path,
+) -> None:
+    get_data_info_module = importlib.import_module("stata_mcp.api.get_data_info")
+    monkeypatch.setattr(
+        get_data_info_module,
+        "_get_data_info_impl",
+        lambda **kwargs: "{}",
+    )
+    configure_checkpoint_writer(CheckpointWriter(tmp_path / ".statamcp"))
+
+    try:
+        result = stubbed_mcp_servers.get_data_info("/private/data.dta")
+    finally:
+        configure_checkpoint_writer(None)
+
+    assert result == "{}"
+    checkpoint_path = (
+        tmp_path / ".statamcp" / "debug" / "checkpoints.jsonl"
+    )
+    events = [
+        json.loads(line)
+        for line in checkpoint_path.read_text(encoding="utf-8").splitlines()
+    ]
+    assert [
+        event["event"]
+        for event in events
+        if event["step"] == "get_data_info.lazy_import"
+    ] == ["started", "completed"]
+    assert [
+        event["event"]
+        for event in events
+        if event["step"] == "get_data_info.tool_execution"
+    ] == ["started", "completed"]
 
 
 def test_get_data_info_mcp_wrapper_reraises_base_exception_and_cancels_watchdog(

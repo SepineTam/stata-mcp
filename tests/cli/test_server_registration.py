@@ -29,12 +29,13 @@ def loaded_modules(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
     monkeypatch.setitem(sys.modules, "tomli_w", SimpleNamespace(dump=lambda *args, **kwargs: None))
     monkeypatch.setitem(sys.modules, "pexpect", ModuleType("pexpect"))
 
-    fastmcp_module = ModuleType("mcp.server.fastmcp")
+    mcpserver_module = ModuleType("mcp.server.mcpserver")
 
-    class _FastMCP:
+    class _MCPServer:
         def __init__(self, *args, **kwargs) -> None:
             self._tools = []
             self._resources = []
+            self.middleware = list(kwargs.get("middleware", []))
 
         def tool(self, name: str, description: str):
             def _decorator(func):
@@ -61,18 +62,18 @@ def loaded_modules(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
     class _Context:
         pass
 
-    fastmcp_module.FastMCP = _FastMCP
-    fastmcp_module.Icon = _Icon
-    fastmcp_module.Context = _Context
+    mcpserver_module.Icon = _Icon
+    mcpserver_module.Context = _Context
 
     mcp_module = ModuleType("mcp")
     mcp_server_module = ModuleType("mcp.server")
-    mcp_server_module.fastmcp = fastmcp_module
+    mcp_server_module.MCPServer = _MCPServer
+    mcp_server_module.mcpserver = mcpserver_module
     mcp_module.server = mcp_server_module
 
     monkeypatch.setitem(sys.modules, "mcp", mcp_module)
     monkeypatch.setitem(sys.modules, "mcp.server", mcp_server_module)
-    monkeypatch.setitem(sys.modules, "mcp.server.fastmcp", fastmcp_module)
+    monkeypatch.setitem(sys.modules, "mcp.server.mcpserver", mcpserver_module)
 
     monkeypatch.delitem(sys.modules, "stata_mcp.mcp_servers", raising=False)
     monkeypatch.delitem(sys.modules, "stata_mcp.cli._handlers", raising=False)
@@ -148,6 +149,13 @@ def test_register_tools_core_only_registers_core(monkeypatch: pytest.MonkeyPatch
 
     assert set(server.tools) == {"stata_do", "get_data_info", "help"}
     assert server.resources == []  # resource registration temporarily disabled
+
+
+def test_mcp_server_registers_audit_middleware(loaded_modules):
+    mcp_servers, _ = loaded_modules
+
+    assert len(mcp_servers.stata_mcp.middleware) == 1
+    assert type(mcp_servers.stata_mcp.middleware[0]).__name__ == "AuditMiddleware"
 
 
 def test_stata_do_tool_is_sync_function_by_default(loaded_modules):

@@ -8,6 +8,7 @@
 # @File   : mcp_servers.py
 
 import asyncio
+import hashlib
 import importlib.metadata
 import logging
 import logging.handlers
@@ -20,8 +21,10 @@ import weakref
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Literal, NamedTuple
 
-from mcp.server.fastmcp import Context, FastMCP, Icon
+from mcp.server import MCPServer
+from mcp.server.mcpserver import Context, Icon
 
+from .audit import AuditMiddleware, AuditStore, record_security_event
 from ._diagnostic_logging import (
     DIAGNOSTIC_BUILD_ID,
     DIAGNOSTIC_SCHEMA_VERSION,
@@ -35,6 +38,7 @@ from ._diagnostic_logging import (
     utf8_size,
 )
 from .config import Config
+from .observability import debug_step
 from .utils.update import get_current_version, get_latest_version
 
 # Init project config
@@ -142,11 +146,13 @@ _icons = [
 ]
 
 # Initialize MCP Server
-stata_mcp = FastMCP(
+audit_store = AuditStore(config.STATA_MCP_FOLDER.path)
+stata_mcp = MCPServer(
     name="stata-mcp",
     instructions=instructions,
     website_url="https://www.statamcp.com",
     icons=_icons,
+    middleware=[AuditMiddleware(audit_store)],
 )
 
 # =============================================================================
@@ -232,6 +238,13 @@ def _prepare_stata_do_request(dofile_path: str) -> Dict[str, Any] | _StataDoRequ
         logging.warning(
             "[SECURITY VIOLATION] Attempted to execute dofile outside allowed directories."
         )
+        record_security_event(
+            decision="blocked",
+            stage="path_boundary",
+            risk_type="outside_allowed_directories",
+            source_path=dofile_path_resolved,
+            executed=False,
+        )
         return {
             "error": f"Access denied: Dofile '{dofile_path}' is outside allowed directories.",
             "allowed_directories": [d.as_posix() for d in allowed_dirs],
@@ -248,6 +261,17 @@ def _prepare_stata_do_request(dofile_path: str) -> Dict[str, Any] | _StataDoRequ
 
     package_report = PackageManagementGuardValidator().validate(dofile_content)
     if not package_report.is_safe:
+        record_security_event(
+            decision="blocked",
+            stage="package_management_guard",
+            risk_type="package_management",
+            source_path=dofile_path_resolved,
+            source_sha256=hashlib.sha256(
+                dofile_path_resolved.read_bytes()
+            ).hexdigest(),
+            findings=_audit_security_findings(package_report),
+            executed=False,
+        )
         warning_msg = "⚠️  Security warning: Package-management commands detected:\n"
         for item in package_report.dangerous_items:
             warning_msg += f"  - Line {item.line}: {item.type} '{item.content}'\n"
@@ -273,6 +297,17 @@ def _prepare_stata_do_request(dofile_path: str) -> Dict[str, Any] | _StataDoRequ
         report = guard_validator.validate(dofile_content, config=config)
 
         if not report.is_safe:
+            record_security_event(
+                decision="blocked",
+                stage="guard",
+                risk_type="dangerous_command",
+                source_path=dofile_path_resolved,
+                source_sha256=hashlib.sha256(
+                    dofile_path_resolved.read_bytes()
+                ).hexdigest(),
+                findings=_audit_security_findings(report),
+                executed=False,
+            )
             dangerous_summary = ", ".join(
                 f"line {item.line}:{item.type}" for item in report.dangerous_items
             )
@@ -297,6 +332,16 @@ def _prepare_stata_do_request(dofile_path: str) -> Dict[str, Any] | _StataDoRequ
         logging.warning(
             "[SECURITY] Guard is disabled. Dangerous dofile commands will not be blocked."
         )
+        record_security_event(
+            decision="warning",
+            stage="guard",
+            risk_type="guard_disabled",
+            source_path=dofile_path_resolved,
+            source_sha256=hashlib.sha256(
+                dofile_path_resolved.read_bytes()
+            ).hexdigest(),
+            executed=True,
+        )
 
     # Initialize monitors
     monitors = []
@@ -307,6 +352,17 @@ def _prepare_stata_do_request(dofile_path: str) -> Dict[str, Any] | _StataDoRequ
             monitors.append(RAMMonitor(max_ram_mb=config.MAX_RAM_MB))
 
     return _StataDoRequest(dofile_path=dofile_path, monitors=monitors)
+
+
+def _audit_security_findings(report: Any) -> list[dict[str, Any]]:
+    """Return persistent security finding metadata without source content."""
+    return [
+        {
+            "line": getattr(item, "line", None),
+            "type": getattr(item, "type", None),
+        }
+        for item in report.dangerous_items
+    ]
 
 
 def _format_stata_do_result(
@@ -396,7 +452,12 @@ def _sync_stata_do(
         - Security guard blocks execution when dangerous commands are detected.
         - To disable security guard, set STATA_MCP__IS_GUARD=false (not recommended).
     """
-    request = _prepare_stata_do_request(dofile_path)
+    with debug_step(
+        "stata_do.prepare_request",
+        tool="stata_do",
+        attributes={"source_ref": source_reference(dofile_path)},
+    ):
+        request = _prepare_stata_do_request(dofile_path)
     if isinstance(request, dict):
         return request
 
@@ -417,13 +478,14 @@ def _sync_stata_do(
     from .core.types import RAMLimitExceededError
 
     try:
-        log_file_path_mapping: Dict[str, Path] = stata_executor.execute_dofile(
-            request.dofile_path,
-            log_file_name,
-            is_replace_log,
-            enable_smcl,
-            timeout=timeout,
-        )
+        with debug_step("stata_do.execution", tool="stata_do"):
+            log_file_path_mapping: Dict[str, Path] = stata_executor.execute_dofile(
+                request.dofile_path,
+                log_file_name,
+                is_replace_log,
+                enable_smcl,
+                timeout=timeout,
+            )
         text_log = log_file_path_mapping.get("text").as_posix()
         logging.info("Dofile executed successfully.")
     except RAMLimitExceededError as e:
@@ -434,13 +496,14 @@ def _sync_stata_do(
         logging.debug("Execution exception details: %s", e)
         return {"error": str(e)}
 
-    return _format_stata_do_result(
-        log_file_path_mapping,
-        read_log_when_error,
-        enable_smcl,
-        stata_executor,
-        text_log,
-    )
+    with debug_step("stata_do.result_formatting", tool="stata_do"):
+        return _format_stata_do_result(
+            log_file_path_mapping,
+            read_log_when_error,
+            enable_smcl,
+            stata_executor,
+            text_log,
+        )
 
 
 async def _async_stata_do(
@@ -452,7 +515,12 @@ async def _async_stata_do(
     timeout: float | None = None,
 ) -> Dict[str, Any]:
     """Async Stata do-file tool implementation."""
-    request = _prepare_stata_do_request(dofile_path)
+    with debug_step(
+        "stata_do.prepare_request",
+        tool="stata_do",
+        attributes={"source_ref": source_reference(dofile_path)},
+    ):
+        request = _prepare_stata_do_request(dofile_path)
     if isinstance(request, dict):
         return request
 
@@ -471,16 +539,17 @@ async def _async_stata_do(
     from .core.types import RAMLimitExceededError
 
     try:
-        async with _get_async_do_semaphore():
-            log_file_path_mapping: Dict[str, Path] = (
-                await stata_executor.execute_dofile_async(
-                    request.dofile_path,
-                    log_file_name,
-                    is_replace_log,
-                    enable_smcl,
-                    timeout=timeout,
+        with debug_step("stata_do.execution", tool="stata_do"):
+            async with _get_async_do_semaphore():
+                log_file_path_mapping: Dict[str, Path] = (
+                    await stata_executor.execute_dofile_async(
+                        request.dofile_path,
+                        log_file_name,
+                        is_replace_log,
+                        enable_smcl,
+                        timeout=timeout,
+                    )
                 )
-            )
         text_log = log_file_path_mapping.get("text").as_posix()
         logging.info("Dofile executed successfully.")
     except RAMLimitExceededError as e:
@@ -491,13 +560,14 @@ async def _async_stata_do(
         logging.debug("Execution exception details: %s", e)
         return {"error": str(e)}
 
-    return _format_stata_do_result(
-        log_file_path_mapping,
-        read_log_when_error,
-        enable_smcl,
-        stata_executor,
-        text_log,
-    )
+    with debug_step("stata_do.result_formatting", tool="stata_do"):
+        return _format_stata_do_result(
+            log_file_path_mapping,
+            read_log_when_error,
+            enable_smcl,
+            stata_executor,
+            text_log,
+        )
 
 
 stata_do = _async_stata_do if getattr(config, "IS_ASYNC_DO", False) else _sync_stata_do
@@ -633,31 +703,42 @@ def get_data_info(
             python_version=".".join(str(part) for part in sys.version_info[:3]),
             stata_mcp_version=package_versions["stata-mcp"],
         )
-        import_started_at = time.perf_counter()
-        log_event(
-            diagnostic_logger,
-            logging.DEBUG,
-            "get_data_info.mcp_tool.lazy_import.started",
-            request_id,
-        )
-        from .api.get_data_info import _get_data_info_impl
-
-        log_event(
-            diagnostic_logger,
-            logging.DEBUG,
-            "get_data_info.mcp_tool.lazy_import.completed",
-            request_id,
-            duration_ms=elapsed_ms(import_started_at),
-        )
-        result = _get_data_info_impl(
-            data_path=data_path,
-            vars_list=vars_list,
-            encoding=encoding,
-            config_file=None,
-            head=head,
-            tool_context="mcp",
+        with debug_step(
+            "get_data_info.lazy_import",
+            tool="get_data_info",
             request_id=request_id,
-        )
+        ):
+            import_started_at = time.perf_counter()
+            log_event(
+                diagnostic_logger,
+                logging.DEBUG,
+                "get_data_info.mcp_tool.lazy_import.started",
+                request_id,
+            )
+            from .api.get_data_info import _get_data_info_impl
+
+            log_event(
+                diagnostic_logger,
+                logging.DEBUG,
+                "get_data_info.mcp_tool.lazy_import.completed",
+                request_id,
+                duration_ms=elapsed_ms(import_started_at),
+            )
+        with debug_step(
+            "get_data_info.tool_execution",
+            tool="get_data_info",
+            request_id=request_id,
+            attributes={"source_ref": source_reference(data_path)},
+        ):
+            result = _get_data_info_impl(
+                data_path=data_path,
+                vars_list=vars_list,
+                encoding=encoding,
+                config_file=None,
+                head=head,
+                tool_context="mcp",
+                request_id=request_id,
+            )
         log_event(
             diagnostic_logger,
             logging.INFO,
@@ -754,6 +835,13 @@ def read_log(
         # If this security warning appears, it may indicate that the current model has been compromised/poisoned.
         logging.warning(
             "[SECURITY VIOLATION] Attempted to access file outside allowed directory."
+        )
+        record_security_event(
+            decision="blocked",
+            stage="read_log_boundary",
+            risk_type="outside_allowed_directories",
+            source_path=path,
+            executed=False,
         )
         raise PermissionError(
             "Access denied: File is outside the allowed directory. "
@@ -888,7 +976,7 @@ _TOOL_REGISTRY: Dict[str, Dict[str, Any]] = {
 _registered_profile: str | None = None
 
 
-def register_tools(server: FastMCP, profile: str = "all") -> None:
+def register_tools(server: MCPServer, profile: str = "all") -> None:
     """Register tools and resources based on a selected profile."""
     global _registered_profile
 
