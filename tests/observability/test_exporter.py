@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 from opentelemetry.sdk.trace import TracerProvider
@@ -38,6 +39,7 @@ def test_local_span_exporter_writes_trace_ids_and_redacts_credentials(
     assert events[0]["name"] == "get_data_info.dataframe_read"
     assert len(events[0]["trace_id"]) == 32
     assert len(events[0]["span_id"]) == 16
+    assert events[0]["process_id"] == os.getpid()
     assert events[0]["attributes"]["statamcp.run_id"] == "run-1"
     assert events[0]["attributes"]["statamcp.api_key"] == "[REDACTED]"
     assert events[0]["attributes"]["statamcp.suffix"] == "dta"

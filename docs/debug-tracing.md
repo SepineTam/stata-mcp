@@ -34,7 +34,9 @@ Synchronous and asynchronous execution paths use the same stage names.
 If either target tool is still running after 30 seconds, the flight recorder
 writes the file name, line number, and function name for every Python thread. It
 writes a second snapshot after 120 seconds. These snapshots do not pause,
-cancel, or terminate the tool.
+cancel, or terminate the tool. Each slow snapshot includes the root MCP
+`trace_id`, root `span_id`, `run_id`, and process ID when a recording span is
+available.
 
 The last unmatched `started` checkpoint identifies the stage that did not
 return. If all tool and serialization stages completed but the client still

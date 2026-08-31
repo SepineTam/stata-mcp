@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -203,12 +204,32 @@ def test_middleware_starts_and_cancels_watchdog_for_target_tools(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    state = {"started": 0, "cancelled": 0, "tool": None, "run_id": None}
+    state = {
+        "started": 0,
+        "cancelled": 0,
+        "tool": None,
+        "run_id": None,
+        "trace_id": None,
+        "span_id": None,
+        "process_id": None,
+    }
 
     class FakeWatchdog:
-        def __init__(self, *, tool, run_id, delays=(30.0, 120.0)):
+        def __init__(
+            self,
+            *,
+            tool,
+            run_id,
+            trace_id=None,
+            span_id=None,
+            process_id=None,
+            delays=(30.0, 120.0),
+        ):
             state["tool"] = tool
             state["run_id"] = run_id
+            state["trace_id"] = trace_id
+            state["span_id"] = span_id
+            state["process_id"] = process_id
 
         def start(self):
             state["started"] += 1
@@ -226,8 +247,12 @@ def test_middleware_starts_and_cancels_watchdog_for_target_tools(
     async def call_next(ctx):
         return {"isError": False}
 
+    provider = TracerProvider()
+    tracer = provider.get_tracer("watchdog-test")
     try:
-        anyio.run(middleware, _context(tool="get_data_info"), call_next)
+        with tracer.start_as_current_span("tools/call get_data_info") as span:
+            span_context = span.get_span_context()
+            anyio.run(middleware, _context(tool="get_data_info"), call_next)
     finally:
         configure_checkpoint_writer(None)
 
@@ -235,3 +260,6 @@ def test_middleware_starts_and_cancels_watchdog_for_target_tools(
     assert state["cancelled"] == 1
     assert state["tool"] == "get_data_info"
     assert state["run_id"]
+    assert state["trace_id"] == f"{span_context.trace_id:032x}"
+    assert state["span_id"] == f"{span_context.span_id:016x}"
+    assert state["process_id"] == os.getpid()

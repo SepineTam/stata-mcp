@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Any, Sequence
 
@@ -54,6 +55,7 @@ def _serialize_span(span: ReadableSpan) -> dict[str, Any]:
     payload: dict[str, Any] = {
         "schema_version": 1,
         "name": span.name,
+        "process_id": os.getpid(),
         "trace_id": f"{context.trace_id:032x}",
         "span_id": f"{context.span_id:016x}",
         "parent_span_id": parent_span_id,

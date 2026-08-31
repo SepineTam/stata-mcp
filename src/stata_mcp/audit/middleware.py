@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 from typing import TYPE_CHECKING, Any, Awaitable, Callable, Mapping
 
 from opentelemetry import trace
@@ -49,12 +50,21 @@ class AuditMiddleware:
         )
         execution_context = AuditExecutionContext(run=run, store=self.store)
         current_span = trace.get_current_span()
+        span_context = current_span.get_span_context()
+        trace_id = f"{span_context.trace_id:032x}" if span_context.is_valid else None
+        span_id = f"{span_context.span_id:016x}" if span_context.is_valid else None
         if current_span.is_recording():
             current_span.set_attribute("statamcp.run_id", run.run_id)
             current_span.set_attribute("statamcp.tool.name", tool)
 
         watchdog = (
-            SlowCallWatchdog(tool=tool, run_id=run.run_id)
+            SlowCallWatchdog(
+                tool=tool,
+                run_id=run.run_id,
+                trace_id=trace_id,
+                span_id=span_id,
+                process_id=os.getpid(),
+            )
             if tool in {"get_data_info", "stata_do"}
             and current_checkpoint_writer() is not None
             else None

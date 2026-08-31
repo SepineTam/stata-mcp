@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sys
+import os
 import threading
 import traceback
 from datetime import datetime, timezone
@@ -19,10 +20,16 @@ class SlowCallWatchdog:
         *,
         tool: str,
         run_id: str,
+        trace_id: str | None = None,
+        span_id: str | None = None,
+        process_id: int | None = None,
         delays: tuple[float, ...] = (30.0, 120.0),
     ) -> None:
         self.tool = tool
         self.run_id = run_id
+        self.trace_id = trace_id
+        self.span_id = span_id
+        self.process_id = os.getpid() if process_id is None else process_id
         self.delays = delays
         self._timers: list[threading.Timer] = []
         self._finished = threading.Event()
@@ -71,15 +78,19 @@ class SlowCallWatchdog:
 
         if self._finished.is_set():
             return
-        write_checkpoint(
-            {
-                "schema_version": 1,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "event": "slow",
-                "step": f"{self.tool}.watchdog",
-                "tool": self.tool,
-                "run_id": self.run_id,
-                "delay_seconds": delay,
-                "threads": threads,
-            }
-        )
+        payload = {
+            "schema_version": 1,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "event": "slow",
+            "step": f"{self.tool}.watchdog",
+            "tool": self.tool,
+            "run_id": self.run_id,
+            "process_id": self.process_id,
+            "delay_seconds": delay,
+            "threads": threads,
+        }
+        if self.trace_id is not None:
+            payload["trace_id"] = self.trace_id
+        if self.span_id is not None:
+            payload["span_id"] = self.span_id
+        write_checkpoint(payload)
