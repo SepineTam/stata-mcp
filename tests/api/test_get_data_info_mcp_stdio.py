@@ -123,6 +123,18 @@ def test_get_data_info_stdio_schema_and_response_remain_compatible(
             for event in checkpoint_events
             if event["step"] == "get_data_info.tool_execution"
         } == {audit_events[0]["run_id"]}
+        dataframe_events = [
+            event
+            for event in checkpoint_events
+            if event["step"] == "get_data_info.dataframe_read"
+        ]
+        assert [event["event"] for event in dataframe_events] == [
+            "started",
+            "completed",
+        ]
+        assert {
+            event["attributes"]["occurrence"] for event in dataframe_events
+        } == {1}
 
         trace_events = [
             json.loads(line)

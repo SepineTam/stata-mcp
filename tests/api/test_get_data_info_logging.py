@@ -66,8 +66,11 @@ def test_get_data_info_logs_correlated_pipeline_without_sensitive_content(
     assert "event=get_data_info.request.started" in joined_messages
     assert "event=get_data_info.path.validated" in joined_messages
     assert "event=get_data_info.dataframe_read.started" in joined_messages
-    assert "occurrence=1" in joined_messages
-    assert "occurrence=2" in joined_messages
+    dataframe_messages = [
+        message for message in messages if "dataframe_read" in message
+    ]
+    assert any("occurrence=1" in message for message in dataframe_messages)
+    assert not any("occurrence=2" in message for message in dataframe_messages)
     assert "event=get_data_info.serialization.completed" in joined_messages
     assert "event=get_data_info.request.completed" in joined_messages
     assert "result_utf8_bytes=" in joined_messages
@@ -132,10 +135,17 @@ def test_get_data_info_logs_cold_cache_and_cache_hit_read_counts(
         get_data_info(data_path.as_posix(), config_file=config_path)
 
     cold_messages = "\n".join(_diagnostic_messages(caplog))
+    cold_dataframe_messages = [
+        message
+        for message in _diagnostic_messages(caplog)
+        if "dataframe_read" in message
+    ]
     assert 'outcome="miss_not_found"' in cold_messages
     assert "event=get_data_info.cache_write.completed" in cold_messages
-    assert "occurrence=1" in cold_messages
-    assert "occurrence=2" in cold_messages
+    assert any("occurrence=1" in message for message in cold_dataframe_messages)
+    assert not any(
+        "occurrence=2" in message for message in cold_dataframe_messages
+    )
 
     caplog.clear()
     with caplog.at_level(logging.DEBUG):
