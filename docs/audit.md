@@ -1,13 +1,23 @@
 # Audit Trail
 
-MCP-for-Stata writes a local, append-only audit trail for MCP tool calls. The
-audit trail answers who called which tool, when it ran, which MCP protocol was
-used, and whether the call completed or failed.
+MCP-for-Stata keeps local, append-only evidence for MCP tool calls. The Audit
+trail is designed to answer five practical questions:
 
-## Files
+1. Which tool was requested, and when?
+2. Which client and MCP protocol version were reported?
+3. Did the call complete, fail, stop, or get blocked before execution?
+4. Which security decision, output metadata, log, or do-file snapshot belongs
+   to the call?
+5. Where did a slow or stuck call last make progress?
 
-Audit files live under the configured project artifact directory, which is
-`.statamcp/` by default:
+Audit v1 covers the first four questions. The rotating local debug recorder
+answers the fifth. Both use the same `run_id` when they belong to the same MCP
+call, but they have different retention and trust rules.
+
+## Evidence Layout
+
+Files live under the configured project artifact directory, `.statamcp/` by
+default:
 
 ```text
 .statamcp/
@@ -17,101 +27,93 @@ Audit files live under the configured project artifact directory, which is
 │   ├── read_log.jsonl
 │   ├── help.jsonl
 │   └── security.jsonl
-└── snapshot/
-    ├── objects/<full-sha256>.do
-    └── metadata.jsonl
+├── snapshot/
+│   ├── objects/<full-sha256>.do
+│   └── metadata.jsonl
+└── debug/
+    ├── checkpoints.jsonl
+    ├── checkpoints.jsonl.1
+    ├── traces.jsonl
+    └── traces.jsonl.1
 ```
 
-Each JSONL line is one immutable event. A tool call normally produces a
-`started` event and one terminal event: `completed`, `failed`, `interrupted`,
-or `blocked`. Both events share the same `run_id`. A dedicated `timeout` event
-is reserved for future work and is not emitted by the current middleware.
+The per-tool files, security ledger, and snapshot metadata are durable Audit
+evidence. Debug files rotate by size and are operational diagnostics, not a
+replacement for the evidence trail.
 
-## Run IDs
+## Read One Run in Five Minutes
 
-A run ID contains a readable UTC timestamp followed by a collision-resistant
-digest:
+1. Start with the tool ledger that matches the call, for example
+   `audit/stata_do.jsonl`.
+2. Find its `run_id` and pair the `started` event with its terminal event.
+3. Read the terminal `event` and `executed` fields before interpreting output
+   metadata.
+4. Follow `security_event_ids` into `audit/security.jsonl` when the call was
+   blocked or warned.
+5. For `stata_do`, use the same `run_id` in `snapshot/metadata.jsonl` to locate
+   and verify the exact bytes Stata was asked to execute.
+6. If a call is slow or incomplete, search the rotating debug files for the
+   same `run_id` and locate the last unmatched `started` checkpoint.
+
+See [Reading Audit Files](audit/reading.md) for read-only commands and worked
+queries.
+
+## Evidence Types
+
+| Evidence | Primary question | Retention behavior |
+| --- | --- | --- |
+| Per-tool JSONL | What was requested and how did it end? | Append-only; no automatic Audit v1 retention policy |
+| `security.jsonl` | Which guard decided what, and why? | Append-only |
+| `snapshot/metadata.jsonl` | Which source path and full hash belong to a run? | Append-only |
+| `snapshot/objects/` | What exact do-file bytes were executed? | Content-addressed and reused by full SHA-256 |
+| `debug/checkpoints.jsonl*` | What was the last observed execution stage? | Rotating |
+| `debug/traces.jsonl*` | Which spans ran, for how long, under which trace? | Rotating |
+
+## Lifecycle
+
+Each tool call normally produces one `started` event and exactly one terminal
+event sharing the same `run_id`:
 
 ```text
-20260830T083015123456Z_2ce5d65f457ce14a
+started -> completed | failed | interrupted | blocked
 ```
 
-The timestamp can be recovered directly from the ID. The digest also includes
-the high-resolution invocation time, tool name, source reference, and random
-entropy.
+The storage model also accepts `timeout`, but the current middleware does not
+classify timeouts separately. An uncategorized timeout exception is recorded as
+`failed`.
 
-## Client Identity
+A `started` event without a terminal event is not proof that the tool never
+executed. It indicates an incomplete evidence sequence that must be correlated
+with snapshots, logs, debug checkpoints, and the surrounding process failure.
 
-For MCP calls, the `started` event records the client implementation reported
-by the client, the negotiated protocol version, and the request ID. Modern
-2026-era requests and legacy initialize-era clients are both supported.
+## Trust Boundaries
 
-Client identity is self-reported and unverified. It is useful for audit and
-debugging, but must never be used as authentication or authorization evidence.
+- Client name and version are self-reported. They help investigation but are
+  not authentication or authorization evidence.
+- `event` together with `executed` is authoritative for a security outcome.
+  `output.is_error` only describes the MCP result representation.
+- Credential-like input keys are replaced with `[REDACTED]`; URL credentials,
+  queries, and fragments are removed. Local paths, selected variables, tool
+  names, and error metadata can still be sensitive.
+- Treat the complete `.statamcp/` directory as potentially sensitive and keep
+  it out of Git. MCP-for-Stata creates a local `.gitignore` for the artifact
+  root by default.
 
-## Do-file Snapshots
+## Continue Reading
 
-Before Stata starts, MCP-for-Stata stores the exact bytes that will be executed.
-The snapshot metadata includes the original path, snapshot path, complete
-SHA-256 digest, size, reuse state, and the shared run ID. Stata executes the
-snapshot rather than the mutable source path.
+- [Reading Audit Files](audit/reading.md): locate files and answer common audit
+  questions without modifying evidence.
+- [Events and Correlation](audit/events.md): field meanings, lifecycle
+  invariants, `run_id`, request metadata, traces, and checkpoints.
+- [Snapshots and Security Linkage](audit/snapshots-security.md): full-hash
+  do-file evidence, verification, blocked calls, and privacy boundaries.
+- [Local Debug Tracing](debug-tracing.md): rotating OpenTelemetry spans,
+  checkpoints, and slow-call thread snapshots.
+- [Security Guard](security.md): prevention policy and guard configuration.
 
-Identical content always reuses one content-addressed snapshot file, regardless
-of invocation time or original filename. Every invocation still gets its own
-metadata record and run ID.
+## Audit v1 Non-Goals
 
-## Security Linkage
-
-When a `stata_do` call is blocked by the path boundary, package-management
-guard, or command guard, its terminal tool event is `blocked` rather than
-`completed`. The event includes `executed: false` and one or more
-`security_event_ids`.
-
-The matching records in `audit/security.jsonl` contain the same run ID, the
-security stage, decision, risk type, source SHA-256 when available, and finding
-locations. Dangerous command content is never persisted in the security
-ledger. This makes the tool lifecycle and the detailed security decision
-independently readable while preserving a direct cross-ledger link.
-
-`get_data_info` uses the same linkage when a strict local-path boundary or URL
-guard rejects a data source. URL credentials, query strings, and fragments are
-removed before persistence.
-
-`read_log` also uses this linkage when its local-path boundary rejects a log
-outside the configured allowed directories.
-
-The terminal `event` and `executed` fields are the authoritative security
-outcome. `output.is_error` only reports whether the MCP result itself was
-represented as an error. A guard can return a normal MCP result while still
-recording `event: "blocked"` and `executed: false`; security monitoring must
-therefore select blocked events rather than relying on `output.is_error`.
-
-## Sensitive Data
-
-Credential-like argument keys such as `password`, `secret`, `token`,
-`authorization`, and `api_key` are recursively replaced with `[REDACTED]`.
-Audit files can still contain local paths, variable selections, tool names,
-errors, and result metadata. Treat the entire `.statamcp/` directory as
-potentially sensitive.
-
-The directory is ignored by Git by default. No automatic audit-retention policy
-is applied in the initial implementation.
-
-## Audit vs. OpenTelemetry
-
-The JSONL audit trail is durable research evidence. The default local
-OpenTelemetry flight recorder is rotating operational data used to locate slow
-or stuck `get_data_info` and `stata_do` calls. It does not replace or mutate the
-JSONL evidence trail. See [Local Debug Tracing](debug-tracing.md).
-
-## Deferred Work
-
-The following items are intentionally outside Audit v1 and require a separate
-design decision before implementation:
-
-- Explicit timeout classification and tests. The current middleware records an
-  uncategorized timeout exception as `failed`.
-- Recovery or replay from a snapshot. Any future replay must be explicitly
-  requested, verify the snapshot hash, create a new run ID, and preserve the
-  original run rather than modifying its audit records.
-- Audit retention, rotation, and archival policy.
+Audit v1 does not provide snapshot replay or recovery, automatic retention or
+archival, verified client identity, or a standalone timeout class. Any future
+replay must be explicitly requested, verify the source hash, create a new
+`run_id`, and preserve the original evidence rather than rewriting it.
