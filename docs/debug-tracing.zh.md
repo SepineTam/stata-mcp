@@ -26,6 +26,16 @@ MCP-for-Stata 默认给 `get_data_info` 和 `stata_do` 开启一个只保存在�
 
 查看时，最后一个只有 `started`、没有对应 `completed` 的步骤，就是没有返回的位置。如果工具和结果整理都显示完成，但客户端仍在等待，问题范围就会缩小到结果发出过程或客户端接收过程。
 
+## 将缓慢调用与 Audit 关联
+
+1. 从工具账本或 slow 检查点复制 `run_id`。
+2. 先配对长期工具 `started` 和结束事件。
+3. 在 `checkpoints.jsonl*` 中查找相同 `run_id`，确定最后一个没有配对的步骤 `started`。
+4. 可获得时，使用 `trace_id` 和 `span_id` 在 `traces.jsonl*` 中查看对应的已完成 span。
+5. 对于 `stata_do`，在判断延迟发生于 Stata 执行前、执行中还是执行后之前，应继续校验快照 metadata 和 Stata 日志。
+
+具体命令参见[如何读取审计文件](audit/reading.md)，关联键参见[事件与关联关系](audit/events.md)。旧 debug 记录可能因为轮转而正常缺失；长期证据缺失是另一种情况。
+
 ## 配置
 
 本地黑匣子默认开启。项目不会默认配置远程 OTLP，也不会把 trace 上传到网络。

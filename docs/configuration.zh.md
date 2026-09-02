@@ -379,8 +379,11 @@ Python API 不要求调用方确认。CLI 未传入 `-y` 或 `--yes` 时会进�
 ├── stata-mcp-result/   # 分析结果
 ├── stata-mcp-tmp/      # 临时文件
 ├── audit/               # 按工具拆分的只追加审计账本
-└── snapshot/            # 完整 SHA-256 对象和 metadata.jsonl
+├── snapshot/            # 完整 SHA-256 对象和 metadata.jsonl
+└── debug/               # 允许轮转的检查点与 OpenTelemetry span
 ```
+
+`PROJECT.CLEAN_LOG_DAYS` 只应用于 Stata 日志，不会清理 Audit JSONL 或快照对象。Audit v1 没有自动保留设置。制定项目归档或删除策略前，请先阅读[审计记录](audit.md)。
 
 **迁移说明（v1.16.0）**：
 - 默认目录名从 `stata-mcp-folder` 改为 `.statamcp`。

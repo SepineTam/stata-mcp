@@ -32,7 +32,7 @@ MCP 客户端
 
 `AuditMiddleware` 生成可读的 `run_id`，记录客户端、协议和结束状态。`stata_do` 还会把 Stata 真正执行的完整字节保存为使用完整 SHA-256 寻址的快照。安全阻拦通过 `security_event_ids` 把工具账本与 `audit/security.jsonl` 关联起来。
 
-长期证据参见[审计记录](audit.md)，允许轮转的运行诊断参见[本地调试黑匣子](debug-tracing.md)。
+长期证据模型参见[审计记录](audit.md)，middleware 字段和关联关系参见[事件与关联关系](audit/events.md)，允许轮转的运行诊断参见[本地调试黑匣子](debug-tracing.md)。
 
 ## 兼容边界
 

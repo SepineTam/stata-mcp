@@ -66,6 +66,13 @@ Statistical computation leverages pandas DataFrame operations with NumPy backend
 
 Caching strategy employs content-addressable storage where hash computation determines cache file naming: `data_info__<name>_<ext>__hash_<suffix>__settings_<suffix>.json`. Cache resolution occurs at invocation time, with automatic regeneration on content hash divergence. The cache directory defaults to `~/.statamcp/.cache/` but can be overridden to project-specific `stata-mcp-tmp/` locations through the `cache_dir` parameter.
 
+Within one handler invocation, the parsed pandas DataFrame is reused for
+filtering, summaries, and preview generation instead of reading the source
+again. An MCP call writes lifecycle evidence to
+`.statamcp/audit/get_data_info.jsonl`; supported path or URL guard refusals link
+the terminal event to `audit/security.jsonl`. See
+[Reading Audit Files](../audit/reading.md).
+
 Each cache file follows the versioned [get_data_info cache JSON Schema](https://raw.githubusercontent.com/sepinetam/mcp-for-stata/master/schemas/get-data-info-cache.schema.json). The cache retains the tool result's flat structure and adds only `$schema` and `schema_version` at the top level. Readers check these local metadata fields and the content hash, then regenerate caches with missing or unsupported versions. Schema validation never requires a network request, and the two cache-only metadata fields are removed before returning a cached result.
 
 ---
@@ -128,6 +135,11 @@ Log file management operates within the `stata-mcp-log/` directory structure wit
 Exception handling categorizes failures into three tiers: `FileNotFoundError` for missing do-file artifacts, `RuntimeError` for Stata execution failures or log generation issues, and `PermissionError` for insufficient execution or write permissions. Error conditions return dictionary with `"error"` key rather than raising exceptions to maintain MCP protocol compatibility.
 
 `stata_do` can opt into beta async execution through `[BETA] IS_ASYNC_DO`. See [Beta Configuration](../beta.md) for the full beta parameter list and concurrency limits.
+
+Before Stata starts, MCP execution stores a full-SHA-256 do-file object and
+runs that snapshot. The same Audit `run_id` links the tool lifecycle, snapshot
+metadata, security decisions, debug stages, and log artifacts. See
+[Snapshots and Security Linkage](../audit/snapshots-security.md).
 
 **Beta Async Execution**:
 - Enable async execution with `[BETA] IS_ASYNC_DO=true`
@@ -205,6 +217,10 @@ The `StataLog` factory class (`from_path()` method) automatically detects file e
 - `dict`: Returns `str(log_info.read_as_dict())` - structured mapping
 
 Error handling covers: `FileNotFoundError` for missing files, `IOError` for I/O failures, `ValueError` for invalid `output_format`, and `UnicodeDecodeError` for encoding mismatches.
+
+MCP calls write lifecycle evidence to `.statamcp/audit/read_log.jsonl`. A strict
+path-boundary refusal is recorded as `blocked` with `executed: false` and links
+to `audit/security.jsonl` through `security_event_ids`.
 
 ---
 

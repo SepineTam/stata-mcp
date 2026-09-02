@@ -1,10 +1,18 @@
 # 审计记录
 
-MCP-for-Stata 会为 MCP 工具调用写入本地、只追加的审计记录，用来回答：哪个客户端在什么时间调用了什么工具、使用了哪个 MCP 协议，以及调用是否成功。
+MCP-for-Stata 会为 MCP 工具调用保存本地、只追加的证据。Audit 主要回答五个实际问题：
 
-## 文件结构
+1. 哪个工具在什么时间被调用？
+2. 客户端自报的名称、版本和 MCP 协议版本是什么？
+3. 调用是完成、失败、中断，还是在执行前被阻止？
+4. 哪条安全判断、输出元数据、日志或 do-file 快照属于这次调用？
+5. 一次缓慢或卡住的调用最后走到了哪个步骤？
 
-审计文件位于项目产物目录中，默认是 `.statamcp/`：
+Audit v1 回答前四个问题；允许轮转的本地调试黑匣子回答第五个问题。两者属于同一次 MCP 调用时会共享 `run_id`，但保存期限和证据属性不同。
+
+## 证据目录
+
+文件位于项目产物目录中，默认是 `.statamcp/`：
 
 ```text
 .statamcp/
@@ -14,61 +22,67 @@ MCP-for-Stata 会为 MCP 工具调用写入本地、只追加的审计记录，�
 │   ├── read_log.jsonl
 │   ├── help.jsonl
 │   └── security.jsonl
-└── snapshot/
-    ├── objects/<完整SHA256>.do
-    └── metadata.jsonl
+├── snapshot/
+│   ├── objects/<完整SHA256>.do
+│   └── metadata.jsonl
+└── debug/
+    ├── checkpoints.jsonl
+    ├── checkpoints.jsonl.1
+    ├── traces.jsonl
+    └── traces.jsonl.1
 ```
 
-JSONL 的每一行都是一条不可修改的事件。一次工具调用通常产生一条 `started`，以及一条 `completed`、`failed`、`interrupted` 或 `blocked` 结束事件，两条记录使用同一个 `run_id`。`timeout` 状态留作后续开发，当前中间件不会生成该状态。
+按工具拆分的账本、安全账本和快照 metadata 属于长期 Audit 证据。Debug 文件按大小轮转，是运行诊断，不能替代证据链。
 
-## Run ID
+## 五分钟还原一次调用
 
-run ID 由可直接读取的 UTC 时间和防冲突摘要组成：
+1. 从对应工具账本开始，例如 `audit/stata_do.jsonl`。
+2. 找到 `run_id`，把 `started` 与结束事件配对。
+3. 先看结束事件的 `event` 和 `executed`，再解释输出元数据。
+4. 遇到阻拦或警告时，根据 `security_event_ids` 联查 `audit/security.jsonl`。
+5. 对于 `stata_do`，用同一 `run_id` 查询 `snapshot/metadata.jsonl`，定位并校验 Stata 被要求执行的准确字节。
+6. 如果调用缓慢或记录不完整，再用同一 `run_id` 查询允许轮转的 debug 文件，寻找最后一个没有对应完成记录的 `started` 检查点。
+
+只读命令和完整查询示例参见[如何读取审计文件](audit/reading.md)。
+
+## 证据类型
+
+| 证据 | 主要回答的问题 | 保存方式 |
+| --- | --- | --- |
+| 按工具拆分的 JSONL | 调用了什么，如何结束？ | 只追加；Audit v1 不自动清理 |
+| `security.jsonl` | 哪个 Guard 作出了什么判断，原因是什么？ | 只追加 |
+| `snapshot/metadata.jsonl` | 哪个来源路径和完整哈希属于某次调用？ | 只追加 |
+| `snapshot/objects/` | Stata 实际被要求执行的 do-file 字节是什么？ | 使用完整 SHA-256 寻址，相同内容复用 |
+| `debug/checkpoints.jsonl*` | 最后观测到哪个执行步骤？ | 允许轮转 |
+| `debug/traces.jsonl*` | 哪些 span 执行了多久，属于哪个 trace？ | 允许轮转 |
+
+## 事件生命周期
+
+一次工具调用通常产生一条 `started` 和一条使用相同 `run_id` 的结束事件：
 
 ```text
-20260830T083015123456Z_2ce5d65f457ce14a
+started -> completed | failed | interrupted | blocked
 ```
 
-可以直接从前半部分反推出运行时间。摘要还包含高精度时间、工具名、来源引用和随机量。
+存储层也接受 `timeout`，但当前 middleware 不会单独分类 timeout；没有专门分类的超时异常会写成 `failed`。
 
-## 客户端信息
+只有 `started`、没有结束事件，并不能证明工具从未执行。它表示证据序列不完整，需要继续结合快照、日志、debug 检查点和进程异常判断。
 
-对于 MCP 调用，`started` 事件会记录客户端自报的名称和版本、协商后的协议版本以及 request ID。新版 2026 协议和旧版 initialize 协议都支持。
+## 信任边界
 
-客户端信息由客户端自行报告，可以用于审计和排错，但不能作为身份认证或权限判断依据。
+- 客户端名称和版本由客户端自行报告，只能辅助调查，不能作为身份认证或权限依据。
+- 安全结果以 `event` 和 `executed` 为准；`output.is_error` 只描述 MCP 返回值是否以错误形式表示。
+- 类似密码、token、secret 的输入字段会替换为 `[REDACTED]`；URL 中的账号、密码、query 和 fragment 会被移除。路径、变量选择、工具名和错误元数据仍可能敏感。
+- 应把整个 `.statamcp/` 视为潜在敏感目录，并避免提交到 Git。MCP-for-Stata 默认会在产物根目录创建本地 `.gitignore`。
 
-## Do-file 快照
+## 继续阅读
 
-Stata 启动前，MCP-for-Stata 会保存真正要执行的完整字节。metadata 会记录原始路径、快照路径、完整 SHA-256、文件大小、复用状态和对应 run ID。Stata 实际执行快照，而不是可能继续变化的原文件。
+- [如何读取审计文件](audit/reading.md)：只读定位文件并回答常见审计问题。
+- [事件与关联关系](audit/events.md)：字段、生命周期、`run_id`、请求元数据、trace 和检查点。
+- [快照与安全联动](audit/snapshots-security.md)：完整哈希快照、校验、阻拦事件和隐私边界。
+- [本地调试黑匣子](debug-tracing.md)：允许轮转的 OpenTelemetry span、检查点和慢调用线程现场。
+- [安全守卫](security.md)：预防规则与 Guard 配置。
 
-无论运行时间和原文件名是否相同，完全相同的内容都会复用同一个内容寻址快照；每次调用仍有独立的 metadata 和 run ID。
+## Audit v1 暂不提供
 
-## 安全审计联动
-
-当 `stata_do` 被路径边界、包管理 Guard 或危险命令 Guard 阻止时，工具账本的结束事件会写成 `blocked`，而不是 `completed`。记录中包含 `executed: false` 和一个或多个 `security_event_ids`。
-
-`audit/security.jsonl` 中对应的记录使用同一个 run ID，并保存安全阶段、判断结果、风险类型、可获得时的源码 SHA-256，以及命中规则的位置。危险命令原文不会进入安全账本。这样工具生命周期和安全判断可以分别查看，同时又能通过安全 ID 直接关联。
-
-当严格本地路径边界或 URL Guard 拒绝数据来源时，`get_data_info` 使用同样的关联方式。写入前会移除 URL 中的账号、密码、query 和 fragment。
-
-当本地路径边界拒绝读取配置允许目录之外的日志时，`read_log` 也会使用同样的关联方式。
-
-安全结果以结束事件的 `event` 和 `executed` 字段为准。`output.is_error` 只表示 MCP 返回结果本身是否以错误形式返回。Guard 可能正常返回一条“已阻拦”消息，此时仍然会记录 `event: "blocked"` 和 `executed: false`，但 `output.is_error` 可以是 `false`。安全监控应筛选 `blocked` 事件，不能只筛选 `output.is_error`。
-
-## 敏感信息
-
-参数中类似 `password`、`secret`、`token`、`authorization`、`api_key` 的字段会被递归替换为 `[REDACTED]`。审计文件仍可能包含本地路径、变量选择、工具名、错误和结果信息，因此应把整个 `.statamcp/` 目录视为潜在敏感内容。
-
-该目录默认被 Git 忽略。第一版不会自动删除审计记录。
-
-## Audit 与 OpenTelemetry
-
-JSONL audit 是长期保存的研究证据。默认开启的本地 OpenTelemetry 黑匣子是允许轮转的运行诊断，用来定位 `get_data_info` 和 `stata_do` 变慢或卡住的位置。它不会替代或修改 JSONL 证据链。参见[本地调试黑匣子](debug-tracing.md)。
-
-## 暂缓开发事项
-
-下列内容不属于 Audit v1，需要单独讨论设计后再开发：
-
-- 独立的 timeout 分类和测试。当前未分类的超时异常会记为 `failed`。
-- 基于快照的恢复或重放。未来若实现，必须由用户明确发起、校验快照哈希、生成新的 run ID，并保留原始运行记录不被修改。
-- 审计文件的保留期限、轮转与归档策略。
+Audit v1 不提供快照重放或恢复、自动保留与归档策略、经过验证的客户端身份，以及独立 timeout 分类。未来若实现重放，必须由用户明确发起、校验来源哈希、创建新的 `run_id`，并保留原始证据不被改写。

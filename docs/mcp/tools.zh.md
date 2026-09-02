@@ -65,6 +65,8 @@ get_data_info("./data/legacy/latin1_data.csv", encoding="latin1")
 
 缓存策略采用内容可寻址存储，哈希计算决定缓存文件命名：`data_info__<name>_<ext>__hash_<suffix>.json`。缓存解析在调用时进行，当内容哈希分歧时自动重新生成。缓存目录默认为 `~/.statamcp/.cache/`，但可通过 `cache_dir` 参数覆盖为项目特定的 `stata-mcp-tmp/` 位置。
 
+同一个处理器调用中，解析后的 pandas DataFrame 会被过滤、统计和预览步骤复用，不会再次读取来源。MCP 调用会把生命周期证据写入 `.statamcp/audit/get_data_info.jsonl`；支持的路径或 URL Guard 拒绝会把结束事件关联到 `audit/security.jsonl`。参见[如何读取审计文件](../audit/reading.md)。
+
 ---
 
 ## stata_do
@@ -125,6 +127,8 @@ stata_do("./analysis/estimation.do", timeout=300)
 异常处理将失败分为三个层级：缺失 do 文件产物的 `FileNotFoundError`，Stata 执行失败或日志生成问题的 `RuntimeError`，以及执行或写入权限不足的 `PermissionError`。错误情况返回带 `"error"` 键的字典而非抛出异常，以保持 MCP 协议兼容性。
 
 `stata_do` 可以通过 `[BETA] IS_ASYNC_DO` 启用 beta 异步执行。完整 Beta 参数列表和并发限制见 [Beta 配置](../beta.md)。
+
+Stata 启动前，MCP 执行路径会保存使用完整 SHA-256 寻址的 do-file 对象，并执行该快照。同一个 Audit `run_id` 会关联工具生命周期、快照 metadata、安全判断、debug 步骤和日志产物。参见[快照与安全联动](../audit/snapshots-security.md)。
 
 **Beta 异步执行**：
 - 通过 `[BETA] IS_ASYNC_DO=true` 启用异步执行
@@ -208,6 +212,8 @@ read_log("/Users/project/.statamcp/stata-mcp-log/results.txt", encoding="utf-8")
 **`lines` 裁剪**：通过 `_trim_lines()` 辅助函数实现。正数取前 N 项，负数取后 |N| 项，0 返回完整内容。对于 `dict` 格式，裁剪作用于列表条目而非文本行。
 
 错误处理覆盖：缺失文件的 `FileNotFoundError`、I/O 失败的 `IOError`、无效 `output_format` 的 `ValueError`，以及编码不匹配的 `UnicodeDecodeError`。
+
+MCP 调用会把生命周期证据写入 `.statamcp/audit/read_log.jsonl`。严格路径边界拒绝会记录为 `blocked` 和 `executed: false`，并通过 `security_event_ids` 关联 `audit/security.jsonl`。
 
 ---
 

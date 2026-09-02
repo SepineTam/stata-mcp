@@ -37,6 +37,7 @@ MCP-for-Stata 通过六个架构层运行：
 - **[安全守卫](security.md)**：针对危险命令（shell 执行、文件删除等）验证 dofile
 - **基于黑名单的验证**：在执行前阻止危险操作
 - **[审计记录](audit.md)**：只追加的工具/安全账本和不可变 do-file 快照
+- **[审计查看方法](audit/reading.md)**：只读还原 run、检查阻拦并校验证据完整性
 
 ### 4. **可观测性与监控层**
 - **[本地调试黑匣子](debug-tracing.md)**：默认开启的本地 OpenTelemetry span 和即时执行检查点
