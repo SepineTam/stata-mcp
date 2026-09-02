@@ -77,6 +77,8 @@ If you want to explore more [clients](clients.md), visit the clients documentati
 ### Advanced Features
 
 - **[Security Guard](security.md)**: Security validation system for dangerous commands
+- **[Audit Trail](audit.md)**: Append-only tool records, exact do-file snapshots, and security linkage
+- **[Local Debug Tracing](debug-tracing.md)**: Rotating checkpoints and traces for slow or stuck calls
 - **[Monitoring System](monitoring.md)**: RAM monitoring and resource limits
 
 ### Core Components
@@ -101,6 +103,8 @@ If you want to explore more [clients](clients.md), visit the clients documentati
 - [Getting Started](#quickly-start)
 - [Configuration Guide](configuration.md)
 - [Security Documentation](security.md)
+- [Audit and Evidence](audit.md)
+- [Reading Audit Files](audit/reading.md)
 - [Monitoring Setup](monitoring.md)
 
 ### For Developers
@@ -115,4 +119,3 @@ If you want to explore more [clients](clients.md), visit the clients documentati
 - [Security Settings](configuration.md)
 - [Monitoring Settings](configuration.md)
 - [Environment Variables](configuration.md)
-

@@ -74,7 +74,6 @@ plugins:
 nav:
   - Home: index.md
   - Overview: overview.md
-  - MCP Python SDK v2: mcp-v2.md
   - CLI Reference: cli.md
   - Usage: usage.md
   - Claude Plugin: claude-plugin.md
@@ -94,6 +93,9 @@ nav:
   - Resources: mcp/resources.md
 
   - API: api/overview.md
+
+  - Developer Notes:
+      - MCP SDK Migration: mcp-v2.md
 
   - Agents:
       - Claude Code: agents/claude_code.md
