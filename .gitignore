@@ -61,5 +61,9 @@ backup.*
 # AI docs
 ai-driven/
 
+# Local planning files
+.planning/
+docs/plans/
+
 # test fixtures (downloaded at runtime from Stata Press)
 tests/fixtures/dataset/
