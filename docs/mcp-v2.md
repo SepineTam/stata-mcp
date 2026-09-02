@@ -43,7 +43,8 @@ bytes executed by Stata as a full-SHA-256 content-addressed snapshot. Security
 rejections link the tool ledger to `audit/security.jsonl` through
 `security_event_ids`.
 
-See [Audit Trail](audit.md) for durable evidence and
+See [Audit Trail](audit.md) for the evidence model,
+[Events and Correlation](audit/events.md) for middleware fields and joins, and
 [Local Debug Tracing](debug-tracing.md) for rotating operational diagnostics.
 
 ## Compatibility Boundaries

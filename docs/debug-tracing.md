@@ -42,6 +42,22 @@ The last unmatched `started` checkpoint identifies the stage that did not
 return. If all tool and serialization stages completed but the client still
 waits, the remaining problem is likely in outbound transport or the client.
 
+## Correlate a Slow Call with Audit
+
+1. Copy the `run_id` from the tool ledger or a slow-call checkpoint.
+2. Pair the durable tool `started` and terminal events first.
+3. Search `checkpoints.jsonl*` for the same `run_id` and identify the last
+   unmatched stage `started` event.
+4. Use `trace_id` and `span_id` to inspect the matching completed spans in
+   `traces.jsonl*` when available.
+5. For `stata_do`, verify snapshot metadata and the Stata log before deciding
+   whether the delay occurred before, inside, or after Stata execution.
+
+See [Reading Audit Files](audit/reading.md) for commands and
+[Events and Correlation](audit/events.md) for join keys. Missing older debug
+records can be normal after rotation; missing durable evidence is a separate
+condition.
+
 ## Configuration
 
 Local tracing is enabled by default. Remote OTLP export is not configured and

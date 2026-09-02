@@ -33,6 +33,16 @@ StataDo includes built-in security check mechanisms:
 - **Command Filtering**: Blocks shell-escape commands that may compromise system security (such as `!cmd` or `shell cmd`)
 - **Content Validation**: Checks do file content before execution to prevent malicious command execution
 
+### Exact-Source Audit Snapshot
+
+For MCP calls, StataDo stores the exact do-file bytes under
+`.statamcp/snapshot/objects/<full-sha256>.do` before Stata starts. Stata executes
+that immutable snapshot rather than the mutable source path. The tool ledger,
+snapshot metadata, SHA-256, and generated log paths share one Audit `run_id`.
+
+See [Audit Trail](../../audit.md) and
+[Snapshots and Security Linkage](../../audit/snapshots-security.md).
+
 ### Smart Terminal Emulation
 
 StataDo simulates a standard terminal environment to ensure consistent and readable Stata output:
@@ -44,10 +54,12 @@ StataDo simulates a standard terminal environment to ensure consistent and reada
 
 1. **Preparation Phase**: Accepts do file path and log file path parameters
 2. **Security Check**: Validates do file content to ensure no dangerous commands
-3. **Environment Adaptation**: Selects appropriate execution method based on operating system type
-4. **Script Execution**: Calls Stata CLI to execute the do file
-5. **Result Logging**: Writes execution process and results to log file
-6. **Cleanup**: Removes temporary files (Windows platform)
+3. **Snapshot Creation**: Stores and verifies the exact source bytes that will be executed
+4. **Environment Adaptation**: Selects appropriate execution method based on operating system type
+5. **Script Execution**: Calls Stata CLI to execute the immutable snapshot
+6. **Result Logging**: Writes execution process and results to log file
+7. **Audit Finalization**: Links terminal status, snapshot, security decisions, and logs to the run
+8. **Cleanup**: Removes temporary files (Windows platform)
 
 ## Use Cases
 
@@ -80,3 +92,4 @@ StataDo follows the MCP-for-Stata directory structure conventions:
 3. **Log Overwriting**: By default, existing log files will be overwritten; this behavior can be controlled via parameters
 4. **Error Handling**: Exceptions are thrown when execution fails; callers should properly handle these exceptions
 5. **Execution Timeout**: Execution is unlimited by default; pass a positive `timeout` value to enforce a limit
+6. **Evidence Handling**: Treat `.statamcp/audit/` and `.statamcp/snapshot/` as potentially sensitive, append-only project evidence

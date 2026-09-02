@@ -37,6 +37,7 @@ Advanced safety features for production deployments:
 - **[Security Guard](security.md)**: Validates dofiles against dangerous commands (shell execution, file deletion, etc.)
 - **Blacklist-based validation**: Blocks dangerous operations before execution
 - **[Audit Trail](audit.md)**: Append-only tool and security ledgers with immutable do-file snapshots
+- **[Audit Inspection](audit/reading.md)**: Read-only run reconstruction, blocked-call review, and evidence integrity checks
 
 ### 4. **Observability & Monitoring Layer**
 - **[Local Debug Tracing](debug-tracing.md)**: Default-on local OpenTelemetry spans and immediate execution checkpoints

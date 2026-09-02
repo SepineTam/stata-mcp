@@ -399,8 +399,13 @@ The working directory structure:
 ├── stata-mcp-result/   # Analysis results
 ├── stata-mcp-tmp/      # Temporary files
 ├── audit/               # Append-only per-tool audit ledgers
-└── snapshot/            # Full-SHA256 objects and metadata.jsonl
+├── snapshot/            # Full-SHA256 objects and metadata.jsonl
+└── debug/               # Rotating checkpoints and OpenTelemetry spans
 ```
+
+`PROJECT.CLEAN_LOG_DAYS` applies to Stata logs, not to Audit JSONL or snapshot
+objects. Audit v1 has no automatic retention setting. See
+[Audit Trail](audit.md) before defining a project archival or deletion policy.
 
 **Migration note (v1.16.0)**:
 - The default folder name changed from `stata-mcp-folder` to `.statamcp`.
