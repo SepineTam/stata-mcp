@@ -1,0 +1,612 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>__REPORT_TITLE__</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --ink: light-dark(#111111, #f4f4f4);
+      --muted: light-dark(#666666, #aaaaaa);
+      --rule: light-dark(#cfcfcf, #444444);
+      --faint: light-dark(#ececec, #292929);
+      --surface: light-dark(#ffffff, #111111);
+      --stata: light-dark(#0072b2, #56b4e9);
+      --data: light-dark(#00835f, #58c99f);
+      --help: light-dark(#a66d00, #e9b949);
+      --log: light-dark(#9b4f85, #d78abd);
+      --security: light-dark(#c43c22, #ff775c);
+      --snapshot: light-dark(#505050, #c5c5c5);
+    }
+    * { box-sizing: border-box; }
+    body {
+      background: var(--surface);
+      color: var(--ink);
+      font-family: "Times New Roman", Times, serif;
+      margin: 0;
+    }
+    button, input { font: inherit; }
+    .mono, code {
+      font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+      font-variant-numeric: tabular-nums;
+    }
+    main { margin: 0 auto; max-width: 1440px; padding: 24px clamp(16px, 4vw, 56px) 48px; }
+    header {
+      align-items: end;
+      border-bottom: 1px solid var(--ink);
+      display: flex;
+      gap: 28px;
+      justify-content: space-between;
+      padding-bottom: 12px;
+    }
+    h1 { font-size: clamp(28px, 4vw, 42px); font-weight: 500; letter-spacing: -.025em; margin: 0; }
+    h2 { font-size: 21px; font-weight: 500; margin: 0; }
+    h3 { font-size: 16px; font-weight: 500; margin: 0 0 8px; }
+    p { margin: 0; }
+    .muted { color: var(--muted); }
+    .meta { color: var(--muted); text-align: right; }
+    .summary {
+      border-bottom: 1px solid var(--rule);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 26px;
+      padding: 12px 0;
+    }
+    .summary strong { font-weight: 500; }
+    section { border-bottom: 1px solid var(--ink); padding: 20px 0; }
+    .section-head { align-items: baseline; display: flex; gap: 18px; justify-content: space-between; margin-bottom: 14px; }
+    .activity-strip { align-items: end; display: flex; gap: 5px; min-height: 90px; overflow-x: auto; padding: 4px 0 10px; }
+    .activity-day {
+      background: var(--faint);
+      border: 0;
+      color: var(--muted);
+      cursor: pointer;
+      display: grid;
+      flex: 1 0 24px;
+      grid-template-rows: 72px auto;
+      max-width: 72px;
+      min-width: 24px;
+      padding: 0;
+      position: relative;
+    }
+    .activity-day .bar { align-self: end; background: var(--stata); display: block; min-height: 4px; width: 100%; }
+    .activity-day .date { font-size: 10px; overflow: hidden; padding-top: 6px; text-overflow: ellipsis; white-space: nowrap; }
+    .activity-day[aria-pressed="true"]::after { background: var(--ink); bottom: -5px; content: ""; height: 2px; left: 0; position: absolute; width: 100%; }
+    .legend { display: flex; flex-wrap: wrap; gap: 9px 18px; margin-bottom: 12px; }
+    .legend-item { align-items: center; color: var(--muted); display: inline-flex; gap: 6px; }
+    .swatch { background: var(--color); display: inline-block; height: 3px; width: 18px; }
+    .timeline-wrap { border-bottom: 1px solid var(--rule); border-top: 1px solid var(--rule); overflow-x: auto; padding-top: 8px; }
+    svg { display: block; min-width: 680px; width: 100%; }
+    .navigator {
+      align-items: center;
+      border-bottom: 1px solid var(--rule);
+      display: grid;
+      gap: 10px;
+      grid-template-columns: 92px minmax(240px, 1fr) minmax(300px, auto);
+      padding: 12px 0;
+    }
+    .navigator label { color: var(--muted); }
+    .navigator output { text-align: right; }
+    .dual-range { height: 28px; position: relative; width: 100%; }
+    .range-track, .range-selection { height: 2px; position: absolute; top: 13px; }
+    .range-track { background: var(--rule); left: 0; right: 0; }
+    .range-selection { background: var(--ink); left: var(--range-start, 0%); width: calc(var(--range-end, 100%) - var(--range-start, 0%)); }
+    .range-input {
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      height: 28px;
+      left: 0;
+      margin: 0;
+      pointer-events: none;
+      position: absolute;
+      top: 0;
+      width: 100%;
+    }
+    .range-input::-webkit-slider-runnable-track { background: transparent; border: 0; height: 2px; }
+    .range-input::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      background: var(--ink);
+      border: 2px solid var(--surface);
+      border-radius: 50%;
+      cursor: ew-resize;
+      height: 16px;
+      margin-top: -7px;
+      pointer-events: auto;
+      width: 16px;
+    }
+    .range-input::-moz-range-track { background: transparent; border: 0; height: 2px; }
+    .range-input::-moz-range-thumb { background: var(--ink); border: 2px solid var(--surface); border-radius: 50%; cursor: ew-resize; height: 12px; pointer-events: auto; width: 12px; }
+    .selection { display: grid; gap: 12px 26px; grid-template-columns: .75fr 1.25fr 1fr; min-height: 72px; padding-top: 14px; }
+    .selection > div { overflow-wrap: anywhere; }
+    .grid { display: grid; gap: 0 32px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid section { min-width: 0; }
+    table { border-collapse: collapse; table-layout: fixed; width: 100%; }
+    th, td { border-bottom: 1px solid var(--rule); overflow-wrap: anywhere; padding: 9px 5px; text-align: left; vertical-align: top; }
+    th { color: var(--muted); font-weight: 400; }
+    td:last-child, th:last-child { text-align: right; }
+    .blocked { color: var(--security); }
+    .empty { color: var(--muted); padding: 30px 0; }
+    footer { color: var(--muted); font-size: 12px; padding-top: 16px; }
+    @media (max-width: 820px) {
+      header, .section-head { align-items: flex-start; flex-direction: column; }
+      .meta { text-align: left; }
+      .navigator { grid-template-columns: 1fr; }
+      .navigator output { text-align: left; }
+      .selection, .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main id="audit-dashboard">
+    <header>
+      <div><h1>__REPORT_TITLE__</h1><p class="muted">Linked local evidence across JSONL ledgers</p></div>
+      <p class="meta"><span id="archive-window">No timed records</span><br><span id="path-mode"></span></p>
+    </header>
+    <div class="summary" id="summary"></div>
+
+    <section>
+      <div class="section-head"><h2>Activity by observed date</h2><p class="muted" id="date-selection"></p></div>
+      <div class="activity-strip" id="activity-strip"></div>
+    </section>
+
+    <section>
+      <div class="section-head"><h2>Linked evidence</h2><p class="muted">Select a date, adjust both endpoints, then click a run</p></div>
+      <div class="legend" id="legend"></div>
+      <div class="timeline-wrap"><svg id="timeline" role="img" aria-label="Linked audit timeline"></svg></div>
+      <div class="navigator">
+        <label for="timeline-start">Time position</label>
+        <div class="dual-range" id="range-control">
+          <span class="range-track"></span>
+          <span class="range-selection"></span>
+          <input class="range-input" id="timeline-start" type="range" min="0" max="1" step="1" value="0" aria-label="Timeline start">
+          <input class="range-input" id="timeline-end" type="range" min="0" max="1" step="1" value="1" aria-label="Timeline end">
+        </div>
+        <output id="timeline-window" for="timeline-start timeline-end"></output>
+      </div>
+      <div class="selection" aria-live="polite">
+        <div><span class="muted">Time</span><br><strong id="selected-time">—</strong></div>
+        <div><span class="muted">Run ID</span><br><strong class="mono" id="selected-run">—</strong></div>
+        <div><span class="muted">Linked evidence</span><br><span class="mono" id="selected-links">—</span></div>
+      </div>
+    </section>
+
+    <div class="grid">
+      <section><h3>Tool activity</h3><table><thead><tr><th>Tool</th><th>Status</th><th>Runs</th></tr></thead><tbody id="tool-table"></tbody></table></section>
+      <section><h3>Security findings</h3><table><thead><tr><th>Risk type</th><th>Tool</th><th>Outcome</th></tr></thead><tbody id="security-table"></tbody></table></section>
+      <section><h3>Evidence integrity</h3><table><thead><tr><th>Check</th><th>Coverage</th><th>Result</th></tr></thead><tbody id="integrity-table"></tbody></table></section>
+    </div>
+    <footer><span id="generated-at"></span> · Derived report; source JSONL and snapshot objects were not modified.</footer>
+  </main>
+
+  <script>
+    (() => {
+      const report = __AUDIT_DATA__;
+      const root = document.getElementById("audit-dashboard");
+      const svg = root.querySelector("#timeline");
+      const startInput = root.querySelector("#timeline-start");
+      const endInput = root.querySelector("#timeline-end");
+      const rangeControl = root.querySelector("#range-control");
+      const namespace = "http://www.w3.org/2000/svg";
+      const terminalStatuses = new Set(["completed", "failed", "timeout", "blocked", "interrupted", "incomplete"]);
+      const fixedColors = {
+        stata_do: "var(--stata)",
+        get_data_info: "var(--data)",
+        help: "var(--help)",
+        read_log: "var(--log)",
+        security: "var(--security)",
+        snapshot: "var(--snapshot)"
+      };
+      const extraColors = ["#2f6b9a", "#7b5aa6", "#687c35", "#9a5b2f"];
+      let selectedDate = null;
+      let selectedRunId = report.runs[0]?.run_id || null;
+      let dataStart = 0;
+      let dataEnd = 1;
+      let minimumWindow = 1;
+
+      const makeSvg = (tag, attributes = {}) => {
+        const element = document.createElementNS(namespace, tag);
+        Object.entries(attributes).forEach(([name, value]) => element.setAttribute(name, String(value)));
+        return element;
+      };
+      const parseTime = (value) => {
+        const timestamp = Date.parse(value || "");
+        return Number.isFinite(timestamp) ? timestamp : null;
+      };
+      const dateParts = (timestamp) => Object.fromEntries(
+        new Intl.DateTimeFormat("en-CA", {
+          year: "numeric", month: "2-digit", day: "2-digit",
+          hour: "2-digit", minute: "2-digit", hourCycle: "h23"
+        }).formatToParts(new Date(timestamp)).filter((part) => part.type !== "literal").map((part) => [part.type, part.value])
+      );
+      const localDate = (timestamp) => {
+        const parts = dateParts(timestamp);
+        return `${parts.year}-${parts.month}-${parts.day}`;
+      };
+      const localDateTime = (timestamp) => {
+        const parts = dateParts(timestamp);
+        return `${parts.year}-${parts.month}-${parts.day} ${parts.hour}-${parts.minute}`;
+      };
+      const zoneLabel = (timestamp) => {
+        const zone = Intl.DateTimeFormat().resolvedOptions().timeZone || "Local time";
+        const minutes = -new Date(timestamp).getTimezoneOffset();
+        const sign = minutes >= 0 ? "+" : "-";
+        const hours = String(Math.floor(Math.abs(minutes) / 60)).padStart(2, "0");
+        const remainder = String(Math.abs(minutes) % 60).padStart(2, "0");
+        return `${zone} · UTC${sign}${hours}:${remainder}`;
+      };
+      const formatRange = (start, end) => `${localDateTime(start)} — ${localDateTime(end)} (${zoneLabel(start)})`;
+      const colorFor = (tool, index = 0) => fixedColors[tool] || extraColors[index % extraColors.length];
+      const escapeText = (value) => value === null || value === undefined ? "—" : String(value);
+
+      const allRuns = report.runs.map((run) => ({
+        ...run,
+        start: parseTime(run.started_at),
+        end: parseTime(run.ended_at) ?? parseTime(run.started_at)
+      })).filter((run) => run.start !== null);
+      const securityByRun = new Map();
+      report.security.forEach((event) => {
+        if (!securityByRun.has(event.run_id)) securityByRun.set(event.run_id, []);
+        securityByRun.get(event.run_id).push(event);
+      });
+      const snapshotsByRun = new Map();
+      report.snapshots.forEach((snapshot) => {
+        if (!snapshotsByRun.has(snapshot.run_id)) snapshotsByRun.set(snapshot.run_id, []);
+        snapshotsByRun.get(snapshot.run_id).push(snapshot);
+      });
+      const debugByRun = new Map();
+      report.debug.forEach((record) => {
+        if (!debugByRun.has(record.run_id)) debugByRun.set(record.run_id, []);
+        debugByRun.get(record.run_id).push(record);
+      });
+
+      const visibleRuns = () => selectedDate
+        ? allRuns.filter((run) => localDate(run.start) === selectedDate)
+        : allRuns;
+      const visibleRunIds = () => new Set(visibleRuns().map((run) => run.run_id));
+      const visibleSecurity = () => {
+        const runIds = visibleRunIds();
+        return report.security.filter((event) => runIds.has(event.run_id));
+      };
+      const visibleSnapshots = () => {
+        const runIds = visibleRunIds();
+        return report.snapshots.filter((snapshot) => runIds.has(snapshot.run_id));
+      };
+
+      const timedValues = (runs) => {
+        const runIds = new Set(runs.map((run) => run.run_id));
+        const values = runs.flatMap((run) => [run.start, run.end]).filter(Number.isFinite);
+        report.security.forEach((event) => {
+          if (runIds.has(event.run_id)) {
+            const value = parseTime(event.timestamp);
+            if (value !== null) values.push(value);
+          }
+        });
+        report.snapshots.forEach((snapshot) => {
+          if (runIds.has(snapshot.run_id)) {
+            const value = parseTime(snapshot.created_at);
+            if (value !== null) values.push(value);
+          }
+        });
+        return values;
+      };
+
+      const resetTimeDomain = () => {
+        const values = timedValues(visibleRuns());
+        if (!values.length) {
+          dataStart = 0;
+          dataEnd = 1;
+          minimumWindow = 1;
+          startInput.disabled = true;
+          endInput.disabled = true;
+          return;
+        }
+        dataStart = Math.min(...values);
+        dataEnd = Math.max(...values);
+        if (dataEnd <= dataStart) dataEnd = dataStart + 1000;
+        minimumWindow = Math.min(1000, dataEnd - dataStart);
+        [startInput, endInput].forEach((input) => {
+          input.disabled = false;
+          input.min = String(dataStart);
+          input.max = String(dataEnd);
+          input.step = "1";
+        });
+        startInput.value = String(dataStart);
+        endInput.value = String(dataEnd);
+      };
+
+      const updateRange = () => {
+        if (startInput.disabled) {
+          root.querySelector("#timeline-window").textContent = "No timed records";
+          return;
+        }
+        const start = Number(startInput.value);
+        const end = Number(endInput.value);
+        const duration = dataEnd - dataStart;
+        rangeControl.style.setProperty("--range-start", `${((start - dataStart) / duration) * 100}%`);
+        rangeControl.style.setProperty("--range-end", `${((end - dataStart) / duration) * 100}%`);
+        root.querySelector("#timeline-window").textContent = formatRange(start, end);
+      };
+
+      const renderSummary = () => {
+        const statuses = report.summary.status_counts || {};
+        const metrics = [
+          [report.summary.total_runs || 0, "tool calls"],
+          [statuses.completed || 0, "completed"],
+          [statuses.blocked || 0, "blocked"],
+          [statuses.failed || 0, "failed"],
+          [report.summary.active_days || 0, "observed days"]
+        ];
+        root.querySelector("#summary").replaceChildren(...metrics.map(([value, label]) => {
+          const span = document.createElement("span");
+          const strong = document.createElement("strong");
+          strong.textContent = value;
+          span.append(strong, ` ${label}`);
+          return span;
+        }));
+        root.querySelector("#path-mode").textContent = report.paths_masked ? "Displayed paths: masked" : "Displayed paths: recorded values";
+        root.querySelector("#generated-at").textContent = `Generated ${report.generated_at}`;
+        const globalValues = timedValues(allRuns);
+        root.querySelector("#archive-window").textContent = globalValues.length
+          ? `Archive window: ${formatRange(Math.min(...globalValues), Math.max(...globalValues))}`
+          : "Archive window: no timed records";
+      };
+
+      const renderActivity = () => {
+        const counts = new Map();
+        allRuns.forEach((run) => counts.set(localDate(run.start), (counts.get(localDate(run.start)) || 0) + 1));
+        const maxCount = Math.max(1, ...counts.values());
+        const strip = root.querySelector("#activity-strip");
+        strip.replaceChildren();
+        if (!counts.size) {
+          const empty = document.createElement("p");
+          empty.className = "empty";
+          empty.textContent = "No timed tool runs were found.";
+          strip.appendChild(empty);
+          return;
+        }
+        const allButton = document.createElement("button");
+        allButton.className = "activity-day";
+        allButton.type = "button";
+        allButton.setAttribute("aria-pressed", String(selectedDate === null));
+        allButton.innerHTML = `<span class="bar" style="height:72px"></span><span class="date">All</span>`;
+        allButton.addEventListener("click", () => selectDate(null));
+        strip.appendChild(allButton);
+        [...counts.entries()].sort().forEach(([date, count]) => {
+          const button = document.createElement("button");
+          button.className = "activity-day";
+          button.type = "button";
+          button.setAttribute("aria-pressed", String(selectedDate === date));
+          button.setAttribute("aria-label", `${date}, ${count} tool calls`);
+          const bar = document.createElement("span");
+          bar.className = "bar";
+          bar.style.height = `${Math.max(5, (count / maxCount) * 72)}px`;
+          const label = document.createElement("span");
+          label.className = "date";
+          label.textContent = date;
+          button.append(bar, label);
+          button.addEventListener("click", () => selectDate(date));
+          strip.appendChild(button);
+        });
+        root.querySelector("#date-selection").textContent = selectedDate
+          ? `Selected: ${selectedDate} · ${visibleRuns().length} calls`
+          : `Selected: all observed dates · ${allRuns.length} calls`;
+      };
+
+      const renderLegend = (tools) => {
+        const lanes = [...tools, "security", "snapshot"];
+        root.querySelector("#legend").replaceChildren(...lanes.map((lane, index) => {
+          const item = document.createElement("span");
+          item.className = "legend-item mono";
+          const swatch = document.createElement("span");
+          swatch.className = "swatch";
+          swatch.style.setProperty("--color", colorFor(lane, index));
+          item.append(swatch, lane);
+          return item;
+        }));
+      };
+
+      const renderTimeline = () => {
+        const runs = visibleRuns();
+        const tools = [...new Set(runs.map((run) => run.tool))];
+        renderLegend(tools);
+        svg.replaceChildren();
+        if (!runs.length || startInput.disabled) {
+          const text = makeSvg("text", { x: 10, y: 32, fill: "var(--muted)", "font-size": 14 });
+          text.textContent = "No records in the current selection.";
+          svg.setAttribute("viewBox", "0 0 680 80");
+          svg.appendChild(text);
+          return;
+        }
+        const lanes = [...tools, "security", "snapshot"];
+        const width = Math.max(680, svg.parentElement.clientWidth);
+        const labelWidth = width < 800 ? 130 : 180;
+        const right = 18;
+        const top = 38;
+        const laneGap = 46;
+        const height = top + lanes.length * laneGap + 26;
+        const plotWidth = width - labelWidth - right;
+        const windowStart = Number(startInput.value);
+        const windowEnd = Number(endInput.value);
+        const windowDuration = Math.max(minimumWindow, windowEnd - windowStart);
+        const x = (timestamp) => labelWidth + ((timestamp - windowStart) / windowDuration) * plotWidth;
+        const y = (lane) => top + lanes.indexOf(lane) * laneGap;
+        svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+        svg.setAttribute("height", String(height));
+        const title = makeSvg("title");
+        title.textContent = "Tool runs linked to security and snapshot evidence";
+        svg.appendChild(title);
+
+        const tickCount = width < 800 ? 3 : 5;
+        for (let index = 0; index < tickCount; index += 1) {
+          const timestamp = windowStart + windowDuration * index / (tickCount - 1);
+          const tickX = x(timestamp);
+          svg.appendChild(makeSvg("line", { x1: tickX, x2: tickX, y1: 18, y2: y("snapshot") + 9, stroke: "var(--faint)", "stroke-width": 1 }));
+          const text = makeSvg("text", { x: tickX, y: 12, fill: "var(--muted)", "font-size": 10, "text-anchor": index === 0 ? "start" : index === tickCount - 1 ? "end" : "middle" });
+          text.textContent = localDateTime(timestamp);
+          svg.appendChild(text);
+        }
+        lanes.forEach((lane, index) => {
+          svg.appendChild(makeSvg("line", { x1: labelWidth, x2: width - right, y1: y(lane), y2: y(lane), stroke: "var(--rule)", "stroke-width": 1 }));
+          const text = makeSvg("text", { x: 0, y: y(lane) + 4, fill: colorFor(lane, index), "font-size": 12, "font-family": "SFMono-Regular, Menlo, Consolas, monospace" });
+          text.textContent = lane === "snapshot" ? "snapshot/metadata.jsonl" : `${lane}.jsonl`;
+          svg.appendChild(text);
+        });
+
+        runs.forEach((run) => {
+          if (run.end < windowStart || run.start > windowEnd) return;
+          const visibleStart = Math.max(run.start, windowStart);
+          const visibleEnd = Math.min(run.end, windowEnd);
+          const startX = x(visibleStart);
+          const actualEndX = x(visibleEnd);
+          const endX = Math.max(startX + 8, Math.min(width - right, actualEndX));
+          const runY = y(run.tool);
+          const color = colorFor(run.tool, tools.indexOf(run.tool));
+          const selected = run.run_id === selectedRunId;
+
+          (securityByRun.get(run.run_id) || []).forEach((event) => {
+            const targetTime = parseTime(event.timestamp) ?? run.end;
+            if (targetTime < windowStart || targetTime > windowEnd) return;
+            const targetX = x(targetTime);
+            svg.appendChild(makeSvg("line", { x1: targetX, x2: targetX, y1: runY, y2: y("security"), stroke: color, "stroke-width": selected ? 2.5 : 1.4 }));
+            svg.appendChild(makeSvg("rect", { x: targetX - 4, y: y("security") - 4, width: 8, height: 8, fill: "var(--security)", transform: `rotate(45 ${targetX} ${y("security")})` }));
+          });
+          (snapshotsByRun.get(run.run_id) || []).forEach((snapshot) => {
+            const targetTime = parseTime(snapshot.created_at) ?? run.start;
+            if (targetTime < windowStart || targetTime > windowEnd) return;
+            const targetX = x(targetTime);
+            svg.appendChild(makeSvg("line", { x1: targetX, x2: targetX, y1: runY, y2: y("snapshot"), stroke: color, "stroke-width": selected ? 2.5 : 1.4, "stroke-dasharray": "3 3" }));
+            svg.appendChild(makeSvg("rect", { x: targetX - 4, y: y("snapshot") - 4, width: 8, height: 8, fill: "var(--snapshot)", transform: `rotate(45 ${targetX} ${y("snapshot")})` }));
+          });
+
+          svg.appendChild(makeSvg("rect", { x: startX, y: runY - 3.5, width: endX - startX, height: 7, fill: color, stroke: selected ? "var(--ink)" : "none", "stroke-width": selected ? 1.5 : 0 }));
+          const terminal = terminalStatuses.has(run.status) && run.status !== "completed"
+            ? makeSvg("rect", { x: endX - 4.5, y: runY - 4.5, width: 9, height: 9, fill: color })
+            : makeSvg("circle", { cx: endX, cy: runY, r: 4.5, fill: color });
+          const hit = makeSvg("rect", { x: startX - 10, y: runY - 17, width: Math.max(34, endX - startX + 20), height: 34, fill: "transparent", role: "button", tabindex: 0, "aria-label": `${run.tool} ${run.status} ${run.run_id}` });
+          hit.style.cursor = "pointer";
+          hit.addEventListener("click", () => selectRun(run.run_id));
+          hit.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" || event.key === " ") selectRun(run.run_id);
+          });
+          svg.append(terminal, hit);
+        });
+      };
+
+      const selectRun = (runId) => {
+        selectedRunId = runId;
+        const run = allRuns.find((candidate) => candidate.run_id === runId);
+        if (!run) return;
+        const security = securityByRun.get(runId) || [];
+        const snapshots = snapshotsByRun.get(runId) || [];
+        root.querySelector("#selected-time").textContent = `${localDateTime(run.start)} (${zoneLabel(run.start)})`;
+        root.querySelector("#selected-run").textContent = run.run_id;
+        const links = [`audit/${run.tool}.jsonl`];
+        if (security.length) links.push("audit/security.jsonl");
+        if (snapshots.length) links.push("snapshot/metadata.jsonl", "snapshot/objects/<sha256>.do");
+        if ((debugByRun.get(runId) || []).length) links.push("debug/checkpoints.jsonl or debug/traces.jsonl");
+        root.querySelector("#selected-links").textContent = links.join(" → ");
+        renderTimeline();
+      };
+
+      const renderTables = () => {
+        const toolRows = [];
+        const byTool = new Map();
+        allRuns.forEach((run) => {
+          if (!byTool.has(run.tool)) byTool.set(run.tool, { total: 0, statuses: new Map() });
+          const entry = byTool.get(run.tool);
+          entry.total += 1;
+          entry.statuses.set(run.status, (entry.statuses.get(run.status) || 0) + 1);
+        });
+        [...byTool.entries()].sort().forEach(([tool, entry], index) => {
+          const row = document.createElement("tr");
+          const toolCell = document.createElement("td");
+          toolCell.className = "mono";
+          toolCell.style.color = colorFor(tool, index);
+          toolCell.textContent = tool;
+          const statusCell = document.createElement("td");
+          statusCell.textContent = [...entry.statuses.entries()].map(([status, count]) => `${status}: ${count}`).join(", ");
+          const countCell = document.createElement("td");
+          countCell.textContent = entry.total;
+          row.append(toolCell, statusCell, countCell);
+          toolRows.push(row);
+        });
+        root.querySelector("#tool-table").replaceChildren(...toolRows);
+
+        const securityRows = report.security.map((event) => {
+          const row = document.createElement("tr");
+          const riskCell = document.createElement("td");
+          riskCell.className = "mono";
+          riskCell.textContent = escapeText(event.risk_type);
+          const toolCell = document.createElement("td");
+          toolCell.className = "mono";
+          toolCell.textContent = escapeText(event.tool);
+          const outcomeCell = document.createElement("td");
+          outcomeCell.className = event.decision === "blocked" ? "blocked" : "";
+          outcomeCell.textContent = event.executed === false ? "prevented" : escapeText(event.decision);
+          row.append(riskCell, toolCell, outcomeCell);
+          return row;
+        });
+        root.querySelector("#security-table").replaceChildren(...securityRows);
+
+        const errorCount = report.issues.filter((issue) => issue.severity === "error").length;
+        const warningCount = report.issues.filter((issue) => issue.severity === "warning").length;
+        const checks = [
+          ["Lifecycle pairing", `${allRuns.length} runs`, errorCount ? "CHECK" : "PASS"],
+          ["Security linkage", `${report.security.length} events`, errorCount ? "CHECK" : "PASS"],
+          ["Snapshot metadata", `${report.snapshots.length} records`, "VERIFY HASHES"],
+          ["Debug correlation", `${report.debug.length} records`, report.debug.length ? "AVAILABLE" : "N/A"],
+          ["Reader limitations", `${errorCount} errors / ${warningCount} warnings`, errorCount ? "FAIL" : "PASS"]
+        ];
+        root.querySelector("#integrity-table").replaceChildren(...checks.map(([name, coverage, result]) => {
+          const row = document.createElement("tr");
+          [name, coverage, result].forEach((value) => {
+            const cell = document.createElement("td");
+            cell.textContent = value;
+            row.appendChild(cell);
+          });
+          return row;
+        }));
+      };
+
+      const selectDate = (date) => {
+        selectedDate = date;
+        const runs = visibleRuns();
+        if (!runs.some((run) => run.run_id === selectedRunId)) selectedRunId = runs[0]?.run_id || null;
+        resetTimeDomain();
+        updateRange();
+        renderActivity();
+        renderTimeline();
+        if (selectedRunId) selectRun(selectedRunId);
+      };
+
+      startInput.addEventListener("input", () => {
+        if (Number(startInput.value) > Number(endInput.value) - minimumWindow) {
+          startInput.value = String(Number(endInput.value) - minimumWindow);
+        }
+        updateRange();
+        renderTimeline();
+      });
+      endInput.addEventListener("input", () => {
+        if (Number(endInput.value) < Number(startInput.value) + minimumWindow) {
+          endInput.value = String(Number(startInput.value) + minimumWindow);
+        }
+        updateRange();
+        renderTimeline();
+      });
+
+      renderSummary();
+      renderTables();
+      resetTimeDomain();
+      updateRange();
+      renderActivity();
+      renderTimeline();
+      if (selectedRunId) selectRun(selectedRunId);
+      new ResizeObserver(renderTimeline).observe(svg.parentElement);
+    })();
+  </script>
+</body>
+</html>
