@@ -31,6 +31,21 @@ def print_cli_result(result: object) -> None:
     print(result)
 
 
+def handle_discover(args: Namespace) -> int:
+    """Print discovered installations without initializing the server or config."""
+    from ..core.types import OSNotSupported
+    from ..utils.discovery import discover_stata
+
+    try:
+        paths = discover_stata()
+    except OSNotSupported as error:
+        print(error, file=sys.stderr)
+        return 1
+    for path in paths:
+        print(path)
+    return 0
+
+
 def handle_usable() -> int:
     """Handle the --usable flag."""
     from ..config import Config

@@ -20,6 +20,29 @@ stata-mcp doctor
 
 ## 命令
 
+### 查找 Stata 安装
+
+```bash
+uvx stata-mcp discover
+```
+
+列出 macOS 和 Windows 上安装的 Stata，按路径排序、去重，每行只输出一个绝对路径。
+例如 macOS 返回：
+
+```text
+/Applications/Stata/StataMP.app
+/Applications/StataNow/StataMP.app
+```
+
+Windows 返回可执行文件路径，例如 `C:\Program Files\Stata18\StataMP-64.exe`。
+命令读取已安装应用列表，并检查 `PATH` 和 `STATA_CLI`（或 `stata_cli`）。
+Windows 还会检查常见安装目录，补充安装记录中缺少路径的情况。
+未登记、且不在这些位置的自定义安装可能无法找到。
+
+查找不会启动 Stata、验证许可证或修改配置。没有找到时不输出内容，退出码为 `0`。
+不支持的系统只向标准错误输出 `OS not supported`，退出码为 `1`；
+Python 查找函数抛出 `OSNotSupported`。此限制仅针对 `discover` 命令。
+
 ### 全局配置覆盖
 
 大多数用户应使用 `~/.statamcp/config.toml`，并按需添加

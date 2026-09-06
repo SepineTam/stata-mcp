@@ -106,6 +106,19 @@ def create_root_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def add_discover_parser(subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:
+    """Add the installation discovery subcommand."""
+    return subparsers.add_parser(
+        "discover",
+        help="List installed Stata paths, one per line",
+        description=(
+            "Search installed applications, common installation directories, PATH, and STATA_CLI. "
+            "Print macOS .app bundles or Windows .exe paths, one per line. "
+            "Does not launch Stata or verify licenses."
+        ),
+    )
+
+
 def add_server_parser(subparsers: argparse._SubParsersAction) -> argparse.ArgumentParser:
     """Add the server subcommand parser."""
     server_parser = subparsers.add_parser(

@@ -20,6 +20,31 @@ stata-mcp doctor
 
 ## Commands
 
+### Discover Stata installations
+
+```bash
+uvx stata-mcp discover
+```
+
+Lists installed Stata applications on macOS and Windows, one absolute path per
+line, sorted and deduplicated. For example, on macOS:
+
+```text
+/Applications/Stata/StataMP.app
+/Applications/StataNow/StataMP.app
+```
+
+Windows returns executable paths such as `C:\Program Files\Stata18\StataMP-64.exe`.
+Discovery reads the installed application list and also checks `PATH` and
+`STATA_CLI` (or `stata_cli`). On Windows, common installation directories are
+also checked when installation records lack a location. Unregistered custom
+installations outside these locations may not be found.
+
+The command does not launch Stata, verify licenses, or change configuration.
+No matches produces no output and exit code `0`. Unsupported operating systems
+produce only `OS not supported` on stderr and exit code `1`; the Python discovery
+function raises `OSNotSupported`. This restriction applies only to `discover`.
+
 ### Global Config Override
 
 Most users should use `~/.statamcp/config.toml` and optional
