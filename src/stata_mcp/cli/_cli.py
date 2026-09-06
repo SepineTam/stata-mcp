@@ -14,6 +14,7 @@ import sys
 
 from ._handlers import (
     handle_config,
+    handle_discover,
     handle_doctor,
     handle_install,
     handle_server,
@@ -24,6 +25,7 @@ from ._handlers import (
 )
 from ._parsers import (
     add_config_parser,
+    add_discover_parser,
     add_doctor_parser,
     add_install_parser,
     add_server_parser,
@@ -40,6 +42,7 @@ def main() -> None:
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     add_doctor_parser(subparsers)
+    add_discover_parser(subparsers)
     add_server_parser(subparsers)
     tool_parser = add_tool_parser(subparsers)
     config_parser = add_config_parser(subparsers)
@@ -62,6 +65,9 @@ def main() -> None:
 
     if args.command == "doctor":
         sys.exit(handle_doctor(args))
+
+    if args.command == "discover":
+        sys.exit(handle_discover(args))
 
     if args.command == "server":
         handle_server(args)

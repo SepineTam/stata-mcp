@@ -46,6 +46,8 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
+    "installed-apps-scanner>=0.1.0,<0.2; sys_platform == 'darwin'",
+    "winapps>=0.2.0,<0.3; sys_platform == 'win32'",
     "mcp[cli]>=2.1.1,<3.0",
     "opentelemetry-sdk>=1.44.0,<2.0",
     "cryptography>=50.0.0",

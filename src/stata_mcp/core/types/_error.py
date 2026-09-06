@@ -3,6 +3,13 @@ class StataMCPError(Exception):
     pass
 
 
+class OSNotSupported(StataMCPError):
+    """Raised when an operation is unavailable on the current OS."""
+
+    def __init__(self):
+        super().__init__("OS not supported")
+
+
 class RAMLimitExceededError(StataMCPError):
     """Exception raised when Stata process exceeds configured RAM limit."""
 
