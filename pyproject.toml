@@ -71,7 +71,6 @@ build-backend = "uv_build"
 module-root = "src"
 
 [tool.nuitka]
-main = "src/stata_mcp/cli.py"
 output-filename = "stata-mcp"
 include-package = [
     "stata_mcp",
@@ -82,8 +81,6 @@ include-package = [
     "pexpect",
     "psutil",
     "requests",
-    "dotenv",
-    "pathvalidate",
     "tomli_w",
 ]
 assume-yes-for-downloads = true

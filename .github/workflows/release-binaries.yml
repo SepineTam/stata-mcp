@@ -45,6 +45,9 @@ jobs:
       - name: Install build dependencies
         run: uv sync --group build
 
+      - name: Validate binary build inputs
+        run: uv run pytest tests/test_release_binaries.py -q
+
       - name: Build Python distributions
         if: matrix.os == 'ubuntu-latest'
         run: uv build
