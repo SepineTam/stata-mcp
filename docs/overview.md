@@ -2,7 +2,7 @@
 
 ## What is MCP-for-Stata and Stata?
 
-**MCP-for-Stata** is a Model Context Protocol (MCP) server that bridges Large Language Models (LLMs) with Stata, enabling autonomous econometric analysis and statistical computation. Built on the FastMCP framework, MCP-for-Stata exposes Stata's comprehensive analytical capabilities as structured tools that LLMs can invoke programmatically, transforming natural language queries into reproducible Stata workflows.
+**MCP-for-Stata** is a Model Context Protocol (MCP) server that bridges Large Language Models (LLMs) with Stata, enabling autonomous econometric analysis and statistical computation. Built on the MCP Python SDK 2.x `MCPServer` architecture, MCP-for-Stata exposes Stata's analytical capabilities as structured tools that LLMs can invoke programmatically, transforming natural language queries into reproducible Stata workflows.
 
 ### Why MCP-for-Stata?
 
@@ -17,10 +17,10 @@ MCP-for-Stata addresses a critical gap in AI-assisted research: while modern LLM
 
 ## Architecture Overview
 
-MCP-for-Stata operates through four architectural layers:
+MCP-for-Stata operates through six architectural layers:
 
 ### 1. **Protocol Layer (MCP Server)**
-The `FastMCP`-based server (`src/stata_mcp/__init__.py`) implements the Model Context Protocol, exposing Stata operations as structured tools. Each tool defines:
+The `MCPServer`-based server (`src/stata_mcp/mcp_servers.py`) implements the Model Context Protocol, exposing Stata operations as structured tools. It supports modern `2026-07-28` negotiation and legacy initialize-era clients. Each tool defines:
 - Input parameter schemas with type validation
 - Output serialization for LLM consumption
 - Error handling and logging infrastructure
@@ -32,21 +32,27 @@ Platform-specific Stata controllers manage command execution:
 - **`StataController`**: Manages Stata process lifecycle, command invocation, and exit code monitoring
 - **`StataDo`**: Handles do-file execution with log capture and error reporting
 
-### 3. **Security & Monitoring Layer**
+### 3. **Security & Audit Layer**
 Advanced safety features for production deployments:
 - **[Security Guard](security.md)**: Validates dofiles against dangerous commands (shell execution, file deletion, etc.)
-- **[Monitoring System](monitoring.md)**: Real-time RAM monitoring with automatic process termination
 - **Blacklist-based validation**: Blocks dangerous operations before execution
+- **[Audit Trail](audit.md)**: Append-only tool and security ledgers with immutable do-file snapshots
+- **[Audit Inspection](audit/reading.md)**: Read-only run reconstruction, blocked-call review, and evidence integrity checks
+
+### 4. **Observability & Monitoring Layer**
+- **[Local Debug Tracing](debug-tracing.md)**: Default-on local OpenTelemetry spans and immediate execution checkpoints
+- **Slow-call watchdog**: Privacy-safe thread locations after 30 and 120 seconds
+- **[Monitoring System](monitoring.md)**: Real-time RAM monitoring with automatic process termination
 - **Resource limits**: Prevents memory exhaustion and system instability
 
-### 4. **Configuration Layer**
+### 5. **Configuration Layer**
 Unified configuration management with hierarchical priority:
 - **[Configuration System](configuration.md)**: TOML-based config file at `~/.statamcp/config.toml`
 - **Environment variables**: Override settings for specific sessions
 - **Priority**: Environment variables > config file > defaults
 - **Sections**: DEBUG, SECURITY, PROJECT, MONITOR, BETA, HELP, STATA, data_info
 
-### 5. **Application Layer (Modes & Tools)**
+### 6. **Application Layer (Modes & Tools)**
 Two primary operational modes:
 
 #### **MCP Server Mode** (Default)
@@ -91,7 +97,10 @@ MCP-for-Stata enforces a standardized directory layout for reproducible research
 ~/.statamcp/
 ├── stata-mcp-log/      # Stata execution logs (timestamped)
 ├── stata-mcp-dofile/   # Generated do-files (ISO 8601 timestamps)
-└── stata-mcp-tmp/      # Temporary artifacts (data info cache)
+├── stata-mcp-tmp/      # Temporary artifacts (data info cache)
+├── audit/              # Append-only per-tool and security ledgers
+├── snapshot/           # Full-hash do-file objects and metadata.jsonl
+└── debug/              # Rotating checkpoints.jsonl and traces.jsonl
 ```
 
 For AI-assisted research projects, a recommended layout is:

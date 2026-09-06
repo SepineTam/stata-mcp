@@ -79,6 +79,8 @@ claude mcp add stata-mcp --env STATA_MCP__CWD=$(pwd) --scope project -- uvx --di
 ### 高级功能
 
 - **[安全守卫](security.md)**：危险命令的安全验证系统
+- **[审计记录](audit.md)**：只追加的工具记录、准确 do-file 快照与安全联动
+- **[本地调试黑匣子](debug-tracing.md)**：用于缓慢或卡住调用的轮转检查点和 trace
 - **[监控系统](monitoring.md)**：RAM 监控和资源限制
 - **[故障排查](troubleshooting.zh.md)**：常见问题与网络问题解决方案
 
@@ -104,6 +106,8 @@ claude mcp add stata-mcp --env STATA_MCP__CWD=$(pwd) --scope project -- uvx --di
 - [开始使用](index.md)
 - [配置指南](configuration.md)
 - [安全文档](security.md)
+- [审计与证据](audit.md)
+- [如何读取审计文件](audit/reading.md)
 - [监控设置](monitoring.md)
 
 ### 面向开发者

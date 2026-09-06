@@ -81,12 +81,21 @@ nav:
   - Configuration: configuration.md
   - Beta Configuration: beta.md
   - Security: security.md
+  - Audit & Observability:
+      - Audit Overview: audit.md
+      - Reading Audit Files: audit/reading.md
+      - Events & Correlation: audit/events.md
+      - Snapshots & Security Linkage: audit/snapshots-security.md
+      - Local Debug Tracing: debug-tracing.md
   - Monitoring: monitoring.md
   - Troubleshooting: troubleshooting.md
   - Tools: mcp/tools.md
   - Resources: mcp/resources.md
 
   - API: api/overview.md
+
+  - Developer Notes:
+      - MCP SDK Migration: mcp-v2.md
 
   - Agents:
       - Claude Code: agents/claude_code.md

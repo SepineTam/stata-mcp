@@ -489,6 +489,13 @@ The Security Guard is one layer of protection. Combine with:
 The Security Guard is automatically integrated with:
 
 - `stata_do`: Execute Stata do-files (validated by default)
+- `get_data_info`: Record supported local-path and URL guard refusals
+- `read_log`: Record strict path-boundary refusals
+
+Guard refusals are persisted as linked Audit events. The terminal tool event
+uses `event: "blocked"` and `executed: false`, while detailed safe findings live
+in `audit/security.jsonl`. See
+[Snapshots and Security Linkage](audit/snapshots-security.md).
 
 ### Validation Flow
 
@@ -497,7 +504,7 @@ User Request → MCP Tool → Security Guard → Validation
                                       ↓
                                  Pass? → Execute
                                       ↓
-                                 Fail? → Return Error
+                                 Fail? → Record linked block and return refusal
 ```
 
 ## Extensibility

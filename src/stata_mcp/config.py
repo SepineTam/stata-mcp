@@ -980,6 +980,36 @@ class Config:
         )
 
     @property
+    def DEBUG_TRACING_ON(self) -> bool:
+        return self._get_config_value(
+            config_keys=["DEBUG", "tracing", "ENABLED"],
+            env_var="STATA_MCP__DEBUG_TRACING_ON",
+            default=True,
+            converter=self._to_bool,
+            validator=lambda x: isinstance(x, bool),
+        )
+
+    @property
+    def DEBUG_TRACING_MAX_BYTES(self) -> int:
+        return self._get_config_value(
+            config_keys=["DEBUG", "tracing", "MAX_BYTES"],
+            env_var="STATA_MCP__DEBUG_TRACING_MAX_BYTES",
+            default=10 * 1024 * 1024,
+            converter=self._to_int,
+            validator=lambda x: isinstance(x, int) and x > 0,
+        )
+
+    @property
+    def DEBUG_TRACING_BACKUP_COUNT(self) -> int:
+        return self._get_config_value(
+            config_keys=["DEBUG", "tracing", "BACKUP_COUNT"],
+            env_var="STATA_MCP__DEBUG_TRACING_BACKUP_COUNT",
+            default=3,
+            converter=self._to_int,
+            validator=lambda x: isinstance(x, int) and x >= 0,
+        )
+
+    @property
     def IS_ASYNC_DO(self) -> bool:
         return self._get_config_value(
             config_keys=["BETA", "IS_ASYNC_DO"],

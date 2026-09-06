@@ -483,6 +483,10 @@ validator.dangerous_commands.add("another_command")
 安全守卫自动与以下工具集成：
 
 - `stata_do`：执行 Stata do 文件（默认验证）
+- `get_data_info`：记录支持的本地路径与 URL Guard 拒绝
+- `read_log`：记录严格路径边界拒绝
+
+Guard 拒绝会保存为互相关联的 Audit 事件。工具结束事件使用 `event: "blocked"` 和 `executed: false`，详细的安全位置写入 `audit/security.jsonl`。参见[快照与安全联动](audit/snapshots-security.md)。
 
 ### 验证流程
 
@@ -491,7 +495,7 @@ validator.dangerous_commands.add("another_command")
                                       ↓
                                  通过？ → 执行
                                       ↓
-                                 失败？ → 返回错误
+                                 失败？ → 记录关联阻拦并返回拒绝
 ```
 
 ## 可扩展性

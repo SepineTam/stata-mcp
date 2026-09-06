@@ -58,6 +58,11 @@ LOG_FILE = "~/.statamcp/stata_mcp_debug.log"
 MAX_BYTES = 10_000_000
 BACKUP_COUNT = 5
 
+[DEBUG.tracing]
+ENABLED = true
+MAX_BYTES = 10485760
+BACKUP_COUNT = 3
+
 [BETA]
 IS_ASYNC_DO = false
 MAX_ASYNC_DO = 3
@@ -186,6 +191,32 @@ Beta 选项单独放在 [Beta 配置](beta.md) 中说明。
   ```bash
   export STATA_MCP__LOGGING__BACKUP_COUNT=10
   ```
+
+#### `DEBUG.tracing.ENABLED`
+
+为 `get_data_info` 和 `stata_do` 启用本地检查点、OpenTelemetry 记录和慢调用现场记录。
+
+- **类型**：Boolean
+- **默认值**：`true`
+- **环境变量**：`STATA_MCP__DEBUG_TRACING_ON`
+
+#### `DEBUG.tracing.MAX_BYTES`
+
+每个本地 debug JSONL 活动文件在轮转前允许的最大大小。
+
+- **类型**：Integer（bytes）
+- **默认值**：`10485760`（10 MiB）
+- **环境变量**：`STATA_MCP__DEBUG_TRACING_MAX_BYTES`
+
+#### `DEBUG.tracing.BACKUP_COUNT`
+
+checkpoints 和 traces 各自保留的轮转备份数量。
+
+- **类型**：Integer
+- **默认值**：`3`
+- **环境变量**：`STATA_MCP__DEBUG_TRACING_BACKUP_COUNT`
+
+具体记录步骤、隐私边界和查看方法参见[本地调试黑匣子](debug-tracing.md)。
 
 ### HELP 分区
 
@@ -346,8 +377,13 @@ Python API 不要求调用方确认。CLI 未传入 `-y` 或 `--yes` 时会进�
 ├── stata-mcp-log/      # Stata 执行日志
 ├── stata-mcp-dofile/   # 生成的 do 文件
 ├── stata-mcp-result/   # 分析结果
-└── stata-mcp-tmp/      # 临时文件
+├── stata-mcp-tmp/      # 临时文件
+├── audit/               # 按工具拆分的只追加审计账本
+├── snapshot/            # 完整 SHA-256 对象和 metadata.jsonl
+└── debug/               # 允许轮转的检查点与 OpenTelemetry span
 ```
+
+`PROJECT.CLEAN_LOG_DAYS` 只应用于 Stata 日志，不会清理 Audit JSONL 或快照对象。Audit v1 没有自动保留设置。制定项目归档或删除策略前，请先阅读[审计记录](audit.md)。
 
 **迁移说明（v1.16.0）**：
 - 默认目录名从 `stata-mcp-folder` 改为 `.statamcp`。

@@ -71,6 +71,11 @@ LOG_FILE = "~/.statamcp/stata_mcp_debug.log"
 MAX_BYTES = 10_000_000
 BACKUP_COUNT = 5
 
+[DEBUG.tracing]
+ENABLED = true
+MAX_BYTES = 10485760
+BACKUP_COUNT = 3
+
 [BETA]
 IS_ASYNC_DO = false
 MAX_ASYNC_DO = 3
@@ -199,6 +204,34 @@ Number of backup log files to keep.
   ```bash
   export STATA_MCP__LOGGING__BACKUP_COUNT=10
   ```
+
+#### `DEBUG.tracing.ENABLED`
+
+Enable local diagnostic checkpoints, OpenTelemetry spans, and the slow-call
+watchdog for `get_data_info` and `stata_do`.
+
+- **Type**: Boolean
+- **Default**: `true`
+- **Environment Variable**: `STATA_MCP__DEBUG_TRACING_ON`
+
+#### `DEBUG.tracing.MAX_BYTES`
+
+Maximum size of each active local debug JSONL file before rotation.
+
+- **Type**: Integer (bytes)
+- **Default**: `10485760` (10 MiB)
+- **Environment Variable**: `STATA_MCP__DEBUG_TRACING_MAX_BYTES`
+
+#### `DEBUG.tracing.BACKUP_COUNT`
+
+Number of rotated backups kept separately for checkpoints and traces.
+
+- **Type**: Integer
+- **Default**: `3`
+- **Environment Variable**: `STATA_MCP__DEBUG_TRACING_BACKUP_COUNT`
+
+See [Local Debug Tracing](debug-tracing.md) for recorded stages, privacy rules,
+and interpretation guidance.
 
 ### HELP Section
 
@@ -364,8 +397,15 @@ The working directory structure:
 ├── stata-mcp-log/      # Stata execution logs
 ├── stata-mcp-dofile/   # Generated do-files
 ├── stata-mcp-result/   # Analysis results
-└── stata-mcp-tmp/      # Temporary files
+├── stata-mcp-tmp/      # Temporary files
+├── audit/               # Append-only per-tool audit ledgers
+├── snapshot/            # Full-SHA256 objects and metadata.jsonl
+└── debug/               # Rotating checkpoints and OpenTelemetry spans
 ```
+
+`PROJECT.CLEAN_LOG_DAYS` applies to Stata logs, not to Audit JSONL or snapshot
+objects. Audit v1 has no automatic retention setting. See
+[Audit Trail](audit.md) before defining a project archival or deletion policy.
 
 **Migration note (v1.16.0)**:
 - The default folder name changed from `stata-mcp-folder` to `.statamcp`.
