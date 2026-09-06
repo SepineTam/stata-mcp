@@ -75,7 +75,6 @@ output-filename = "stata-mcp"
 include-package = [
     "stata_mcp",
     "mcp",
-    "pandas",
     "pyreadstat",
     "openpyxl",
     "pexpect",
@@ -83,6 +82,8 @@ include-package = [
     "requests",
     "tomli_w",
 ]
+nofollow-import-to = ["pandas.tests", "numpy.tests"]
+noinclude-pytest-mode = "nofollow"
 assume-yes-for-downloads = true
 
 [dependency-groups]
